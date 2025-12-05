@@ -758,139 +758,7 @@ if merged_data:
     )
 else:
     st.error("No valid files to merge.")
-import streamlit as st
-import pandas as pd
-from fpdf import FPDF
-import os
-from io import BytesIO
-import datetime
 
-# ----------------- PDF CLASS (Watermark) ------------------
-class PDF(FPDF):
-    def header(self):
-        self.set_font("Arial", "B", 12)
-        self.cell(0, 10, "Cheque Wise Analysis Report", ln=True, align="C")
-        self.ln(5)
-
-    def footer(self):
-        self.set_y(-25)
-        self.set_font("Arial", "B", 16)
-        self.set_text_color(200, 200, 200)
-        self.rotate(30)
-        self.text(30, 250, "Prepared by M. Khaleel")
-        self.rotate(0)
-
-# ----------------- DRAW ROW FUNCTION ------------------
-def draw_row(pdf, row_data, col_widths, row_height=6):
-    x_start = pdf.get_x()
-    y_start = pdf.get_y()
-
-    max_height = 0
-    for i, text in enumerate(row_data):
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.multi_cell(col_widths[i], row_height, str(text), 0, "C")
-        height = pdf.get_y() - y
-        max_height = max(max_height, height)
-        pdf.set_xy(x + col_widths[i], y)
-
-    pdf.set_xy(x_start, y_start)
-    for i, text in enumerate(row_data):
-        pdf.multi_cell(col_widths[i], row_height, str(text), 1, "C")
-        pdf.set_xy(pdf.get_x() + col_widths[i], pdf.get_y() - row_height)
-
-    pdf.set_xy(x_start, y_start + max_height)
-
-# ----------------- STREAMLIT TITLE ------------------
-st.header("Cheque Wise Analysis (PDF with 1st & 2nd Tranche Check)")
-
-# ---------- MERGE ALL CSVs FROM FOLDER ----------
-folder_path = "merged_csv"
-
-st.write("📂 Reading CSV files from:", folder_path)
-
-if not os.path.exists(folder_path):
-    st.error("❌ Folder merged_csv GitHub میں موجود نہیں ہے۔")
-else:
-    csv_files = [f for f in os.listdir(folder_path) if f.endswith(".csv")]
-
-    if len(csv_files) == 0:
-        st.error("❌ No valid CSV files found in merged_csv folder.")
-    else:
-        df_list = []
-        for f in csv_files:
-            df_list.append(pd.read_csv(os.path.join(folder_path, f)))
-
-        merged_df = pd.concat(df_list, ignore_index=True)
-        st.success("✅ All CSV files merged successfully!")
-        st.dataframe(merged_df.head())
-
-        # ---------------- FILTER 1st TRANCHE ----------------
-        df_first = merged_df[merged_df["tranch_no"] == 1].copy()
-
-        # ---------- FIND IF 2nd TRANCHE EXISTS ----------
-        merged_df["has_second"] = merged_df.groupby("sanction_no")["tranch_no"].transform(
-            lambda x: 2 in x.values
-        )
-
-        df_first["Second Tranch"] = merged_df.groupby("sanction_no")["has_second"].transform(
-            lambda x: "OK" if x.iloc[0] else ""
-        )
-
-        # ---------- CALCULATE MONTHS PASSED ----------
-        merged_df["date"] = pd.to_datetime(merged_df["date"], errors="coerce")
-        today = datetime.date.today()
-
-        df_first["Months Passed"] = merged_df["date"].apply(
-            lambda d: (today.year - d.year) * 12 + today.month - d.month if pd.notnull(d) else ""
-        )
-
-        # -------------------------- GENERATE PDF --------------------------
-        if st.button("⬇️ Download Cheque Wise PDF"):
-            pdf = PDF()
-            pdf.add_page()
-            pdf.set_font("Arial", "", 9)
-
-            headers = ["Sanction No", "Name", "Cheque", "Amount", "Date", "Months Passed", "2nd Tranch"]
-            col_widths = [25, 40, 25, 25, 25, 25, 25]
-
-            # Header row
-            pdf.set_font("Arial", "B", 9)
-            for i, h in enumerate(headers):
-                pdf.cell(col_widths[i], 8, h, 1, 0, "C")
-            pdf.ln()
-
-            pdf.set_font("Arial", "", 8)
-
-            for _, row in df_first.iterrows():
-                row_list = [
-                    row["sanction_no"],
-                    row["name"],
-                    row["cheque_no"],
-                    row["amount"],
-                    row["date"].strftime("%d-%m-%Y") if pd.notnull(row["date"]) else "",
-                    row["Months Passed"],
-                    row["Second Tranch"]
-                ]
-                draw_row(pdf, row_list, col_widths)
-
-                if pdf.get_y() > 260:
-                    pdf.add_page()
-                    for i, h in enumerate(headers):
-                        pdf.cell(col_widths[i], 8, h, 1, 0, "C")
-                    pdf.ln()
-
-            pdf_buffer = BytesIO()
-            pdf_output = pdf.output(dest="S").encode("latin1")
-            pdf_buffer.write(pdf_output)
-            pdf_buffer.seek(0)
-
-            st.download_button(
-                label="📥 Download PDF",
-                data=pdf_buffer,
-                file_name="Cheque_Wise_Analysis.pdf",
-                mime="application/pdf"
-            )
 import streamlit as st
 import pandas as pd
 import os
@@ -1116,3 +984,160 @@ if uploaded_cheque:
     example_chart = example_count.pivot(index="branch_id", columns="Risk Level", values="percent").fillna(0)
     st.subheader("📊 Example Area-wise Risk Chart (Pichand Branch)")
     st.bar_chart(example_chart, use_container_width=True)
+import streamlit as st
+import pandas as pd
+import os
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import PageBreak
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from io import BytesIO
+
+# Register font to avoid PDF issues
+pdfmetrics.registerFont(TTFont('Helvetica', 'Helvetica.ttf'))
+
+st.header("📑 Cheque-wise Analysis")
+
+# --- File Upload ---
+uploaded_cheque = st.file_uploader(
+    "Upload Cheque-wise List", 
+    type=["xlsx", "csv"], 
+    key="cheque_uploader"
+)
+
+if uploaded_cheque:
+    # --- Read file ---
+    if uploaded_cheque.name.endswith(".csv"):
+        cheque_df = pd.read_csv(uploaded_cheque)
+    else:
+        cheque_df = pd.read_excel(uploaded_cheque)
+
+    # --- Required columns ---
+    required_cols = ["branch_id", "date_disbursed", "sanction_no", "tranch_no", "member_name", "member_cnic"]
+    cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
+
+    # --- Rename ---
+    cheque_df["Name"] = cheque_df["member_name"]
+    cheque_df.drop(columns=["member_name"], inplace=True)
+
+    # --- Date conversion ---
+    cheque_df["date_disbursed"] = pd.to_datetime(cheque_df["date_disbursed"], errors="coerce")
+    today = datetime.today()
+    cheque_df["Months Passed"] = cheque_df["date_disbursed"].apply(
+        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else None
+    )
+    cheque_df["Days Passed"] = cheque_df["date_disbursed"].apply(
+        lambda x: (today - x).days if pd.notnull(x) else None
+    )
+
+    # --- Add flags if missing ---
+    for col in ["House Complete", "Shifted", "Design"]:
+        if col not in cheque_df.columns:
+            if col in ["House Complete", "Shifted"]:
+                cheque_df[col] = "No"
+            else:
+                cheque_df[col] = ""
+
+    # --- Load previous flags ---
+    if os.path.exists("cheque_flags.csv"):
+        saved_flags = pd.read_csv("cheque_flags.csv")
+        cheque_df = cheque_df.merge(
+            saved_flags,
+            on=["sanction_no", "tranch_no"],
+            how="left",
+            suffixes=("", "_saved")
+        )
+        for col in ["House Complete", "Shifted", "Design"]:
+            if f"{col}_saved" in cheque_df.columns:
+                cheque_df[col] = cheque_df[f"{col}_saved"].combine_first(cheque_df[col])
+                cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
+
+    # ------------------------------------------------------------
+    # 🔥 ADD NEW COLUMN: 1st tranch row gets "OK" if 2nd tranch exists
+    # ------------------------------------------------------------
+    cheque_df["2nd Tranch Status"] = ""
+
+    sanction_counts = cheque_df.groupby("sanction_no")["tranch_no"].apply(list)
+
+    for sanc, tr_list in sanction_counts.items():
+        if 2 in tr_list:
+            cheque_df.loc[(cheque_df["sanction_no"] == sanc) & 
+                          (cheque_df["tranch_no"] == 1), "2nd Tranch Status"] = "OK"
+
+    # ------------------------------------------------------------
+
+    # --- Editable table: only 2nd Tranch ---
+    editable_df = cheque_df[cheque_df["tranch_no"] == 2]
+
+    edited_df = st.data_editor(
+        editable_df,
+        use_container_width=True,
+        num_rows="dynamic",
+        column_config={
+            "House Complete": st.column_config.SelectboxColumn(options=["Yes", "No"]),
+            "Shifted": st.column_config.SelectboxColumn(options=["Yes", "No"])
+        }
+    )
+
+    if st.button("💾 Save Flags", key="save_flags_btn"):
+        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted", "Design"]].to_csv("cheque_flags.csv", index=False)
+        st.success("✅ Flags saved successfully!")
+
+    # ------------------------------------------------------------
+    # ⭐ NEW FEATURE — Cheque-wise PDF Export (with "OK" column + watermark)
+    # ------------------------------------------------------------
+    if st.button("⬇️ Download Cheque-wise PDF", key="cheque_pdf_btn"):
+
+        pdf_buffer = BytesIO()
+
+        def watermark(canvas, doc):
+            canvas.saveState()
+            canvas.setFont("Helvetica", 10)
+            canvas.drawString(20, 20, "Prepared by M. Khaleel")
+            canvas.restoreState()
+
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("Cheque-wise Analysis Report", styles["Heading1"]))
+        elements.append(Spacer(1, 12))
+
+        display_df = cheque_df[
+            ["branch_id", "sanction_no", "tranch_no", "Name", "member_cnic", 
+             "date_disbursed", "Months Passed", "2nd Tranch Status",
+             "House Complete", "Shifted", "Design"]
+        ]
+
+        data = [display_df.columns.tolist()] + display_df.astype(str).values.tolist()
+
+        table = Table(data, repeatRows=1)
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,0), colors.grey),
+            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
+            ("ALIGN", (0,0), (-1,-1), "CENTER"),
+            ("GRID", (0,0), (-1,-1), 0.5, colors.black),
+            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+        ]))
+
+        elements.append(table)
+
+        doc.build(elements, onLaterPages=watermark, onFirstPage=watermark)
+
+        pdf_buffer.seek(0)
+
+        st.download_button(
+            label="⬇️ Download Cheque-wise PDF",
+            data=pdf_buffer.getvalue(),
+            file_name="cheque_wise_analysis.pdf",
+            mime="application/pdf"
+        )
+
+    # ------------------------------------------------------------
+    # ⭐ Your existing branch-wise PDF code remains unchanged
+    # ------------------------------------------------------------

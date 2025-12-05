@@ -1013,11 +1013,18 @@ if uploaded_cheque:
     else:
         cheque_df = pd.read_excel(uploaded_cheque)
 
+    # --- Clean column names for consistent access ---
+    cheque_df.columns = [str(c).strip() for c in cheque_df.columns]
+
     # --- Required columns ---
     required_cols = [
         "branch_id", "date_disbursed", "sanction_no",
-        "tranch_no", "member_name", "member_cnic", "numbern"
+        "tranch_no", "member_name", "member_cnic"
     ]
+    # Keep NumberN if exists
+    if any("number" in str(c).strip().lower() for c in cheque_df.columns):
+        required_cols.append([c for c in cheque_df.columns if "number" in str(c).strip().lower()][0])
+
     cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
 
     # --- Name column ---
@@ -1073,8 +1080,17 @@ if uploaded_cheque:
     display_columns = [
         "branch_id", "sanction_no", "tranch_no", "Name", "member_cnic",
         "date_disbursed", "Months Passed", "2nd Tranch Status",
-        "House Complete", "Shifted", "Design", "numbern"
+        "House Complete", "Shifted", "Design"
     ]
+
+    # Add NumberN if exists
+    number_col_name = None
+    for col in first_tranch_df.columns:
+        if "number" in str(col).strip().lower():
+            number_col_name = col
+            display_columns.append(number_col_name)
+            break
+
     display_columns = [c for c in display_columns if c in first_tranch_df.columns]
     editable_df = first_tranch_df[display_columns]
 
@@ -1140,20 +1156,16 @@ if uploaded_cheque:
                 # Add serial number
                 table_df.insert(0, "S.No", range(1, len(table_df) + 1))
 
-                # Ensure NumberN column exists and move to end
-                if "numbern" not in table_df.columns:
-                    table_df["NumberN"] = ""
+                # --- NumberN: keep original Excel data ---
+                if number_col_name:
+                    table_df["NumberN"] = branch_df[number_col_name].fillna("")
                 else:
-                    number_col = table_df.pop("numbern")
-                    table_df["NumberN"] = number_col
+                    table_df["NumberN"] = ""
 
-                # --- House Complete and Shifted: keep exact value, replace None/nan with blank ---
+                # --- House Complete / Shifted: keep exact value ---
                 for col in ["House Complete", "Shifted"]:
                     if col in table_df.columns:
                         table_df[col] = table_df[col].fillna("")
-
-                # --- NumberN: replace None/nan with blank ---
-                table_df["NumberN"] = table_df["NumberN"].fillna("")
 
                 # --- Create table for PDF ---
                 data = [table_df.columns.tolist()] + table_df.values.tolist()

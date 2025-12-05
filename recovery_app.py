@@ -1117,9 +1117,9 @@ if uploaded_cheque:
                 tranch1 = (branch_df["tranch_no"] == 1).sum()
                 tranch2 = (branch_full_df["tranch_no"] == 2).sum()
                 pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-                house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
-                shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
-                design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+                house_complete = branch_df["House Complete"].eq("Yes").sum()
+                shifted = branch_df["Shifted"].eq("Yes").sum()
+                design_complete = branch_df["Design"].eq("Yes").sum()
 
                 summary_text = f"""
                 <b>Summary:</b><br/>
@@ -1147,13 +1147,16 @@ if uploaded_cheque:
                     number_col = table_df.pop("numbern")
                     table_df["NumberN"] = number_col
 
-                # --- House Complete and Shifted: keep exact value from Excel / edited_df ---
-                # No conversion, blank stays blank
+                # --- House Complete and Shifted: keep exact value, replace None/nan with blank ---
                 for col in ["House Complete", "Shifted"]:
                     if col in table_df.columns:
-                        table_df[col] = table_df[col]
+                        table_df[col] = table_df[col].fillna("")
 
-                data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
+                # --- NumberN: replace None/nan with blank ---
+                table_df["NumberN"] = table_df["NumberN"].fillna("")
+
+                # --- Create table for PDF ---
+                data = [table_df.columns.tolist()] + table_df.values.tolist()
                 table = Table(data, repeatRows=1, hAlign="CENTER")
                 table.setStyle(TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
@@ -1194,9 +1197,9 @@ if uploaded_cheque:
             tranch1 = (branch_df["tranch_no"] == 1).sum()
             tranch2 = (branch_df["tranch_no"] == 2).sum()
             pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
-            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+            house_complete = branch_df["House Complete"].eq("Yes").sum()
+            shifted = branch_df["Shifted"].eq("Yes").sum()
+            design_complete = branch_df["Design"].eq("Yes").sum()
 
             summary_list.append([
                 branch, tranch1, tranch2, pending,

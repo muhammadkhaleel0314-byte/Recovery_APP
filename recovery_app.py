@@ -1016,7 +1016,7 @@ if uploaded_cheque:
     # --- Required columns ---
     required_cols = [
         "branch_id", "date_disbursed", "sanction_no",
-        "tranch_no", "member_name", "member_cnic"
+        "tranch_no", "member_name", "member_cnic", "numbern"
     ]
     cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
 
@@ -1054,7 +1054,7 @@ if uploaded_cheque:
                 cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
 
     # -----------------------------------------
-    # NEW LOGIC: 1st TRANCH + FIND 2nd TRANCH
+    # 1st Tranch + 2nd Tranch logic
     # -----------------------------------------
     cheque_df["2nd Tranch Status"] = ""
 
@@ -1073,7 +1073,7 @@ if uploaded_cheque:
     display_columns = [
         "branch_id", "sanction_no", "tranch_no", "Name", "member_cnic",
         "date_disbursed", "Months Passed", "2nd Tranch Status",
-        "House Complete", "Shifted", "Design"
+        "House Complete", "Shifted", "Design", "numbern"
     ]
     display_columns = [c for c in display_columns if c in first_tranch_df.columns]
     editable_df = first_tranch_df[display_columns]
@@ -1117,7 +1117,7 @@ if uploaded_cheque:
 
                 # --- Correct counts ---
                 tranch1 = (branch_df["tranch_no"] == 1).sum()
-                tranch2 = (branch_full_df["tranch_no"] == 2).sum()  # <-- FIX: actual 2nd Tranch
+                tranch2 = (branch_full_df["tranch_no"] == 2).sum()
                 pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
                 house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
                 shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
@@ -1135,7 +1135,17 @@ if uploaded_cheque:
                 elements.append(Paragraph(summary_text, styles["Normal"]))
                 elements.append(Spacer(1, 12))
 
-                data = [branch_df.columns.tolist()] + branch_df.astype(str).values.tolist()
+                # --- Prepare table ---
+                table_df = branch_df.copy()
+                table_df = table_df.drop(columns=["branch_id", "tranch_no"], errors="ignore")
+                table_df.insert(0, "S.No", range(1, len(table_df) + 1))
+
+                # Move NumberN column to end if exists
+                if "numbern" in table_df.columns:
+                    number_col = table_df.pop("numbern")
+                    table_df["NumberN"] = number_col
+
+                data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
                 table = Table(data, repeatRows=1, hAlign="CENTER")
                 table.setStyle(TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
@@ -1174,7 +1184,7 @@ if uploaded_cheque:
         for branch in cheque_df["branch_id"].unique():
             branch_df = cheque_df[cheque_df["branch_id"] == branch]
             tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()  # <-- FIX: actual 2nd Tranch
+            tranch2 = (branch_df["tranch_no"] == 2).sum()
             pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
             house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
             shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
@@ -1223,4 +1233,5 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
+
 

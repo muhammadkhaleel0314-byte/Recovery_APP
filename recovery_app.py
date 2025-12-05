@@ -1104,12 +1104,13 @@ if uploaded_cheque:
         )
         st.success("✅ Flags saved successfully!")
 
-    # --- Branch-wise PDFs ZIP Download Button (UPDATED) ---
+    # --- Branch-wise PDFs ZIP Download Button ---
     if st.button("⬇️ Download All Branch PDFs (ZIP)"):
         zip_buffer = BytesIO()
         with ZipFile(zip_buffer, "w") as zip_file:
             for branch in cheque_df["branch_id"].unique():
-                branch_df = edited_df[edited_df["branch_id"] == branch]  # Correct 1st Tranch data
+                # Use edited_df to include latest flags and 1st Tranch correct data
+                branch_df = edited_df[edited_df["branch_id"] == branch]
 
                 pdf_buffer = BytesIO()
                 doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
@@ -1119,6 +1120,7 @@ if uploaded_cheque:
                 elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
                 elements.append(Spacer(1, 12))
 
+                # Correct counts for summary
                 tranch1 = (branch_df["tranch_no"] == 1).sum()
                 tranch2 = (branch_df["tranch_no"] == 2).sum()
                 pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
@@ -1150,7 +1152,6 @@ if uploaded_cheque:
                 doc.build(elements)
                 pdf_buffer.seek(0)
 
-                # Add PDF to ZIP
                 zip_file.writestr(f"branch_{branch}.pdf", pdf_buffer.getvalue())
 
         zip_buffer.seek(0)

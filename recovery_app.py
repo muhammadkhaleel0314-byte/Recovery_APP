@@ -999,7 +999,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
 
 # Register font to avoid PDF issues
-pdfmetrics.registerFont(TTFont('Helvetica', 'Helvetica.ttf'))
 
 st.header("📑 Cheque-wise Analysis")
 
@@ -1141,3 +1140,4 @@ if uploaded_cheque:
     # ------------------------------------------------------------
     # ⭐ Your existing branch-wise PDF code remains unchanged
     # ------------------------------------------------------------
+

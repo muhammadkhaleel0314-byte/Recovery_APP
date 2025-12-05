@@ -1058,7 +1058,6 @@ if uploaded_cheque:
     # -----------------------------------------
     cheque_df["2nd Tranch Status"] = ""
 
-    # Find all sanction_no that have 2nd tranch
     second_tranch_map = (
         cheque_df[cheque_df["tranch_no"] == 2]
         .groupby("sanction_no")
@@ -1066,22 +1065,16 @@ if uploaded_cheque:
         .to_dict()
     )
 
-    # Only 1st tranche dataframe
     first_tranch_df = cheque_df[cheque_df["tranch_no"] == 1].copy()
-
-    # Add status
     first_tranch_df["2nd Tranch Status"] = first_tranch_df["sanction_no"].apply(
         lambda x: "OK" if x in second_tranch_map else ""
     )
 
-    # Columns for display
     display_columns = [
         "branch_id", "sanction_no", "tranch_no", "Name", "member_cnic",
         "date_disbursed", "Months Passed", "2nd Tranch Status",
         "House Complete", "Shifted", "Design"
     ]
-
-    # Safe filtering
     display_columns = [c for c in display_columns if c in first_tranch_df.columns]
     editable_df = first_tranch_df[display_columns]
 
@@ -1109,8 +1102,10 @@ if uploaded_cheque:
         zip_buffer = BytesIO()
         with ZipFile(zip_buffer, "w") as zip_file:
             for branch in cheque_df["branch_id"].unique():
-                # Use edited_df to include latest flags and 1st Tranch correct data
+                # For table: 1st Tranch edited data
                 branch_df = edited_df[edited_df["branch_id"] == branch]
+                # For summary: use full cheque_df to count 2nd Tranch
+                branch_full_df = cheque_df[cheque_df["branch_id"] == branch]
 
                 pdf_buffer = BytesIO()
                 doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
@@ -1120,9 +1115,9 @@ if uploaded_cheque:
                 elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
                 elements.append(Spacer(1, 12))
 
-                # Correct counts for summary
+                # --- Correct counts ---
                 tranch1 = (branch_df["tranch_no"] == 1).sum()
-                tranch2 = (branch_df["tranch_no"] == 2).sum()
+                tranch2 = (branch_full_df["tranch_no"] == 2).sum()  # <-- FIX: actual 2nd Tranch
                 pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
                 house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
                 shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
@@ -1179,7 +1174,7 @@ if uploaded_cheque:
         for branch in cheque_df["branch_id"].unique():
             branch_df = cheque_df[cheque_df["branch_id"] == branch]
             tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()
+            tranch2 = (branch_df["tranch_no"] == 2).sum()  # <-- FIX: actual 2nd Tranch
             pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
             house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
             shifted = branch_df["Shifted"].str.lower().eq("yes").sum()

@@ -1104,62 +1104,13 @@ if uploaded_cheque:
         )
         st.success("✅ Flags saved successfully!")
 
-    # --- Branch-wise PDF Export (existing logic) ---
-    if st.button("⬇️ Download Branch-wise PDF Reports", key="pdf_download_btn"):
-        branches = cheque_df["branch_id"].unique()
-        os.makedirs("branch_pdfs", exist_ok=True)
-
-        for branch in branches:
-            branch_df = cheque_df[cheque_df["branch_id"] == branch]
-            pdf_path = f"branch_pdfs/branch_{branch}.pdf"
-
-            tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()
-            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-
-            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
-            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
-
-            doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
-            styles = getSampleStyleSheet()
-            elements = []
-
-            elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
-            elements.append(Spacer(1, 12))
-
-            summary_text = f"""
-            <b>Summary:</b><br/>
-            1st Tranch Cases: {tranch1}<br/>
-            2nd Tranch Cases: {tranch2}<br/>
-            Pending (1st - 2nd): {pending}<br/>
-            House Complete: {house_complete}<br/>
-            Shifted: {shifted}<br/>
-            Design Complete: {design_complete}<br/>
-            """
-            elements.append(Paragraph(summary_text, styles["Normal"]))
-            elements.append(Spacer(1, 12))
-
-            table_df = branch_df[branch_df["tranch_no"] == 2]
-            data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
-            table = Table(data, repeatRows=1, hAlign="CENTER")
-            table.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
-            ]))
-            elements.append(table)
-            doc.build(elements)
-
-        st.success("✅ Branch-wise PDFs generated.")
-
-    # --- Branch-wise PDFs ZIP Download Button (ADDED) ---
+    # --- Branch-wise PDFs ZIP Download Button (UPDATED) ---
     if st.button("⬇️ Download All Branch PDFs (ZIP)"):
         zip_buffer = BytesIO()
         with ZipFile(zip_buffer, "w") as zip_file:
             for branch in cheque_df["branch_id"].unique():
-                branch_df = cheque_df[cheque_df["branch_id"] == branch]
+                branch_df = edited_df[edited_df["branch_id"] == branch]  # Correct 1st Tranch data
+
                 pdf_buffer = BytesIO()
                 doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
                 styles = getSampleStyleSheet()
@@ -1187,8 +1138,7 @@ if uploaded_cheque:
                 elements.append(Paragraph(summary_text, styles["Normal"]))
                 elements.append(Spacer(1, 12))
 
-                table_df = branch_df[branch_df["tranch_no"] == 2]
-                data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
+                data = [branch_df.columns.tolist()] + branch_df.astype(str).values.tolist()
                 table = Table(data, repeatRows=1, hAlign="CENTER")
                 table.setStyle(TableStyle([
                     ("BACKGROUND", (0, 0), (-1, 0), colors.grey),

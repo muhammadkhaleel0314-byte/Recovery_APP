@@ -1147,9 +1147,11 @@ if uploaded_cheque:
                     number_col = table_df.pop("numbern")
                     table_df["NumberN"] = number_col
 
-                # --- House Complete and Shifted: keep exact value (Yes / No / blank) ---
-                # No conversion, show exactly as edited_df
-                # Design column as is
+                # --- House Complete and Shifted: keep exact value from Excel / edited_df ---
+                # No conversion, blank stays blank
+                for col in ["House Complete", "Shifted"]:
+                    if col in table_df.columns:
+                        table_df[col] = table_df[col]
 
                 data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
                 table = Table(data, repeatRows=1, hAlign="CENTER")

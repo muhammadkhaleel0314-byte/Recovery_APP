@@ -1102,9 +1102,7 @@ if uploaded_cheque:
         zip_buffer = BytesIO()
         with ZipFile(zip_buffer, "w") as zip_file:
             for branch in cheque_df["branch_id"].unique():
-                # For table: 1st Tranch edited data
                 branch_df = edited_df[edited_df["branch_id"] == branch]
-                # For summary: use full cheque_df to count 2nd Tranch
                 branch_full_df = cheque_df[cheque_df["branch_id"] == branch]
 
                 pdf_buffer = BytesIO()
@@ -1138,12 +1136,20 @@ if uploaded_cheque:
                 # --- Prepare table ---
                 table_df = branch_df.copy()
                 table_df = table_df.drop(columns=["branch_id", "tranch_no"], errors="ignore")
+
+                # Add serial number
                 table_df.insert(0, "S.No", range(1, len(table_df) + 1))
 
-                # Move NumberN column to end if exists
-                if "numbern" in table_df.columns:
+                # Ensure NumberN column exists and move to end
+                if "numbern" not in table_df.columns:
+                    table_df["NumberN"] = ""
+                else:
                     number_col = table_df.pop("numbern")
                     table_df["NumberN"] = number_col
+
+                # --- House Complete and Shifted: keep exact value (Yes / No / blank) ---
+                # No conversion, show exactly as edited_df
+                # Design column as is
 
                 data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
                 table = Table(data, repeatRows=1, hAlign="CENTER")
@@ -1233,5 +1239,3 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
-
-

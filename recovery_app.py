@@ -990,22 +990,17 @@ import os
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.platypus import PageBreak
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
-
-# Register font to avoid PDF issues
 
 st.header("📑 Cheque-wise Analysis")
 
 # --- File Upload ---
 uploaded_cheque = st.file_uploader(
-    "Upload Cheque-wise List", 
-    type=["xlsx", "csv"], 
+    "Upload Cheque-wise List",
+    type=["xlsx", "csv"],
     key="cheque_uploader"
 )
 
@@ -1017,10 +1012,13 @@ if uploaded_cheque:
         cheque_df = pd.read_excel(uploaded_cheque)
 
     # --- Required columns ---
-    required_cols = ["branch_id", "date_disbursed", "sanction_no", "tranch_no", "member_name", "member_cnic"]
+    required_cols = [
+        "branch_id", "date_disbursed", "sanction_no",
+        "tranch_no", "member_name", "member_cnic"
+    ]
     cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
 
-    # --- Rename ---
+    # --- Name column ---
     cheque_df["Name"] = cheque_df["member_name"]
     cheque_df.drop(columns=["member_name"], inplace=True)
 
@@ -1028,21 +1026,18 @@ if uploaded_cheque:
     cheque_df["date_disbursed"] = pd.to_datetime(cheque_df["date_disbursed"], errors="coerce")
     today = datetime.today()
     cheque_df["Months Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else None
+        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else ""
     )
     cheque_df["Days Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: (today - x).days if pd.notnull(x) else None
+        lambda x: (today - x).days if pd.notnull(x) else ""
     )
 
-    # --- Add flags if missing ---
+    # --- Add missing flags ---
     for col in ["House Complete", "Shifted", "Design"]:
         if col not in cheque_df.columns:
-            if col in ["House Complete", "Shifted"]:
-                cheque_df[col] = "No"
-            else:
-                cheque_df[col] = ""
+            cheque_df[col] = "No" if col in ["House Complete", "Shifted"] else ""
 
-    # --- Load previous flags ---
+    # --- Load saved flags ---
     if os.path.exists("cheque_flags.csv"):
         saved_flags = pd.read_csv("cheque_flags.csv")
         cheque_df = cheque_df.merge(
@@ -1056,23 +1051,39 @@ if uploaded_cheque:
                 cheque_df[col] = cheque_df[f"{col}_saved"].combine_first(cheque_df[col])
                 cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
 
-    # ------------------------------------------------------------
-    # 🔥 ADD NEW COLUMN: 1st tranch row gets "OK" if 2nd tranch exists
-    # ------------------------------------------------------------
+    # -----------------------------------------
+    # NEW LOGIC: 1st TRANCH + FIND 2nd TRANCH
+    # -----------------------------------------
     cheque_df["2nd Tranch Status"] = ""
 
-    sanction_counts = cheque_df.groupby("sanction_no")["tranch_no"].apply(list)
+    # Find all sanction_no that have 2nd tranch
+    second_tranch_map = (
+        cheque_df[cheque_df["tranch_no"] == 2]
+        .groupby("sanction_no")
+        .size()
+        .to_dict()
+    )
 
-    for sanc, tr_list in sanction_counts.items():
-        if 2 in tr_list:
-            cheque_df.loc[(cheque_df["sanction_no"] == sanc) & 
-                          (cheque_df["tranch_no"] == 1), "2nd Tranch Status"] = "OK"
+    # Only 1st tranche dataframe
+    first_tranch_df = cheque_df[cheque_df["tranch_no"] == 1].copy()
 
-    # ------------------------------------------------------------
+    # Add status
+    first_tranch_df["2nd Tranch Status"] = first_tranch_df["sanction_no"].apply(
+        lambda x: "OK" if x in second_tranch_map else ""
+    )
 
-    # --- Editable table: only 2nd Tranch ---
-    editable_df = cheque_df[cheque_df["tranch_no"] == 2]
+    # Columns for display
+    display_columns = [
+        "branch_id", "sanction_no", "tranch_no", "Name", "member_cnic",
+        "date_disbursed", "Months Passed", "2nd Tranch Status",
+        "House Complete", "Shifted", "Design"
+    ]
 
+    # Safe filtering
+    display_columns = [c for c in display_columns if c in first_tranch_df.columns]
+    editable_df = first_tranch_df[display_columns]
+
+    # --- Editable table for 1st tranche ---
     edited_df = st.data_editor(
         editable_df,
         use_container_width=True,
@@ -1083,61 +1094,127 @@ if uploaded_cheque:
         }
     )
 
+    # --- Save updated flags ---
     if st.button("💾 Save Flags", key="save_flags_btn"):
-        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted", "Design"]].to_csv("cheque_flags.csv", index=False)
+        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted", "Design"]].to_csv(
+            "cheque_flags.csv",
+            index=False
+        )
         st.success("✅ Flags saved successfully!")
 
-    # ------------------------------------------------------------
-    # ⭐ NEW FEATURE — Cheque-wise PDF Export (with "OK" column + watermark)
-    # ------------------------------------------------------------
-    if st.button("⬇️ Download Cheque-wise PDF", key="cheque_pdf_btn"):
+    # --- Branch-wise PDF Export (existing logic) ---
+    if st.button("⬇️ Download Branch-wise PDF Reports", key="pdf_download_btn"):
+        branches = cheque_df["branch_id"].unique()
+        os.makedirs("branch_pdfs", exist_ok=True)
 
+        for branch in branches:
+            branch_df = cheque_df[cheque_df["branch_id"] == branch]
+            pdf_path = f"branch_pdfs/branch_{branch}.pdf"
+
+            tranch1 = (branch_df["tranch_no"] == 1).sum()
+            tranch2 = (branch_df["tranch_no"] == 2).sum()
+            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+
+            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
+            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
+            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+
+            doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
+            styles = getSampleStyleSheet()
+            elements = []
+
+            elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
+            elements.append(Spacer(1, 12))
+
+            summary_text = f"""
+            <b>Summary:</b><br/>
+            1st Tranch Cases: {tranch1}<br/>
+            2nd Tranch Cases: {tranch2}<br/>
+            Pending (1st - 2nd): {pending}<br/>
+            House Complete: {house_complete}<br/>
+            Shifted: {shifted}<br/>
+            Design Complete: {design_complete}<br/>
+            """
+            elements.append(Paragraph(summary_text, styles["Normal"]))
+            elements.append(Spacer(1, 12))
+
+            table_df = branch_df[branch_df["tranch_no"] == 2]
+            data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
+            table = Table(data, repeatRows=1, hAlign="CENTER")
+            table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+            ]))
+            elements.append(table)
+            doc.build(elements)
+
+        st.success("✅ Branch-wise PDFs generated.")
+
+    # --- Grand Total PDF ---
+    if st.button("⬇️ Download Branch-wise PDF Summary with Grand Total", key="pdf_grandtotal_btn"):
         pdf_buffer = BytesIO()
-
-        def watermark(canvas, doc):
-            canvas.saveState()
-            canvas.setFont("Helvetica", 10)
-            canvas.drawString(20, 20, "Prepared by M. Khaleel")
-            canvas.restoreState()
-
         doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
         styles = getSampleStyleSheet()
         elements = []
 
-        elements.append(Paragraph("Cheque-wise Analysis Report", styles["Heading1"]))
+        elements.append(Paragraph("Branch-wise Summary Report", styles["Heading1"]))
         elements.append(Spacer(1, 12))
 
-        display_df = cheque_df[
-            ["branch_id", "sanction_no", "tranch_no", "Name", "member_cnic", 
-             "date_disbursed", "Months Passed", "2nd Tranch Status",
-             "House Complete", "Shifted", "Design"]
+        summary_list = []
+        total_tranch1 = total_tranch2 = total_pending = 0
+        total_house = total_shifted = total_design = 0
+
+        for branch in cheque_df["branch_id"].unique():
+            branch_df = cheque_df[cheque_df["branch_id"] == branch]
+            tranch1 = (branch_df["tranch_no"] == 1).sum()
+            tranch2 = (branch_df["tranch_no"] == 2).sum()
+            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
+            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
+            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+
+            summary_list.append([
+                branch, tranch1, tranch2, pending,
+                house_complete, shifted, design_complete
+            ])
+
+            total_tranch1 += tranch1
+            total_tranch2 += tranch2
+            total_pending += pending
+            total_house += house_complete
+            total_shifted += shifted
+            total_design += design_complete
+
+        summary_df = pd.DataFrame(summary_list, columns=[
+            "Branch", "1st Tranch", "2nd Tranch", "Pending",
+            "House Complete", "Shifted", "Design Complete"
+        ])
+
+        summary_df.loc["Grand Total"] = [
+            "Grand Total",
+            total_tranch1, total_tranch2, total_pending,
+            total_house, total_shifted, total_design
         ]
 
-        data = [display_df.columns.tolist()] + display_df.astype(str).values.tolist()
-
-        table = Table(data, repeatRows=1)
+        data = [summary_df.columns.tolist()] + summary_df.astype(str).values.tolist()
+        table = Table(data, repeatRows=1, hAlign="CENTER")
         table.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.grey),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#004080")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
         ]))
-
         elements.append(table)
 
-        doc.build(elements, onLaterPages=watermark, onFirstPage=watermark)
-
+        doc.build(elements)
         pdf_buffer.seek(0)
 
         st.download_button(
-            label="⬇️ Download Cheque-wise PDF",
+            label="⬇️ Download Branch-wise PDF Summary with Grand Total",
             data=pdf_buffer.getvalue(),
-            file_name="cheque_wise_analysis.pdf",
-            mime="application/pdf"
+            file_name="branch_summary_grandtotal.pdf",
+            mime="application/pdf",
+            key="download_pdf_summary_grandtotal"
         )
-
-    # ------------------------------------------------------------
-    # ⭐ Your existing branch-wise PDF code remains unchanged
-    # ------------------------------------------------------------
-

@@ -700,64 +700,64 @@ if uploaded_file is not None:
 
 import streamlit as st
 import pandas as pd
-import os
-import glob
 import re
 
-st.header("📂 Merge All CSVs (Skip first 2 rows)")
-
-folder_path = "due list"  # آپ کا فولڈر
-
-csv_files = glob.glob(os.path.join(folder_path, "*.csv"))
-st.write(f"Found {len(csv_files)} CSV files.")
-
-merged_data = []
-missing_sanction_files = []
+st.header("📂 Merge CSV Files (Skip first 2 rows)")
 
 def clean_colname(name):
     return re.sub(r'[^a-z0-9]', '', str(name).lower())
 
-for file in csv_files:
-    try:
-        # Skip first 2 rows so row 3 becomes header
-        df = pd.read_csv(file, skiprows=2)
+# --- Users select multiple CSV files ---
+uploaded_files = st.file_uploader(
+    "Upload your CSV files",
+    type="csv",
+    accept_multiple_files=True
+)
 
-        # Clean column names
-        df.columns = [clean_colname(col) for col in df.columns]
+merged_data = []
+missing_sanction_files = []
 
-        possible_names = ["sanctionno", "sanctionnumber", "sactionno"]
-        sanction_col = None
-        for col in df.columns:
-            if col in possible_names:
-                sanction_col = col
-                break
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        try:
+            # Skip first 2 rows
+            df = pd.read_csv(uploaded_file, skiprows=2)
 
-        if sanction_col:
-            merged_data.append(df)
-        else:
-            missing_sanction_files.append(os.path.basename(file))
+            # Clean columns
+            df.columns = [clean_colname(col) for col in df.columns]
 
-    except Exception as e:
-        st.error(f"Error reading {file}: {e}")
+            # Check for Sanction No column
+            possible_names = ["sanctionno", "sanctionnumber", "sactionno"]
+            sanction_col = next((col for col in df.columns if col in possible_names), None)
 
-if missing_sanction_files:
-    st.warning("No 'Sanction No' column found in these files:")
-    for f in missing_sanction_files:
-        st.write(f"- {f}")
+            if sanction_col:
+                merged_data.append(df)
+            else:
+                missing_sanction_files.append(uploaded_file.name)
 
-if merged_data:
-    final_df = pd.concat(merged_data, ignore_index=True)
-    st.success(f"Merged {len(merged_data)} CSV files successfully! Total rows: {len(final_df)}")
+        except Exception as e:
+            st.error(f"Error reading {uploaded_file.name}: {e}")
 
-    csv_download = final_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="⬇ Download Merged CSV",
-        data=csv_download,
-        file_name="merged_due_list.csv",
-        mime="text/csv"
-    )
+    # --- Show warning for files without Sanction No ---
+    if missing_sanction_files:
+        st.warning("No 'Sanction No' column found in these files:")
+        for f in missing_sanction_files:
+            st.write(f"- {f}")
+
+    # --- Merge and allow download ---
+    if merged_data:
+        final_df = pd.concat(merged_data, ignore_index=True)
+        st.success(f"Merged {len(merged_data)} CSV files! Total rows: {len(final_df)}")
+
+        csv_download = final_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="⬇ Download Merged CSV",
+            data=csv_download,
+            file_name="merged_due_list.csv",
+            mime="text/csv"
+        )
 else:
-    st.error("No valid files to merge.")
+    st.info("Please upload at least one CSV file to merge.")
 
 import streamlit as st
 import pandas as pd
@@ -1223,3 +1223,4 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
+

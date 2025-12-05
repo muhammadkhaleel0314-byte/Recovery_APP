@@ -987,60 +987,152 @@ if uploaded_cheque:
 
 import streamlit as st
 import pandas as pd
+import os
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, A4
+from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 from zipfile import ZipFile
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
 
 st.header("📑 Cheque-wise Analysis")
 
-# Example: Assuming you already have `edited_df` or `cheque_df`
-# --------------------------
-# Save Flags CSV Download Button
-if st.button("💾 Save Flags"):
-    # Save the edited flags
-    edited_df.to_csv("cheque_flags.csv", index=False)
-    st.success("✅ Flags saved successfully!")
+# --- File Upload ---
+uploaded_cheque = st.file_uploader(
+    "Upload Cheque-wise List",
+    type=["xlsx", "csv"],
+    key="cheque_uploader"
+)
 
-    # Download button for CSV
-    with open("cheque_flags.csv", "rb") as f:
-        st.download_button(
-            label="⬇️ Download Saved Flags CSV",
-            data=f,
-            file_name="cheque_flags.csv",
-            mime="text/csv"
+if uploaded_cheque:
+    # --- Read file ---
+    if uploaded_cheque.name.endswith(".csv"):
+        cheque_df = pd.read_csv(uploaded_cheque)
+    else:
+        cheque_df = pd.read_excel(uploaded_cheque)
+
+    # --- Required columns ---
+    required_cols = [
+        "branch_id", "date_disbursed", "sanction_no",
+        "tranch_no", "member_name", "member_cnic"
+    ]
+    cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
+
+    # --- Name column ---
+    cheque_df["Name"] = cheque_df["member_name"]
+    cheque_df.drop(columns=["member_name"], inplace=True)
+
+    # --- Date conversion ---
+    cheque_df["date_disbursed"] = pd.to_datetime(cheque_df["date_disbursed"], errors="coerce")
+    today = datetime.today()
+    cheque_df["Months Passed"] = cheque_df["date_disbursed"].apply(
+        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else ""
+    )
+    cheque_df["Days Passed"] = cheque_df["date_disbursed"].apply(
+        lambda x: (today - x).days if pd.notnull(x) else ""
+    )
+
+    # --- Add missing flags ---
+    for col in ["House Complete", "Shifted", "Design"]:
+        if col not in cheque_df.columns:
+            cheque_df[col] = "No" if col in ["House Complete", "Shifted"] else ""
+
+    # --- Load saved flags ---
+    if os.path.exists("cheque_flags.csv"):
+        saved_flags = pd.read_csv("cheque_flags.csv")
+        cheque_df = cheque_df.merge(
+            saved_flags,
+            on=["sanction_no", "tranch_no"],
+            how="left",
+            suffixes=("", "_saved")
         )
+        for col in ["House Complete", "Shifted", "Design"]:
+            if f"{col}_saved" in cheque_df.columns:
+                cheque_df[col] = cheque_df[f"{col}_saved"].combine_first(cheque_df[col])
+                cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
 
-# --------------------------
-# Branch-wise PDFs in a ZIP
-if st.button("⬇️ Download Branch PDFs (ZIP)"):
-    zip_buffer = BytesIO()
-    with ZipFile(zip_buffer, "w") as zip_file:
-        for branch in cheque_df["branch_id"].unique():
+    # -----------------------------------------
+    # NEW LOGIC: 1st TRANCH + FIND 2nd TRANCH
+    # -----------------------------------------
+    cheque_df["2nd Tranch Status"] = ""
+
+    # Find all sanction_no that have 2nd tranch
+    second_tranch_map = (
+        cheque_df[cheque_df["tranch_no"] == 2]
+        .groupby("sanction_no")
+        .size()
+        .to_dict()
+    )
+
+    # Only 1st tranche dataframe
+    first_tranch_df = cheque_df[cheque_df["tranch_no"] == 1].copy()
+
+    # Add status
+    first_tranch_df["2nd Tranch Status"] = first_tranch_df["sanction_no"].apply(
+        lambda x: "OK" if x in second_tranch_map else ""
+    )
+
+    # Columns for display
+    display_columns = [
+        "branch_id", "sanction_no", "tranch_no", "Name", "member_cnic",
+        "date_disbursed", "Months Passed", "2nd Tranch Status",
+        "House Complete", "Shifted", "Design"
+    ]
+
+    # Safe filtering
+    display_columns = [c for c in display_columns if c in first_tranch_df.columns]
+    editable_df = first_tranch_df[display_columns]
+
+    # --- Editable table for 1st tranche ---
+    edited_df = st.data_editor(
+        editable_df,
+        use_container_width=True,
+        num_rows="dynamic",
+        column_config={
+            "House Complete": st.column_config.SelectboxColumn(options=["Yes", "No"]),
+            "Shifted": st.column_config.SelectboxColumn(options=["Yes", "No"])
+        }
+    )
+
+    # --- Save updated flags ---
+    if st.button("💾 Save Flags", key="save_flags_btn"):
+        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted", "Design"]].to_csv(
+            "cheque_flags.csv",
+            index=False
+        )
+        st.success("✅ Flags saved successfully!")
+
+    # --- Branch-wise PDF Export (existing logic) ---
+    if st.button("⬇️ Download Branch-wise PDF Reports", key="pdf_download_btn"):
+        branches = cheque_df["branch_id"].unique()
+        os.makedirs("branch_pdfs", exist_ok=True)
+
+        for branch in branches:
             branch_df = cheque_df[cheque_df["branch_id"] == branch]
-            pdf_buffer = BytesIO()
-            doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
+            pdf_path = f"branch_pdfs/branch_{branch}.pdf"
+
+            tranch1 = (branch_df["tranch_no"] == 1).sum()
+            tranch2 = (branch_df["tranch_no"] == 2).sum()
+            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+
+            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
+            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
+            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+
+            doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
             styles = getSampleStyleSheet()
             elements = []
 
             elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
             elements.append(Spacer(1, 12))
 
-            # Summary
-            tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()
-            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
-            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
-
             summary_text = f"""
             <b>Summary:</b><br/>
-            1st Tranch: {tranch1}<br/>
-            2nd Tranch: {tranch2}<br/>
-            Pending: {pending}<br/>
+            1st Tranch Cases: {tranch1}<br/>
+            2nd Tranch Cases: {tranch2}<br/>
+            Pending (1st - 2nd): {pending}<br/>
             House Complete: {house_complete}<br/>
             Shifted: {shifted}<br/>
             Design Complete: {design_complete}<br/>
@@ -1048,7 +1140,6 @@ if st.button("⬇️ Download Branch PDFs (ZIP)"):
             elements.append(Paragraph(summary_text, styles["Normal"]))
             elements.append(Spacer(1, 12))
 
-            # Table for 2nd tranch
             table_df = branch_df[branch_df["tranch_no"] == 2]
             data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
             table = Table(data, repeatRows=1, hAlign="CENTER")
@@ -1060,79 +1151,129 @@ if st.button("⬇️ Download Branch PDFs (ZIP)"):
             ]))
             elements.append(table)
             doc.build(elements)
-            pdf_buffer.seek(0)
 
-            # Add PDF to ZIP
-            zip_file.writestr(f"branch_{branch}.pdf", pdf_buffer.getvalue())
+        st.success("✅ Branch-wise PDFs generated.")
 
-    zip_buffer.seek(0)
-    st.download_button(
-        label="⬇️ Download All Branch PDFs (ZIP)",
-        data=zip_buffer.getvalue(),
-        file_name="branch_pdfs.zip",
-        mime="application/zip"
-    )
+    # --- Branch-wise PDFs ZIP Download Button (ADDED) ---
+    if st.button("⬇️ Download All Branch PDFs (ZIP)"):
+        zip_buffer = BytesIO()
+        with ZipFile(zip_buffer, "w") as zip_file:
+            for branch in cheque_df["branch_id"].unique():
+                branch_df = cheque_df[cheque_df["branch_id"] == branch]
+                pdf_buffer = BytesIO()
+                doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
+                styles = getSampleStyleSheet()
+                elements = []
 
-# --------------------------
-# Grand Total Summary PDF
-if st.button("⬇️ Download Grand Total Summary PDF"):
-    pdf_buffer = BytesIO()
-    doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
-    styles = getSampleStyleSheet()
-    elements = []
+                elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
+                elements.append(Spacer(1, 12))
 
-    elements.append(Paragraph("Branch-wise Summary Report", styles["Heading1"]))
-    elements.append(Spacer(1, 12))
+                tranch1 = (branch_df["tranch_no"] == 1).sum()
+                tranch2 = (branch_df["tranch_no"] == 2).sum()
+                pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+                house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
+                shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
+                design_complete = branch_df["Design"].str.lower().eq("yes").sum()
 
-    summary_list = []
-    total_tranch1 = total_tranch2 = total_pending = 0
-    total_house = total_shifted = total_design = 0
+                summary_text = f"""
+                <b>Summary:</b><br/>
+                1st Tranch Cases: {tranch1}<br/>
+                2nd Tranch Cases: {tranch2}<br/>
+                Pending (1st - 2nd): {pending}<br/>
+                House Complete: {house_complete}<br/>
+                Shifted: {shifted}<br/>
+                Design Complete: {design_complete}<br/>
+                """
+                elements.append(Paragraph(summary_text, styles["Normal"]))
+                elements.append(Spacer(1, 12))
 
-    for branch in cheque_df["branch_id"].unique():
-        branch_df = cheque_df[cheque_df["branch_id"] == branch]
-        tranch1 = (branch_df["tranch_no"] == 1).sum()
-        tranch2 = (branch_df["tranch_no"] == 2).sum()
-        pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-        house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
-        shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
-        design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+                table_df = branch_df[branch_df["tranch_no"] == 2]
+                data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
+                table = Table(data, repeatRows=1, hAlign="CENTER")
+                table.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ]))
+                elements.append(table)
+                doc.build(elements)
+                pdf_buffer.seek(0)
 
-        summary_list.append([
-            branch, tranch1, tranch2, pending,
-            house_complete, shifted, design_complete
+                # Add PDF to ZIP
+                zip_file.writestr(f"branch_{branch}.pdf", pdf_buffer.getvalue())
+
+        zip_buffer.seek(0)
+        st.download_button(
+            label="⬇️ Download All Branch PDFs (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name="branch_pdfs.zip",
+            mime="application/zip"
+        )
+
+    # --- Grand Total PDF ---
+    if st.button("⬇️ Download Branch-wise PDF Summary with Grand Total", key="pdf_grandtotal_btn"):
+        pdf_buffer = BytesIO()
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
+        styles = getSampleStyleSheet()
+        elements = []
+
+        elements.append(Paragraph("Branch-wise Summary Report", styles["Heading1"]))
+        elements.append(Spacer(1, 12))
+
+        summary_list = []
+        total_tranch1 = total_tranch2 = total_pending = 0
+        total_house = total_shifted = total_design = 0
+
+        for branch in cheque_df["branch_id"].unique():
+            branch_df = cheque_df[cheque_df["branch_id"] == branch]
+            tranch1 = (branch_df["tranch_no"] == 1).sum()
+            tranch2 = (branch_df["tranch_no"] == 2).sum()
+            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
+            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
+            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+
+            summary_list.append([
+                branch, tranch1, tranch2, pending,
+                house_complete, shifted, design_complete
+            ])
+
+            total_tranch1 += tranch1
+            total_tranch2 += tranch2
+            total_pending += pending
+            total_house += house_complete
+            total_shifted += shifted
+            total_design += design_complete
+
+        summary_df = pd.DataFrame(summary_list, columns=[
+            "Branch", "1st Tranch", "2nd Tranch", "Pending",
+            "House Complete", "Shifted", "Design Complete"
         ])
 
-        total_tranch1 += tranch1
-        total_tranch2 += tranch2
-        total_pending += pending
-        total_house += house_complete
-        total_shifted += shifted
-        total_design += design_complete
+        summary_df.loc["Grand Total"] = [
+            "Grand Total",
+            total_tranch1, total_tranch2, total_pending,
+            total_house, total_shifted, total_design
+        ]
 
-    summary_df = pd.DataFrame(summary_list, columns=[
-        "Branch", "1st Tranch", "2nd Tranch", "Pending",
-        "House Complete", "Shifted", "Design Complete"
-    ])
-    summary_df.loc["Grand Total"] = [
-        "Grand Total", total_tranch1, total_tranch2, total_pending,
-        total_house, total_shifted, total_design
-    ]
+        data = [summary_df.columns.tolist()] + summary_df.astype(str).values.tolist()
+        table = Table(data, repeatRows=1, hAlign="CENTER")
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#004080")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+        ]))
+        elements.append(table)
 
-    data = [summary_df.columns.tolist()] + summary_df.astype(str).values.tolist()
-    table = Table(data, repeatRows=1, hAlign="CENTER")
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#004080")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
-    ]))
-    elements.append(table)
-    doc.build(elements)
-    pdf_buffer.seek(0)
+        doc.build(elements)
+        pdf_buffer.seek(0)
 
-    st.download_button(
-        label="⬇️ Download Branch Summary with Grand Total",
-        data=pdf_buffer.getvalue(),
-        file_name="branch_summary_grandtotal.pdf",
-        mime="application/pdf"
-    )
+        st.download_button(
+            label="⬇️ Download Branch-wise PDF Summary with Grand Total",
+            data=pdf_buffer.getvalue(),
+            file_name="branch_summary_grandtotal.pdf",
+            mime="application/pdf",
+            key="download_pdf_summary_grandtotal"
+        )

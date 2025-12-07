@@ -1176,8 +1176,6 @@ def draw_header(pdf, headers, col_widths, row_height=8):
     y_start = pdf.get_y()
     for i, header in enumerate(headers):
         pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
-        x_current = pdf.get_x()
-        y_current = pdf.get_y()
         pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
     pdf.ln(row_height)
 
@@ -1195,7 +1193,7 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # Required columns
+    # Ensure required columns exist
     required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
                      "tranch_no", "loan_amount", "group_no", "member_name"]
     for col in required_cols:
@@ -1207,21 +1205,21 @@ if uploaded_file is not None:
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
     # ---------- Preview with None replaced ----------
-    df_preview = df.fillna("")  # Remove None/NaN in preview
+    df_preview = df.fillna("")
 
-    # ---------- Display Download Button and Preview FIRST ----------
+    # ---------- Download button + Preview (always on top) ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
-        data=BytesIO(),  # temporary placeholder, actual ZIP will be updated below
+        data=BytesIO(),  # placeholder, will be replaced below
         file_name="all_branches_cheque_reports.zip",
         mime="application/zip"
     )
     st.write("Data Preview:", df_preview.head())
 
-    # ---------- Generate ZIP with PDFs ----------
+    # ---------- Generate ZIP ----------
     zip_buffer = BytesIO()
     branch_groups = df.groupby("branch_id")
-    with zipfile.ZipFile(zip_buffer, "w") as zf:
+    with zipfile.ZipFile(zip_buffer, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for branch, branch_df in branch_groups:
             pdf = PDF()
             pdf.set_auto_page_break(auto=False, margin=15)
@@ -1229,7 +1227,7 @@ if uploaded_file is not None:
 
             headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
                        "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 18, 25, 25, 40]
+            col_widths = [23, 40, 25, 20, 25, 25, 40]  # Tranch width slightly bigger
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
@@ -1258,12 +1256,10 @@ if uploaded_file is not None:
 
     zip_buffer.seek(0)
 
-    # ---------- Update Download Button with actual ZIP ----------
+    # ---------- Final Download Button with actual ZIP ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,
         file_name="all_branches_cheque_reports.zip",
         mime="application/zip"
     )
-
-# ---------- Any debug messages (None) appear at the very bottom ----------

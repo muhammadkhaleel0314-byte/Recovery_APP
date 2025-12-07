@@ -1149,19 +1149,9 @@ uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
 
-    # --- Fix WRONG COLUMN NAMES ---
-    rename_map = {
-        "sacnction_no": "sanction_no",
-        "grouo_no": "group_no",
-        "sacntion_no": "sanction_no",
-        "sanction no": "sanction_no",
-        "group no": "group_no"
-    }
-    df.rename(columns=rename_map, inplace=True)
-
     required_cols = [
         "region_id", "area_id", "branch_id", "date_disbursed", "cheque_no",
-        "sanction_no", "loan_amount", "tranch_amount", "tranch_no", "group_no",
+        "sacnction_no", "loan_amount", "tranch_amount", "tranch_no", "grouo_no",
         "member_name", "member_cnic", "member_parentage", "project_id"
     ]
 
@@ -1172,24 +1162,27 @@ if uploaded_file:
     else:
         st.success("File uploaded successfully!")
 
+        # ---- PREVIEW (Upar) ----
         st.subheader("Preview Data")
         st.dataframe(df.head())
 
+        # ---- ZIP GENERATION (Neechy) ----
         output_zip = BytesIO()
         with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
             for index, row in df.iterrows():
                 pdf = FPDF()
                 pdf.add_page()
-                pdf.set_font("Arial", size=12)
 
+                pdf.set_font("Arial", size=12)
                 pdf.cell(200, 10, txt="Loan Disbursement Record", ln=True, align="C")
 
                 for col in required_cols:
-                    val = str(row[col]) if pd.notna(row[col]) else ""
-                    pdf.cell(200, 10, txt=f"{col}: {val}", ln=True)
+                    clean_value = str(row[col]) if pd.notna(row[col]) else ""
+                    pdf.cell(200, 10, txt=f"{col}: {clean_value}", ln=True)
 
                 pdf_path = f"{row['member_name']}_{index}.pdf"
                 pdf.output(pdf_path)
+
                 zipf.write(pdf_path)
                 os.remove(pdf_path)
 
@@ -1199,4 +1192,3 @@ if uploaded_file:
             file_name="loan_pdfs.zip",
             mime="application/zip"
         )
-

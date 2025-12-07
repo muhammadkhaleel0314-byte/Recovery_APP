@@ -1150,9 +1150,7 @@ class PDF(FPDF):
 
 # ---------- Helper Functions ----------
 def safe_str(val):
-    if pd.isna(val) or val is None:
-        return ""
-    return str(val)
+    return "" if pd.isna(val) or val is None else str(val)
 
 def format_date(val):
     try:
@@ -1161,9 +1159,9 @@ def format_date(val):
         return ""
 
 def draw_row(pdf, row_data, col_widths, row_height=8, fill=False):
-    pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
+    pdf.set_fill_color(230,230,230) if fill else pdf.set_fill_color(255,255,255)
     for i, data in enumerate(row_data):
-        align = 'R' if i == 4 else 'L'  # Loan Amount right-align
+        align = 'R' if i==4 else 'L'  # Loan Amount right-align
         pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
     pdf.ln(row_height)
 
@@ -1213,14 +1211,14 @@ if uploaded_file is not None:
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
-                       "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 20, 25, 25, 40]
+            headers = ["Disburs Date","Cheque No","Sanction","Tranch",
+                       "Loan Amount","Group No","Member Name"]
+            col_widths = [23,40,25,20,25,25,40]
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
 
-            fill = False
+            fill=False
             for _, row in branch_df.iterrows():
                 if pdf.get_y() > 260:
                     pdf.add_page()
@@ -1236,7 +1234,7 @@ if uploaded_file is not None:
                     safe_str(row["group_no"]),
                     safe_str(row["member_name"])
                 ]
-                draw_row(pdf, row_data, col_widths, fill=fill)
+                draw_row(pdf,row_data,col_widths,fill=fill)
                 fill = not fill
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")
@@ -1244,11 +1242,11 @@ if uploaded_file is not None:
 
     zip_buffer.seek(0)
 
-    # ---------- Download Button ----------
+    # ---------- Download Button (single, unique key) ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,
         file_name="all_branches_cheque_reports.zip",
         mime="application/zip",
-        key="unique_zip_download"  # ensures no StreamlitDuplicateElementId error
+        key="unique_zip_download"
     )

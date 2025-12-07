@@ -1256,3 +1256,124 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
+import streamlit as st
+import pandas as pd
+from fpdf import FPDF
+from io import BytesIO
+import zipfile
+import datetime
+
+# ---------- PDF Class ----------
+class PDF(FPDF):
+    def header(self):
+        self.set_font("Arial", 'B', 12)
+        self.cell(0, 10, "Cheque Report", ln=True, align="C")
+        self.ln(5)
+
+# ---------- Draw Row Function ----------
+def draw_row(pdf, row_data, col_widths, row_height=8):
+    cell_heights = []
+    x_start = pdf.get_x()
+    y_start = pdf.get_y()
+
+    for i, data in enumerate(row_data):
+        text = str(data)
+        x = pdf.get_x()
+        y = pdf.get_y()
+        pdf.multi_cell(col_widths[i], row_height, text, border=0, align="C")
+        h = pdf.get_y() - y
+        cell_heights.append(h)
+        pdf.set_xy(x + col_widths[i], y)
+
+    max_height = max(cell_heights)
+    pdf.set_xy(x_start, y_start)
+    for i, data in enumerate(row_data):
+        x = pdf.get_x()
+        y = pdf.get_y()
+        pdf.multi_cell(col_widths[i], row_height, str(data), border=1, align="C")
+        pdf.set_xy(x + col_widths[i], y)
+    pdf.set_y(y_start + max_height)
+
+# ---------- Branch Header ----------
+def add_branch_header(pdf, branch, headers, col_widths):
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
+    pdf.set_font("Arial", 'B', 9)
+    for i, header in enumerate(headers):
+        pdf.cell(col_widths[i], 8, header, 1, 0, "C")
+    pdf.ln()
+
+# ---------- Streamlit UI ----------
+st.title("Cheque Wise Report to PDF (Branch Wise)")
+
+uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+
+    # ✅ Required columns for PDF
+    expected_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "loan_amount", "group_no", "member_name"]
+
+    # Add missing columns as empty
+    for col in expected_cols:
+        if col not in df.columns:
+            df[col] = ""
+
+    # Keep only expected columns
+    df = df[expected_cols]
+
+    # Date Handling
+    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors="coerce")
+    today = datetime.date.today()
+    df["Months Passed"] = df["date_disbursed"].apply(lambda d: (today.year - d.year) * 12 + today.month - d.month if pd.notnull(d) else "")
+    df["Days Passed"] = df["date_disbursed"].apply(lambda d: (today - d.date()).days if pd.notnull(d) else "")
+
+    st.write("Data Preview:", df.head())
+
+    # Group by branch
+    branch_groups = df.groupby("branch_id")
+
+    # ZIP buffer
+    zip_buffer = BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w") as zf:
+        for branch, branch_df in branch_groups:
+            pdf = PDF()
+            pdf.set_auto_page_break(auto=False, margin=15)
+            pdf.add_page()
+
+            headers = ["Branch ID", "Date Disbursed", "Cheque No", "Sanction No", "Loan Amount", "Group No", "Member Name", "Months Passed", "Days Passed"]
+            col_widths = [20, 25, 25, 25, 25, 20, 35, 20, 20]
+
+            add_branch_header(pdf, branch, headers, col_widths)
+            pdf.set_font("Arial", '', 8)
+
+            for _, row in branch_df.iterrows():
+                if pdf.get_y() > 260:
+                    pdf.add_page()
+                    add_branch_header(pdf, branch, headers, col_widths)
+                    pdf.set_font("Arial", '', 8)
+
+                row_data = [
+                    row["branch_id"],
+                    row["date_disbursed"].strftime("%Y-%m-%d") if pd.notnull(row["date_disbursed"]) else "",
+                    row["cheque_no"],
+                    row["sanction_no"],
+                    row["loan_amount"],
+                    row["group_no"],
+                    row["member_name"],
+                    row["Months Passed"],
+                    row["Days Passed"]
+                ]
+                draw_row(pdf, row_data, col_widths)
+
+            pdf_bytes = pdf.output(dest="S").encode("latin-1")
+            zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
+
+    zip_buffer.seek(0)
+
+    st.download_button(
+        label="Download All Branch Reports (ZIP)",
+        data=zip_buffer,
+        file_name="all_branches_cheque_reports.zip",
+        mime="application/zip"
+    )

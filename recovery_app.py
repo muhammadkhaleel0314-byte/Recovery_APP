@@ -1166,9 +1166,13 @@ def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
     pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
         align = 'R' if i == 4 else 'L'  # Loan Amount right-align
-        # Loan amount formatted
         if i == 4 and safe_str(data) != "":
-            data = "{:,.2f}".format(float(data))
+            # commas ہٹا کر float convert کریں اور دوبارہ format کریں
+            clean_val = str(data).replace(',', '')
+            try:
+                data = "{:,.2f}".format(float(clean_val))
+            except:
+                data = safe_str(data)
         pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
     pdf.ln(row_height)
 
@@ -1204,6 +1208,9 @@ if uploaded_file is not None:
 
         df = df[required_cols]
         df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
+
+        # Loan Amount: commas remove karke numeric
+        df['loan_amount'] = df['loan_amount'].astype(str).str.replace(',', '').astype(float, errors='ignore')
 
         # Preview
         df_preview = df.fillna("")

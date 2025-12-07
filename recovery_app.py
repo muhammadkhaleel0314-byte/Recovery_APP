@@ -1148,30 +1148,14 @@ class PDF(FPDF):
         self.cell(0, 10, "Cheque Report", ln=True, align="C")
         self.ln(5)
 
-# ---------- Draw Row Function ----------
-def draw_row(pdf, row_data, col_widths, row_height=8):
-    x_start = pdf.get_x()
-    y_start = pdf.get_y()
-    cell_heights = []
-
-    # Measure height
+# ---------- Draw Row Function with Fixed Height ----------
+def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
+    # Draw all cells in a row with fixed height to maintain alignment
+    pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.multi_cell(col_widths[i], row_height, str(data), border=0, align="C")
-        cell_heights.append(pdf.get_y() - y)
-        pdf.set_xy(x + col_widths[i], y)
-
-    max_height = max(cell_heights)
-
-    # Draw with border
-    pdf.set_xy(x_start, y_start)
-    for i, data in enumerate(row_data):
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.multi_cell(col_widths[i], row_height, str(data), border=1, align="C")
-        pdf.set_xy(x + col_widths[i], y)
-    pdf.set_y(y_start + max_height)
+        align = 'R' if i == 4 else 'C'  # Loan Amount right-align
+        pdf.cell(col_widths[i], row_height, str(data), border=1, align=align, fill=fill)
+    pdf.ln(row_height)
 
 # ---------- Branch Header ----------
 def add_branch_header(pdf, branch, headers, col_widths):
@@ -1220,13 +1204,14 @@ if uploaded_file is not None:
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
 
+            # Draw rows with alternating colors
+            fill = False
             for _, row in branch_df.iterrows():
                 if pdf.get_y() > 260:
                     pdf.add_page()
                     add_branch_header(pdf, branch, headers, col_widths)
                     pdf.set_font("Arial", '', 8)
 
-                # Correct row_data matching headers exactly
                 row_data = [
                     row["date_disbursed"].strftime("%Y-%m-%d") if pd.notnull(row["date_disbursed"]) else "",
                     row["cheque_no"],
@@ -1236,7 +1221,8 @@ if uploaded_file is not None:
                     row["group_no"],
                     row["member_name"]
                 ]
-                draw_row(pdf, row_data, col_widths)
+                draw_row_fixed(pdf, row_data, col_widths, fill=fill)
+                fill = not fill  # Alternate row color
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")
             zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
@@ -1249,4 +1235,3 @@ if uploaded_file is not None:
         file_name="all_branches_cheque_reports.zip",
         mime="application/zip"
     )
-

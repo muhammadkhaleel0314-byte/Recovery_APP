@@ -1148,22 +1148,11 @@ class PDF(FPDF):
         self.cell(0, 10, "Cheque Report", ln=True, align="C")
         self.ln(5)
 
-# ---------- Draw Row Function ----------
-def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
-    pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
-    for i, data in enumerate(row_data):
-        align = 'R' if i == 4 else 'C'  # Loan Amount right-align
-        pdf.cell(col_widths[i], row_height, str(data), border=1, align=align, fill=fill)
-    pdf.ln(row_height)
-
-# ---------- Branch Header ----------
-def add_branch_header(pdf, branch, headers, col_widths):
-    pdf.set_font("Arial", 'B', 10)
-    pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
-    pdf.set_font("Arial", 'B', 9)
-    for i, header in enumerate(headers):
-        pdf.cell(col_widths[i], 8, header, 1, 0, "C")
-    pdf.ln()
+# ---------- Safe string ----------
+def safe_str(val):
+    if pd.isna(val) or val is None:
+        return ""
+    return str(val)
 
 # ---------- Safe Date Formatter ----------
 def format_date(val):
@@ -1171,6 +1160,33 @@ def format_date(val):
         return val.strftime("%Y-%m-%d")
     except:
         return ""
+
+# ---------- Draw Row Function ----------
+def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
+    pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
+    for i, data in enumerate(row_data):
+        # Loan Amount right-align, rest left-align
+        align = 'R' if i == 4 else 'L'
+        pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
+    pdf.ln(row_height)
+
+# ---------- Draw Header with Wrap ----------
+def draw_header(pdf, headers, col_widths, row_height=8):
+    pdf.set_font("Arial", 'B', 9)
+    x_start = pdf.get_x()
+    y_start = pdf.get_y()
+    for i, header in enumerate(headers):
+        pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
+        x_current = pdf.get_x()
+        y_current = pdf.get_y()
+        pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
+    pdf.ln(row_height)
+
+# ---------- Branch Header ----------
+def add_branch_header(pdf, branch, headers, col_widths):
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
+    draw_header(pdf, headers, col_widths)
 
 # ---------- Streamlit UI ----------
 st.title("Cheque Wise Report to PDF (Branch Wise)")
@@ -1181,39 +1197,35 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     # Required columns
-    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "tranch_no", "loan_amount", "group_no", "member_name"]
-
-    # Add missing columns as empty
+    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "tranch_no",
+                     "loan_amount", "group_no", "member_name"]
     for col in required_cols:
         if col not in df.columns:
             df[col] = ""
-
-    # Keep only required columns in exact order
     df = df[required_cols]
 
-    # Convert date column safely
+    # Convert date safely
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
     st.write("Data Preview:", df.head())
 
-    # Group by branch
     branch_groups = df.groupby("branch_id")
-
     zip_buffer = BytesIO()
+
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         for branch, branch_df in branch_groups:
             pdf = PDF()
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers
-            headers = ["Date of Disbursement", "Cheque No", "Sanction No", "Tranch No", "Loan Amount", "Group No", "Member Name"]
-            col_widths = [25, 40, 25, 15, 25, 20, 35]  # Adjusted widths
+            # Column headers & widths
+            headers = ["Date of Disbursement", "Cheque No", "Sanction No", "Tranch No",
+                       "Loan Amount", "Group No", "Member Name"]
+            col_widths = [23, 40, 25, 12, 25, 25, 40]  # Adjusted widths
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
 
-            # Draw rows with alternating colors
             fill = False
             for _, row in branch_df.iterrows():
                 if pdf.get_y() > 260:
@@ -1223,15 +1235,15 @@ if uploaded_file is not None:
 
                 row_data = [
                     format_date(row["date_disbursed"]),
-                    row["cheque_no"],
-                    row["sanction_no"],
-                    row["tranch_no"],
-                    row["loan_amount"],
-                    row["group_no"],
-                    row["member_name"]
+                    safe_str(row["cheque_no"]),
+                    safe_str(row["sanction_no"]),
+                    safe_str(row["tranch_no"]),
+                    safe_str(row["loan_amount"]),
+                    safe_str(row["group_no"]),
+                    safe_str(row["member_name"])
                 ]
                 draw_row_fixed(pdf, row_data, col_widths, fill=fill)
-                fill = not fill  # Alternate row color
+                fill = not fill  # alternate row color
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")
             zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)

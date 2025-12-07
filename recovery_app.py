@@ -1162,7 +1162,10 @@ def draw_row(pdf, row_data, col_widths, row_height=8, fill=False):
     pdf.set_fill_color(230,230,230) if fill else pdf.set_fill_color(255,255,255)
     for i, data in enumerate(row_data):
         align = 'R' if i==4 else 'L'  # Loan Amount right-align
-        pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
+        pdf.multi_cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
+        x_current = pdf.get_x()
+        y_current = pdf.get_y()
+        pdf.set_xy(x_current + col_widths[i], y_current - row_height)
     pdf.ln(row_height)
 
 def draw_header(pdf, headers, col_widths, row_height=8):
@@ -1187,7 +1190,7 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # Ensure required columns exist
+    # Ensure required columns
     required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
                      "tranch_no", "loan_amount", "group_no", "member_name"]
     for col in required_cols:
@@ -1198,11 +1201,11 @@ if uploaded_file is not None:
     # Convert date safely
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-    # ---------- Preview with None replaced ----------
+    # ---------- Preview ----------
     df_preview = df.fillna("")
     st.write("Data Preview:", df_preview.head())
 
-    # ---------- Generate ZIP with PDFs ----------
+    # ---------- Generate ZIP ----------
     zip_buffer = BytesIO()
     branch_groups = df.groupby("branch_id")
     with zipfile.ZipFile(zip_buffer, "w", compression=zipfile.ZIP_DEFLATED) as zf:
@@ -1242,7 +1245,7 @@ if uploaded_file is not None:
 
     zip_buffer.seek(0)
 
-    # ---------- Download Button (single, unique key) ----------
+    # ---------- Download Button ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,

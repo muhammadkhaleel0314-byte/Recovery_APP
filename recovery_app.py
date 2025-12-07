@@ -1151,7 +1151,7 @@ if uploaded_file:
 
     required_cols = [
         "region_id", "area_id", "branch_id", "date_disbursed", "cheque_no",
-        "sacnction_no", "loan_amount", "tranch_amount", "tranch_no", "grouo_no",
+        "sanction_no", "loan_amount", "tranch_amount", "tranch_no", "group_no",
         "member_name", "member_cnic", "member_parentage", "project_id"
     ]
 
@@ -1192,3 +1192,4 @@ if uploaded_file:
             file_name="loan_pdfs.zip",
             mime="application/zip"
         )
+

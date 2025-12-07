@@ -1168,7 +1168,7 @@ def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
         align = 'R' if i == 4 else 'L'
         pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
     pdf.ln(row_height)
-    return ""
+    return None
 
 # ---------- Draw Header with Wrap ----------
 def draw_header(pdf, headers, col_widths, row_height=8):
@@ -1179,16 +1179,16 @@ def draw_header(pdf, headers, col_widths, row_height=8):
         pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
         pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
     pdf.ln(row_height)
-    return ""
+    return None
 
 # ---------- Branch Header ----------
 def add_branch_header(pdf, branch, headers, col_widths):
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
-    draw_header(pdf, headers, col_widths)
-    return ""
+    _ = draw_header(pdf, headers, col_widths)
+    return None
 
-# ---------- Streamlit UI ----------
+# ------------------- STREAMLIT UI --------------------
 st.title("Cheque Wise Report to PDF (Branch Wise)")
 
 uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
@@ -1196,12 +1196,13 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # FIX wrong spellings
+    # Fix wrong spellings from your CSV
     df = df.rename(columns={
         "sacnction_no": "sanction_no",
         "grouo_no": "group_no"
     })
 
+    # Required columns for PDF only
     required_cols = [
         "branch_id",
         "date_disbursed",
@@ -1213,11 +1214,12 @@ if uploaded_file is not None:
         "member_name"
     ]
 
+    # Add missing columns as empty
     for col in required_cols:
         if col not in df.columns:
             df[col] = ""
 
-    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='ignore')
+    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors="coerce")
 
     st.write("Data Preview:", df.head())
 
@@ -1238,7 +1240,7 @@ if uploaded_file is not None:
 
             col_widths = [23, 40, 25, 12, 25, 25, 40]
 
-            add_branch_header(pdf, branch, headers, col_widths)
+            _ = add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
 
             fill = False
@@ -1246,7 +1248,7 @@ if uploaded_file is not None:
 
                 if pdf.get_y() > 260:
                     pdf.add_page()
-                    add_branch_header(pdf, branch, headers, col_widths)
+                    _ = add_branch_header(pdf, branch, headers, col_widths)
                     pdf.set_font("Arial", '', 8)
 
                 row_data = [
@@ -1259,7 +1261,7 @@ if uploaded_file is not None:
                     safe_str(row["member_name"])
                 ]
 
-                draw_row_fixed(pdf, row_data, col_widths, fill=fill)
+                _ = draw_row_fixed(pdf, row_data, col_widths, fill=fill)
                 fill = not fill
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")

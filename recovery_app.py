@@ -1139,63 +1139,71 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 import zipfile
-import os
 from io import BytesIO
 
-st.title("Branch wise Cheque wise List")
+st.title("Loan Disbursement PDF Generator")
+
+CSV اپلوڈ کریں
 
 uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+df = pd.read_csv(uploaded_file)
 
-    # --- Fix WRONG COLUMN NAMES ---
-    rename_map = {
-        "sacnction_no": "sanction_no",
-        "grouo_no": "group_no",
-        "sacntion_no": "sanction_no",
-        "sanction no": "sanction_no",
-        "group no": "group_no"
-    }
-    df.rename(columns=rename_map, inplace=True)
+# --- غلط کالم نام درست کریں ---
+rename_map = {
+    "sacnction_no": "sanction_no",
+    "grouo_no": "group_no",
+    "sacntion_no": "sanction_no",
+    "sanction no": "sanction_no",
+    "group no": "group_no"
+}
+df.rename(columns=rename_map, inplace=True)
 
-    required_cols = [
-        "region_id", "area_id", "branch_id", "date_disbursed", "cheque_no",
-        "sanction_no", "loan_amount", "tranch_amount", "tranch_no", "group_no",
-        "member_name", "member_cnic", "member_parentage", "project_id"
-    ]
+required_cols = [
+    "region_id", "area_id", "branch_id", "date_disbursed", "cheque_no",
+    "sanction_no", "loan_amount", "tranch_amount", "tranch_no", "group_no",
+    "member_name", "member_cnic", "member_parentage", "project_id"
+]
 
-    missing = [c for c in required_cols if c not in df.columns]
+# Missing columns check
+missing = [c for c in required_cols if c not in df.columns]
+if missing:
+    st.error(f"Missing columns: {missing}")
+else:
+    st.success("File uploaded successfully!")
+    st.subheader("Preview Data")
+    st.dataframe(df.head())
 
-    if missing:
-        st.error(f"Missing columns: {missing}")
-    else:
-        st.success("File uploaded successfully!")
+    # ZIP فائل memory میں بنائیں
+    output_zip = BytesIO()
+    with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for index, row in df.iterrows():
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", 'B', 14)
+            pdf.cell(200, 10, txt="Loan Disbursement Record", ln=True, align="C")
+            pdf.ln(5)
 
-        st.subheader("Preview Data")
-        st.dataframe(df.head())
+            # Table format
+            pdf.set_font("Arial", '', 12)
+            for col in required_cols:
+                val = str(row[col]) if pd.notna(row[col]) else ""
+                pdf.cell(60, 8, f"{col}:", border=0)
+                pdf.cell(0, 8, val, border=0, ln=True)
 
-        output_zip = BytesIO()
-        with zipfile.ZipFile(output_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-            for index, row in df.iterrows():
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_font("Arial", size=12)
+            # PDF کو memory میں save کریں اور ZIP میں ڈالیں
+            pdf_bytes = BytesIO()
+            pdf.output(pdf_bytes)
+            pdf_bytes.seek(0)
+            file_name = f"{row['member_name']}_{index}.pdf"
+            zipf.writestr(file_name, pdf_bytes.read())
 
-                pdf.cell(200, 10, txt="Loan Disbursement Record", ln=True, align="C")
-
-                for col in required_cols:
-                    val = str(row[col]) if pd.notna(row[col]) else ""
-                    pdf.cell(200, 10, txt=f"{col}: {val}", ln=True)
-
-                pdf_path = f"{row['member_name']}_{index}.pdf"
-                pdf.output(pdf_path)
-                zipf.write(pdf_path)
-                os.remove(pdf_path)
-
-        st.download_button(
-            label="Download All PDFs (ZIP)",
-            data=output_zip.getvalue(),
-            file_name="loan_pdfs.zip",
-            mime="application/zip"
-        )
+    # ZIP کا نام CSV کے نام کے مطابق رکھیں
+    zip_file_name = uploaded_file.name.replace(".csv", "_pdfs.zip")
+    st.download_button(
+        label="Download All PDFs (ZIP)",
+        data=output_zip.getvalue(),
+        file_name=zip_file_name,
+        mime="application/zip"
+    )

@@ -1150,7 +1150,6 @@ class PDF(FPDF):
 
 # ---------- Draw Row Function with Fixed Height ----------
 def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
-    # Draw all cells in a row with fixed height to maintain alignment
     pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
         align = 'R' if i == 4 else 'C'  # Loan Amount right-align
@@ -1184,6 +1183,9 @@ if uploaded_file is not None:
 
     # Keep only required columns in exact order
     df = df[required_cols]
+
+    # Convert date column safely
+    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
     st.write("Data Preview:", df.head())
 

@@ -1180,18 +1180,13 @@ if uploaded_file:
             for index, row in df.iterrows():
                 pdf = FPDF()
                 pdf.add_page()
-               pdf.set_font("Arial", size=10)
-pdf.cell(200, 8, txt="Loan Disbursement Record", ln=True, align="C")
+                pdf.set_font("Arial", size=10)
 
-label_map = {
-    "date_disbursed": "Date Disbursed",
-    "tranch_no": "Tranch"
-}
+                pdf.cell(200, 10, txt="Loan Disbursement Record", ln=True, align="C")
 
-for col in required_cols:
-    val = str(row[col]) if pd.notna(row[col]) else ""
-    label = label_map.get(col, col)  # replace only selected labels
-    pdf.cell(200, 8, txt=f"{label}: {val}", ln=True)
+                for col in required_cols:
+                    val = str(row[col]) if pd.notna(row[col]) else ""
+                    pdf.cell(200, 10, txt=f"{col}: {val}", ln=True)
 
                 pdf_path = f"{row['member_name']}_{index}.pdf"
                 pdf.output(pdf_path)
@@ -1204,5 +1199,3 @@ for col in required_cols:
             file_name="loan_pdfs.zip",
             mime="application/zip"
         )
-
-

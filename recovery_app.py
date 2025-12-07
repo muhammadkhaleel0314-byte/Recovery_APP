@@ -1165,12 +1165,11 @@ def format_date(val):
 def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
     pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
-        # Loan Amount right-align, rest left-align
-        align = 'R' if i == 4 else 'L'
+        align = 'R' if i == 4 else 'L'  # Loan Amount right-align
         pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
     pdf.ln(row_height)
 
-# ---------- Draw Header with Wrap ----------
+# ---------- Draw Header ----------
 def draw_header(pdf, headers, col_widths, row_height=8):
     pdf.set_font("Arial", 'B', 9)
     x_start = pdf.get_x()
@@ -1197,8 +1196,8 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     # Required columns
-    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "tranch_no",
-                     "loan_amount", "group_no", "member_name"]
+    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
+                     "tranch_no", "loan_amount", "group_no", "member_name"]
     for col in required_cols:
         if col not in df.columns:
             df[col] = ""
@@ -1207,7 +1206,9 @@ if uploaded_file is not None:
     # Convert date safely
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-    st.write("Data Preview:", df.head())
+    # Preview with empty string instead of None/NaN
+    df_preview = df.fillna("")
+    st.write("Data Preview:", df_preview.head())
 
     branch_groups = df.groupby("branch_id")
     zip_buffer = BytesIO()
@@ -1218,10 +1219,10 @@ if uploaded_file is not None:
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers & widths
-            headers = ["Date of Disbursement", "Cheque No", "Sanction No", "Tranch No",
+            # Column headers & widths (short headers)
+            headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
                        "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 12, 25, 25, 40]  # Adjusted widths
+            col_widths = [23, 40, 25, 12, 25, 25, 40]
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)

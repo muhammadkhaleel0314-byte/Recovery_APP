@@ -1142,7 +1142,7 @@ import zipfile
 import os
 from io import BytesIO
 
-st.title("Loan Disbursement PDF Generator")
+st.title("Branch wise Cheque wise List")
 
 uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
 

@@ -1150,10 +1150,12 @@ class PDF(FPDF):
 
 # ---------- Draw Row Function ----------
 def draw_row(pdf, row_data, col_widths, row_height=8):
+    """Draw a row of data with proper cell heights"""
     cell_heights = []
     x_start = pdf.get_x()
     y_start = pdf.get_y()
 
+    # First calculate max height
     for i, data in enumerate(row_data):
         x = pdf.get_x()
         y = pdf.get_y()
@@ -1163,6 +1165,8 @@ def draw_row(pdf, row_data, col_widths, row_height=8):
         pdf.set_xy(x + col_widths[i], y)
 
     max_height = max(cell_heights)
+
+    # Now draw border and data again
     pdf.set_xy(x_start, y_start)
     for i, data in enumerate(row_data):
         x = pdf.get_x()
@@ -1173,6 +1177,7 @@ def draw_row(pdf, row_data, col_widths, row_height=8):
 
 # ---------- Branch Header ----------
 def add_branch_header(pdf, branch, headers, col_widths):
+    """Add branch name and column headers"""
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
     pdf.set_font("Arial", 'B', 9)
@@ -1188,7 +1193,7 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # ✅ Only required columns
+    # Required columns
     required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "loan_amount", "group_no", "member_name"]
 
     # Add missing columns as empty
@@ -1196,7 +1201,7 @@ if uploaded_file is not None:
         if col not in df.columns:
             df[col] = ""
 
-    # Keep only required columns (ignore others)
+    # Keep only required columns
     df = df[required_cols]
 
     st.write("Data Preview:", df.head())
@@ -1211,7 +1216,7 @@ if uploaded_file is not None:
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Branch header
+            # Column headers in exact order
             headers = ["Date Disbursed", "Cheque No", "Sanction No", "Loan Amount", "Group No", "Member Name"]
             col_widths = [25, 25, 25, 25, 20, 35]
 

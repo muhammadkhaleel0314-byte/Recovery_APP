@@ -1206,17 +1206,27 @@ if uploaded_file is not None:
     # Convert date safely
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-    branch_groups = df.groupby("branch_id")
-    zip_buffer = BytesIO()
+    # ---------- Preview with None replaced ----------
+    df_preview = df.fillna("")  # Remove None/NaN in preview
+
+    # ---------- Display Download Button and Preview FIRST ----------
+    st.download_button(
+        label="Download All Branch Reports (ZIP)",
+        data=BytesIO(),  # temporary placeholder, actual ZIP will be updated below
+        file_name="all_branches_cheque_reports.zip",
+        mime="application/zip"
+    )
+    st.write("Data Preview:", df_preview.head())
 
     # ---------- Generate ZIP with PDFs ----------
+    zip_buffer = BytesIO()
+    branch_groups = df.groupby("branch_id")
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         for branch, branch_df in branch_groups:
             pdf = PDF()
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers & widths
             headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
                        "Loan Amount", "Group No", "Member Name"]
             col_widths = [23, 40, 25, 18, 25, 25, 40]
@@ -1248,7 +1258,7 @@ if uploaded_file is not None:
 
     zip_buffer.seek(0)
 
-    # ---------- Download Button ABOVE Preview ----------
+    # ---------- Update Download Button with actual ZIP ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,
@@ -1256,6 +1266,4 @@ if uploaded_file is not None:
         mime="application/zip"
     )
 
-    # ---------- Data Preview BELOW Download ----------
-    df_preview = df.fillna("")  # Remove None/NaN in preview
-    st.write("Data Preview:", df_preview.head())
+# ---------- Any debug messages (None) appear at the very bottom ----------

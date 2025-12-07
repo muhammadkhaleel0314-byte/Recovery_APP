@@ -1166,19 +1166,17 @@ def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
     pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
         align = 'R' if i == 4 else 'L'  # Loan Amount right-align
+        # Loan amount formatted
+        if i == 4 and safe_str(data) != "":
+            data = "{:,.2f}".format(float(data))
         pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
     pdf.ln(row_height)
 
 # ---------- Draw Header ----------
 def draw_header(pdf, headers, col_widths, row_height=8):
     pdf.set_font("Arial", 'B', 9)
-    x_start = pdf.get_x()
-    y_start = pdf.get_y()
     for i, header in enumerate(headers):
-        pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
-        x_current = pdf.get_x()
-        y_current = pdf.get_y()
-        pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
+        pdf.cell(col_widths[i], row_height, header, border=1, align='C')
     pdf.ln(row_height)
 
 # ---------- Branch Header ----------
@@ -1193,69 +1191,76 @@ st.title("Cheque Wise Report to PDF (Branch Wise)")
 uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    try:
+        df = pd.read_csv(uploaded_file)
+        st.success("File loaded successfully!")
 
-    # Required columns
-    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
-                     "tranch_no", "loan_amount", "group_no", "member_name"]
-    for col in required_cols:
-        if col not in df.columns:
-            df[col] = ""
-    df = df[required_cols]
+        # Required columns
+        required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
+                         "tranch_no", "loan_amount", "group_no", "member_name"]
+        for col in required_cols:
+            if col not in df.columns:
+                df[col] = ""
 
-    # Convert date safely
-    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
+        df = df[required_cols]
+        df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-    branch_groups = df.groupby("branch_id")
-    zip_buffer = BytesIO()
+        # Preview
+        df_preview = df.fillna("")
+        st.write("Data Preview:", df_preview.head())
 
-    # ---------- Generate ZIP with PDFs ----------
-    with zipfile.ZipFile(zip_buffer, "w") as zf:
-        for branch, branch_df in branch_groups:
-            pdf = PDF()
-            pdf.set_auto_page_break(auto=False, margin=15)
-            pdf.add_page()
-
-            # Column headers & widths
-            headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
-                       "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 18, 25, 25, 40]
-
-            add_branch_header(pdf, branch, headers, col_widths)
-            pdf.set_font("Arial", '', 8)
-
-            fill = False
-            for _, row in branch_df.iterrows():
-                if pdf.get_y() > 260:
+        # Branch-wise PDF creation
+        branch_groups = df.groupby("branch_id")
+        if branch_groups.ngroups == 0:
+            st.warning("Uploaded CSV has no branch data!")
+        else:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w") as zf:
+                for branch, branch_df in branch_groups:
+                    pdf = PDF()
+                    pdf.set_auto_page_break(auto=False, margin=15)
                     pdf.add_page()
+
+                    # Column headers & widths
+                    headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
+                               "Loan Amount", "Group No", "Member Name"]
+                    col_widths = [23, 40, 25, 18, 25, 25, 40]
+
                     add_branch_header(pdf, branch, headers, col_widths)
                     pdf.set_font("Arial", '', 8)
 
-                row_data = [
-                    format_date(row["date_disbursed"]),
-                    safe_str(row["cheque_no"]),
-                    safe_str(row["sanction_no"]),
-                    safe_str(row["tranch_no"]),
-                    safe_str(row["loan_amount"]),
-                    safe_str(row["group_no"]),
-                    safe_str(row["member_name"])
-                ]
-                draw_row_fixed(pdf, row_data, col_widths, fill=fill)
-                fill = not fill
+                    fill = False
+                    for _, row in branch_df.iterrows():
+                        if pdf.get_y() + 8 > 280:  # auto page break
+                            pdf.add_page()
+                            add_branch_header(pdf, branch, headers, col_widths)
+                            pdf.set_font("Arial", '', 8)
 
-            pdf_bytes = pdf.output(dest="S").encode("latin-1")
-            zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
+                        row_data = [
+                            format_date(row["date_disbursed"]),
+                            safe_str(row["cheque_no"]),
+                            safe_str(row["sanction_no"]),
+                            safe_str(row["tranch_no"]),
+                            safe_str(row["loan_amount"]),
+                            safe_str(row["group_no"]),
+                            safe_str(row["member_name"])
+                        ]
+                        draw_row_fixed(pdf, row_data, col_widths, fill=fill)
+                        fill = not fill  # alternate row color
 
-    zip_buffer.seek(0)
+                    pdf_bytes = pdf.output(dest="S").encode("latin-1")
+                    zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
 
-    # ---------- Download Button ABOVE Preview ----------
-    st.download_button(
-        label="Download All Branch Reports (ZIP)",
-        data=zip_buffer,
-        file_name="all_branches_cheque_reports.zip",
-        mime="application/zip"
-    )
+            zip_buffer.seek(0)
 
-    # ---------- Data Preview BELOW Download ----------
-    df_preview = df.fillna("")  # Remove None/NaN in preview
-    st.write("Data Preview:", df_preview.head())
+            st.download_button(
+                label="Download All Branch Reports (ZIP)",
+                data=zip_buffer,
+                file_name="all_branches_cheque_reports.zip",
+                mime="application/zip"
+            )
+
+    except Exception as e:
+        st.error(f"Error loading file: {e}")
+else:
+    st.info("براہ کرم CSV فائل اپلوڈ کریں تاکہ رپورٹ بنائی جا سکے۔")

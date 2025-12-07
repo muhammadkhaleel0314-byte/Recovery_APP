@@ -1219,10 +1219,10 @@ if uploaded_file is not None:
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers & widths (short headers)
+            # Column headers & widths (adjusted Tranch width)
             headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
                        "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 12, 25, 25, 40]
+            col_widths = [23, 40, 25, 18, 25, 25, 40]  # Tranch width increased from 12 -> 18
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)

@@ -1207,14 +1207,16 @@ if uploaded_file is not None:
                 df[col] = ""
 
         df = df[required_cols]
-        df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-        # Loan Amount: commas remove karke numeric
-        df['loan_amount'] = df['loan_amount'].astype(str).str.replace(',', '').astype(float, errors='ignore')
+        # Clean data
+        df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
+        df = df.fillna("")  # empty cells replace with ""
+
+        # Loan Amount: remove commas and convert to float
+        df['loan_amount'] = df['loan_amount'].astype(str).str.replace(',', '').replace('', '0').astype(float, errors='ignore')
 
         # Preview
-        df_preview = df.fillna("")
-        st.write("Data Preview:", df_preview.head())
+        st.write("Data Preview:", df.head())
 
         # Branch-wise PDF creation
         branch_groups = df.groupby("branch_id")
@@ -1238,11 +1240,6 @@ if uploaded_file is not None:
 
                     fill = False
                     for _, row in branch_df.iterrows():
-                        if pdf.get_y() + 8 > 280:  # auto page break
-                            pdf.add_page()
-                            add_branch_header(pdf, branch, headers, col_widths)
-                            pdf.set_font("Arial", '', 8)
-
                         row_data = [
                             format_date(row["date_disbursed"]),
                             safe_str(row["cheque_no"]),
@@ -1252,6 +1249,16 @@ if uploaded_file is not None:
                             safe_str(row["group_no"]),
                             safe_str(row["member_name"])
                         ]
+
+                        # Skip empty rows
+                        if all([x == "" or x == 0 or x is None for x in row_data]):
+                            continue
+
+                        if pdf.get_y() + 8 > 280:  # auto page break
+                            pdf.add_page()
+                            add_branch_header(pdf, branch, headers, col_widths)
+                            pdf.set_font("Arial", '', 8)
+
                         draw_row_fixed(pdf, row_data, col_widths, fill=fill)
                         fill = not fill  # alternate row color
 

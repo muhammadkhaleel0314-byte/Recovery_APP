@@ -1206,23 +1206,20 @@ if uploaded_file is not None:
     # Convert date safely
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-    # Preview with empty string instead of None/NaN
-    df_preview = df.fillna("")
-    st.write("Data Preview:", df_preview.head())
-
     branch_groups = df.groupby("branch_id")
     zip_buffer = BytesIO()
 
+    # ---------- Generate ZIP with PDFs ----------
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         for branch, branch_df in branch_groups:
             pdf = PDF()
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers & widths (adjusted Tranch width)
+            # Column headers & widths
             headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
                        "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 18, 25, 25, 40]  # Tranch width increased from 12 -> 18
+            col_widths = [23, 40, 25, 18, 25, 25, 40]
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
@@ -1244,16 +1241,21 @@ if uploaded_file is not None:
                     safe_str(row["member_name"])
                 ]
                 draw_row_fixed(pdf, row_data, col_widths, fill=fill)
-                fill = not fill  # alternate row color
+                fill = not fill
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")
             zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
 
     zip_buffer.seek(0)
 
+    # ---------- Download Button ABOVE Preview ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,
         file_name="all_branches_cheque_reports.zip",
         mime="application/zip"
     )
+
+    # ---------- Data Preview BELOW Download ----------
+    df_preview = df.fillna("")  # Remove None/NaN in preview
+    st.write("Data Preview:", df_preview.head())

@@ -1150,23 +1150,21 @@ class PDF(FPDF):
 
 # ---------- Draw Row Function ----------
 def draw_row(pdf, row_data, col_widths, row_height=8):
-    """Draw a row of data with proper cell heights"""
-    cell_heights = []
     x_start = pdf.get_x()
     y_start = pdf.get_y()
+    cell_heights = []
 
-    # First calculate max height
+    # Measure height
     for i, data in enumerate(row_data):
         x = pdf.get_x()
         y = pdf.get_y()
         pdf.multi_cell(col_widths[i], row_height, str(data), border=0, align="C")
-        h = pdf.get_y() - y
-        cell_heights.append(h)
+        cell_heights.append(pdf.get_y() - y)
         pdf.set_xy(x + col_widths[i], y)
 
     max_height = max(cell_heights)
 
-    # Now draw border and data again
+    # Draw with border
     pdf.set_xy(x_start, y_start)
     for i, data in enumerate(row_data):
         x = pdf.get_x()
@@ -1177,7 +1175,6 @@ def draw_row(pdf, row_data, col_widths, row_height=8):
 
 # ---------- Branch Header ----------
 def add_branch_header(pdf, branch, headers, col_widths):
-    """Add branch name and column headers"""
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
     pdf.set_font("Arial", 'B', 9)
@@ -1194,14 +1191,14 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     # Required columns
-    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "loan_amount", "group_no", "member_name"]
+    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "tranch_no", "loan_amount", "group_no", "member_name"]
 
     # Add missing columns as empty
     for col in required_cols:
         if col not in df.columns:
             df[col] = ""
 
-    # Keep only required columns
+    # Keep only required columns in exact order
     df = df[required_cols]
 
     st.write("Data Preview:", df.head())
@@ -1216,9 +1213,9 @@ if uploaded_file is not None:
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers in exact order
-            headers = ["Date Disbursed", "Cheque No", "Sanction No", "Loan Amount", "Group No", "Member Name"]
-            col_widths = [25, 25, 25, 25, 20, 35]
+            # Column headers
+            headers = ["Date of Disbursement", "Cheque No", "Sanction No", "Tranch No", "Loan Amount", "Group No", "Member Name"]
+            col_widths = [35, 25, 25, 25, 25, 20, 35]
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
@@ -1229,10 +1226,12 @@ if uploaded_file is not None:
                     add_branch_header(pdf, branch, headers, col_widths)
                     pdf.set_font("Arial", '', 8)
 
+                # Correct row_data matching headers exactly
                 row_data = [
-                    row["date_disbursed"] if pd.notnull(row["date_disbursed"]) else "",
+                    row["date_disbursed"].strftime("%Y-%m-%d") if pd.notnull(row["date_disbursed"]) else "",
                     row["cheque_no"],
                     row["sanction_no"],
+                    row["tranch_no"],
                     row["loan_amount"],
                     row["group_no"],
                     row["member_name"]
@@ -1250,3 +1249,4 @@ if uploaded_file is not None:
         file_name="all_branches_cheque_reports.zip",
         mime="application/zip"
     )
+

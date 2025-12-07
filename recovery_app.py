@@ -1148,46 +1148,49 @@ class PDF(FPDF):
         self.cell(0, 10, "Cheque Report", ln=True, align="C")
         self.ln(5)
 
-# ---------- Safe string ----------
+# ---------- Helper Functions ----------
 def safe_str(val):
-    if pd.isna(val) or val is None:
-        return ""
-    return str(val)
+    return "" if pd.isna(val) or val is None else str(val)
 
-# ---------- Safe Date Formatter ----------
 def format_date(val):
     try:
         return val.strftime("%Y-%m-%d")
     except:
         return ""
 
-# ---------- Draw Row Function ----------
-def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
-    pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
+def draw_row(pdf, row_data, col_widths, row_height=8, fill=False):
+    pdf.set_fill_color(230,230,230) if fill else pdf.set_fill_color(255,255,255)
+    x_start = pdf.get_x()
+    y_start = pdf.get_y()
+    cell_heights = []
+    # Calculate each cell height
     for i, data in enumerate(row_data):
-        align = 'R' if i == 4 else 'L'  # Loan Amount right-align
-        pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
-    pdf.ln(row_height)
+        pdf.multi_cell(col_widths[i], row_height, safe_str(data), border=0, align='L')
+        cell_heights.append(pdf.get_y() - y_start)
+        pdf.set_xy(pdf.get_x() + col_widths[i], y_start)
+    max_height = max(cell_heights)
+    # Draw cells with border
+    pdf.set_xy(x_start, y_start)
+    for i, data in enumerate(row_data):
+        pdf.multi_cell(col_widths[i], row_height, safe_str(data), border=1, align='L', fill=fill)
+        pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
+    pdf.set_y(y_start + max_height)
 
-# ---------- Draw Header ----------
 def draw_header(pdf, headers, col_widths, row_height=8):
     pdf.set_font("Arial", 'B', 9)
     x_start = pdf.get_x()
     y_start = pdf.get_y()
     for i, header in enumerate(headers):
         pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
-        x_current = pdf.get_x()
-        y_current = pdf.get_y()
         pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
     pdf.ln(row_height)
 
-# ---------- Branch Header ----------
 def add_branch_header(pdf, branch, headers, col_widths):
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
     draw_header(pdf, headers, col_widths)
 
-# ---------- Streamlit UI ----------
+# ---------- Streamlit App ----------
 st.title("Cheque Wise Report to PDF (Branch Wise)")
 
 uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
@@ -1195,7 +1198,7 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # Required columns
+    # Ensure required columns
     required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
                      "tranch_no", "loan_amount", "group_no", "member_name"]
     for col in required_cols:
@@ -1206,25 +1209,27 @@ if uploaded_file is not None:
     # Convert date safely
     df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
-    branch_groups = df.groupby("branch_id")
-    zip_buffer = BytesIO()
+    # ---------- Preview ----------
+    df_preview = df.fillna("")
+    st.write("Data Preview:", df_preview.head())
 
-    # ---------- Generate ZIP with PDFs ----------
-    with zipfile.ZipFile(zip_buffer, "w") as zf:
+    # ---------- Generate ZIP ----------
+    zip_buffer = BytesIO()
+    branch_groups = df.groupby("branch_id")
+    with zipfile.ZipFile(zip_buffer, "w", compression=zipfile.ZIP_DEFLATED) as zf:
         for branch, branch_df in branch_groups:
             pdf = PDF()
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            # Column headers & widths
-            headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
-                       "Loan Amount", "Group No", "Member Name"]
-            col_widths = [23, 40, 25, 18, 25, 25, 40]
+            headers = ["Disburs Date","Cheque No","Sanction","Tranch",
+                       "Loan Amount","Group No","Member Name"]
+            col_widths = [23,40,25,20,25,25,40]
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
 
-            fill = False
+            fill=False
             for _, row in branch_df.iterrows():
                 if pdf.get_y() > 260:
                     pdf.add_page()
@@ -1240,7 +1245,7 @@ if uploaded_file is not None:
                     safe_str(row["group_no"]),
                     safe_str(row["member_name"])
                 ]
-                draw_row_fixed(pdf, row_data, col_widths, fill=fill)
+                draw_row(pdf,row_data,col_widths,fill=fill)
                 fill = not fill
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")
@@ -1248,14 +1253,11 @@ if uploaded_file is not None:
 
     zip_buffer.seek(0)
 
-    # ---------- Download Button ABOVE Preview ----------
+    # ---------- Download Button ----------
     st.download_button(
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,
         file_name="all_branches_cheque_reports.zip",
-        mime="application/zip"
+        mime="application/zip",
+        key="unique_zip_download"
     )
-
-    # ---------- Data Preview BELOW Download ----------
-    df_preview = df.fillna("")  # Remove None/NaN in preview
-    st.write("Data Preview:", df_preview.head())

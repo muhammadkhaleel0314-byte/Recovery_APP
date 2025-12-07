@@ -1162,12 +1162,11 @@ def format_date(val):
         return ""
 
 # ---------- Draw Row Function ----------
-def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
+def draw_row(pdf, row_data, col_widths, row_height=8, fill=False):
     pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
         align = 'R' if i == 4 else 'L'  # Loan Amount right-align
         if i == 4 and safe_str(data) != "":
-            # commas ہٹا کر float convert کریں اور دوبارہ format کریں
             clean_val = str(data).replace(',', '')
             try:
                 data = "{:,.2f}".format(float(clean_val))
@@ -1197,11 +1196,10 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     try:
         df = pd.read_csv(uploaded_file)
-        st.success("File loaded successfully!")
 
         # Required columns
-        required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no",
-                         "tranch_no", "loan_amount", "group_no", "member_name"]
+        required_cols = ["branch_id","date_disbursed","cheque_no","sanction_no",
+                         "tranch_no","loan_amount","group_no","member_name"]
         for col in required_cols:
             if col not in df.columns:
                 df[col] = ""
@@ -1210,10 +1208,13 @@ if uploaded_file is not None:
 
         # Clean data
         df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
-        df = df.fillna("")  # empty cells replace with ""
+        df = df.fillna("").astype(str).replace("nan","").replace("None","")
 
         # Loan Amount: remove commas and convert to float
-        df['loan_amount'] = df['loan_amount'].astype(str).str.replace(',', '').replace('', '0').astype(float, errors='ignore')
+        df['loan_amount'] = df['loan_amount'].str.replace(',', '').replace('', '0').astype(float, errors='ignore')
+
+        # Drop completely empty rows
+        df = df.loc[~(df == "").all(axis=1)]
 
         # Preview
         st.write("Data Preview:", df.head())
@@ -1221,7 +1222,7 @@ if uploaded_file is not None:
         # Branch-wise PDF creation
         branch_groups = df.groupby("branch_id")
         if branch_groups.ngroups == 0:
-            st.warning("Uploaded CSV has no branch data!")
+            st.warning("No branch data found!")
         else:
             zip_buffer = BytesIO()
             with zipfile.ZipFile(zip_buffer, "w") as zf:
@@ -1230,15 +1231,13 @@ if uploaded_file is not None:
                     pdf.set_auto_page_break(auto=False, margin=15)
                     pdf.add_page()
 
-                    # Column headers & widths
-                    headers = ["Disburs Date", "Cheque No", "Sanction", "Tranch",
-                               "Loan Amount", "Group No", "Member Name"]
-                    col_widths = [23, 40, 25, 18, 25, 25, 40]
+                    headers = ["Disburs Date","Cheque No","Sanction","Tranch","Loan Amount","Group No","Member Name"]
+                    col_widths = [23,40,25,18,25,25,40]
 
                     add_branch_header(pdf, branch, headers, col_widths)
                     pdf.set_font("Arial", '', 8)
 
-                    fill = False
+                    fill=False
                     for _, row in branch_df.iterrows():
                         row_data = [
                             format_date(row["date_disbursed"]),
@@ -1250,29 +1249,24 @@ if uploaded_file is not None:
                             safe_str(row["member_name"])
                         ]
 
-                        # Skip empty rows
-                        if all([x == "" or x == 0 or x is None for x in row_data]):
+                        # skip empty rows
+                        if all([x=="" or x=="0" for x in row_data]):
                             continue
 
-                        if pdf.get_y() + 8 > 280:  # auto page break
+                        if pdf.get_y()+8 > 280:
                             pdf.add_page()
                             add_branch_header(pdf, branch, headers, col_widths)
-                            pdf.set_font("Arial", '', 8)
+                            pdf.set_font("Arial",'',8)
 
-                        draw_row_fixed(pdf, row_data, col_widths, fill=fill)
-                        fill = not fill  # alternate row color
+                        draw_row(pdf, row_data, col_widths, fill=fill)
+                        fill = not fill
 
                     pdf_bytes = pdf.output(dest="S").encode("latin-1")
                     zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
 
             zip_buffer.seek(0)
-
-            st.download_button(
-                label="Download All Branch Reports (ZIP)",
-                data=zip_buffer,
-                file_name="all_branches_cheque_reports.zip",
-                mime="application/zip"
-            )
+            st.download_button("Download All Branch Reports (ZIP)", data=zip_buffer,
+                               file_name="all_branches_cheque_reports.zip", mime="application/zip")
 
     except Exception as e:
         st.error(f"Error loading file: {e}")

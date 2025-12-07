@@ -1180,7 +1180,7 @@ if uploaded_file:
             for index, row in df.iterrows():
                 pdf = FPDF()
                 pdf.add_page()
-               pdf.set_font("Arial", size=10)   # font smaller
+               pdf.set_font("Arial", size=10)
 pdf.cell(200, 8, txt="Loan Disbursement Record", ln=True, align="C")
 
 label_map = {
@@ -1204,4 +1204,5 @@ for col in required_cols:
             file_name="loan_pdfs.zip",
             mime="application/zip"
         )
+
 

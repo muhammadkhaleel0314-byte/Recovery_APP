@@ -1140,7 +1140,6 @@ import pandas as pd
 from fpdf import FPDF
 from io import BytesIO
 import zipfile
-import datetime
 
 # ---------- PDF Class ----------
 class PDF(FPDF):
@@ -1156,10 +1155,9 @@ def draw_row(pdf, row_data, col_widths, row_height=8):
     y_start = pdf.get_y()
 
     for i, data in enumerate(row_data):
-        text = str(data)
         x = pdf.get_x()
         y = pdf.get_y()
-        pdf.multi_cell(col_widths[i], row_height, text, border=0, align="C")
+        pdf.multi_cell(col_widths[i], row_height, str(data), border=0, align="C")
         h = pdf.get_y() - y
         cell_heights.append(h)
         pdf.set_xy(x + col_widths[i], y)
@@ -1190,29 +1188,22 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # ✅ Required columns for PDF
-    expected_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "loan_amount", "group_no", "member_name"]
+    # ✅ Only required columns
+    required_cols = ["branch_id", "date_disbursed", "cheque_no", "sanction_no", "loan_amount", "group_no", "member_name"]
 
     # Add missing columns as empty
-    for col in expected_cols:
+    for col in required_cols:
         if col not in df.columns:
             df[col] = ""
 
-    # Keep only expected columns
-    df = df[expected_cols]
-
-    # Date Handling
-    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors="coerce")
-    today = datetime.date.today()
-    df["Months Passed"] = df["date_disbursed"].apply(lambda d: (today.year - d.year) * 12 + today.month - d.month if pd.notnull(d) else "")
-    df["Days Passed"] = df["date_disbursed"].apply(lambda d: (today - d.date()).days if pd.notnull(d) else "")
+    # Keep only required columns (ignore others)
+    df = df[required_cols]
 
     st.write("Data Preview:", df.head())
 
     # Group by branch
     branch_groups = df.groupby("branch_id")
 
-    # ZIP buffer
     zip_buffer = BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         for branch, branch_df in branch_groups:
@@ -1220,8 +1211,9 @@ if uploaded_file is not None:
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
-            headers = ["Branch ID", "Date Disbursed", "Cheque No", "Sanction No", "Loan Amount", "Group No", "Member Name", "Months Passed", "Days Passed"]
-            col_widths = [20, 25, 25, 25, 25, 20, 35, 20, 20]
+            # Branch header
+            headers = ["Date Disbursed", "Cheque No", "Sanction No", "Loan Amount", "Group No", "Member Name"]
+            col_widths = [25, 25, 25, 25, 20, 35]
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
@@ -1233,15 +1225,12 @@ if uploaded_file is not None:
                     pdf.set_font("Arial", '', 8)
 
                 row_data = [
-                    row["branch_id"],
-                    row["date_disbursed"].strftime("%Y-%m-%d") if pd.notnull(row["date_disbursed"]) else "",
+                    row["date_disbursed"] if pd.notnull(row["date_disbursed"]) else "",
                     row["cheque_no"],
                     row["sanction_no"],
                     row["loan_amount"],
                     row["group_no"],
-                    row["member_name"],
-                    row["Months Passed"],
-                    row["Days Passed"]
+                    row["member_name"]
                 ]
                 draw_row(pdf, row_data, col_widths)
 

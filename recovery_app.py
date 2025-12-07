@@ -1148,7 +1148,7 @@ class PDF(FPDF):
         self.cell(0, 10, "Cheque Report", ln=True, align="C")
         self.ln(5)
 
-# ---------- Draw Row Function with Fixed Height ----------
+# ---------- Draw Row Function ----------
 def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
     pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
     for i, data in enumerate(row_data):
@@ -1164,6 +1164,13 @@ def add_branch_header(pdf, branch, headers, col_widths):
     for i, header in enumerate(headers):
         pdf.cell(col_widths[i], 8, header, 1, 0, "C")
     pdf.ln()
+
+# ---------- Safe Date Formatter ----------
+def format_date(val):
+    try:
+        return val.strftime("%Y-%m-%d")
+    except:
+        return ""
 
 # ---------- Streamlit UI ----------
 st.title("Cheque Wise Report to PDF (Branch Wise)")
@@ -1201,7 +1208,7 @@ if uploaded_file is not None:
 
             # Column headers
             headers = ["Date of Disbursement", "Cheque No", "Sanction No", "Tranch No", "Loan Amount", "Group No", "Member Name"]
-            col_widths = [35, 25, 25, 25, 25, 20, 35]
+            col_widths = [25, 40, 25, 15, 25, 20, 35]  # Adjusted widths
 
             add_branch_header(pdf, branch, headers, col_widths)
             pdf.set_font("Arial", '', 8)
@@ -1215,7 +1222,7 @@ if uploaded_file is not None:
                     pdf.set_font("Arial", '', 8)
 
                 row_data = [
-                    row["date_disbursed"].strftime("%Y-%m-%d") if pd.notnull(row["date_disbursed"]) else "",
+                    format_date(row["date_disbursed"]),
                     row["cheque_no"],
                     row["sanction_no"],
                     row["tranch_no"],

@@ -1173,9 +1173,8 @@ else:
     for br in branches:
         br_df = df[df["branch_id"] == br]
 
+        # ---------- Branch Preview ----------
         st.markdown(f"### 📌 Branch: **{br}**")
-
-        # ---------- Preview Table ----------
         st.dataframe(br_df)
 
         # ---------- PDF Generate Button ----------

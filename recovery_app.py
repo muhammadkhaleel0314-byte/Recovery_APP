@@ -1168,27 +1168,24 @@ def draw_row_fixed(pdf, row_data, col_widths, row_height=8, fill=False):
         align = 'R' if i == 4 else 'L'
         pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
     pdf.ln(row_height)
-    return None
 
-# ---------- Draw Header with Wrap ----------
+# ---------- Draw Header ----------
 def draw_header(pdf, headers, col_widths, row_height=8):
-    pdf.set_font("Arial", 'B', 9)
+    pdf.set_font("Arial", 'B', 8)
     x_start = pdf.get_x()
     y_start = pdf.get_y()
     for i, header in enumerate(headers):
         pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
         pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
     pdf.ln(row_height)
-    return None
 
 # ---------- Branch Header ----------
 def add_branch_header(pdf, branch, headers, col_widths):
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
-    _ = draw_header(pdf, headers, col_widths)
-    return None
+    draw_header(pdf, headers, col_widths)
 
-# ------------------- STREAMLIT UI --------------------
+# ---------- Streamlit UI ----------
 st.title("Cheque Wise Report to PDF (Branch Wise)")
 
 uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
@@ -1196,13 +1193,12 @@ uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    # Fix wrong spellings from your CSV
-    df = df.rename(columns={
+    # Fix wrong spellings
+    df.rename(columns={
         "sacnction_no": "sanction_no",
         "grouo_no": "group_no"
-    })
+    }, inplace=True)
 
-    # Required columns for PDF only
     required_cols = [
         "branch_id",
         "date_disbursed",
@@ -1214,12 +1210,12 @@ if uploaded_file is not None:
         "member_name"
     ]
 
-    # Add missing columns as empty
     for col in required_cols:
         if col not in df.columns:
             df[col] = ""
 
-    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors="coerce")
+    df = df[required_cols]
+    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors='coerce')
 
     st.write("Data Preview:", df.head())
 
@@ -1229,26 +1225,36 @@ if uploaded_file is not None:
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         for branch, branch_df in branch_groups:
 
+            # ---- Safe branch name fix ----
+            branch_name = str(branch).replace(".0", "").strip()
+            if branch_name == "" or branch_name.lower() == "none":
+                branch_name = "UnknownBranch"
+
             pdf = PDF()
             pdf.set_auto_page_break(auto=False, margin=15)
             pdf.add_page()
 
             headers = [
-                "Date of Disbursement", "Cheque No", "Sanction No",
-                "Tranch No", "Loan Amount", "Group No", "Member Name"
+                "Date Disbursed",
+                "Cheque No",
+                "Sanction No",
+                "Tranch",
+                "Loan Amount",
+                "Group No",
+                "Member Name"
             ]
 
-            col_widths = [23, 40, 25, 12, 25, 25, 40]
+            col_widths = [25, 38, 28, 15, 25, 25, 38]
 
-            _ = add_branch_header(pdf, branch, headers, col_widths)
+            add_branch_header(pdf, branch_name, headers, col_widths)
             pdf.set_font("Arial", '', 8)
 
             fill = False
-            for _, row in branch_df.iterrows():
 
+            for _, row in branch_df.iterrows():
                 if pdf.get_y() > 260:
                     pdf.add_page()
-                    _ = add_branch_header(pdf, branch, headers, col_widths)
+                    add_branch_header(pdf, branch_name, headers, col_widths)
                     pdf.set_font("Arial", '', 8)
 
                 row_data = [
@@ -1265,7 +1271,7 @@ if uploaded_file is not None:
                 fill = not fill
 
             pdf_bytes = pdf.output(dest="S").encode("latin-1")
-            zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
+            zf.writestr(f"{branch_name}_cheque_report.pdf", pdf_bytes)
 
     zip_buffer.seek(0)
 
@@ -1273,5 +1279,5 @@ if uploaded_file is not None:
         label="Download All Branch Reports (ZIP)",
         data=zip_buffer,
         file_name="all_branches_cheque_reports.zip",
-        mime="application/zip"
+        mime="application/octet-stream"
     )

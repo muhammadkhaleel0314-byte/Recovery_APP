@@ -1161,7 +1161,7 @@ class PDF(FPDF):
 
 # ---------------------- MAIN ----------------------
 if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+    df = pd.read_Csv(uploaded_file)
 
     # Fix column spellings
     df.rename(columns={
@@ -1251,4 +1251,5 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 

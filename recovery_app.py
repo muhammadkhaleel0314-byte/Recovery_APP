@@ -1180,7 +1180,7 @@ if uploaded_file:
             # PDF Generate Button
             if st.button(f"Download PDF for {br}"):
 
-                pdf = FPDF(orientation="L",unit="m",format="A4")
+                pdf = FPDF(orientation="L",unit="mm",format="A4")
                 pdf.set_auto_page_break(auto=True, margin=10)
                 pdf.add_page()
                 pdf.set_font("Arial", size=12, style="B")
@@ -1233,4 +1233,5 @@ if uploaded_file:
                 )
 
         st.success("All branchwise PDFs ready!")
+
 

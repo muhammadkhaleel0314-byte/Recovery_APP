@@ -1138,132 +1138,98 @@ if uploaded_cheque:
 import streamlit as st
 import pandas as pd
 from fpdf import FPDF
-from io import BytesIO
 
-# ---------- PDF Class ----------
-class PDF(FPDF):
-    def header(self):
-        self.set_font("Arial", 'B', 12)
-        self.cell(0, 10, "Cheque Report", ln=True, align="C")
-        self.ln(5)
+st.title("Loan Disbursement PDF Generator (Branchwise)")
 
-# ---------- Safe string ----------
-def safe_str(val):
-    if pd.isna(val) or val is None:
-        return ""
-    return str(val)
-
-# ---------- Safe Date Formatter ----------
-def format_date(val):
-    try:
-        return val.strftime("%Y-%m-%d")
-    except:
-        return ""
-
-# ---------- Draw Row ----------
-def draw_row_fixed(pdf, row_data, col_widths, row_height=7, fill=False):
-    pdf.set_fill_color(230, 230, 230) if fill else pdf.set_fill_color(255, 255, 255)
-    for i, data in enumerate(row_data):
-        align = 'R' if i == 4 else 'L'
-        pdf.cell(col_widths[i], row_height, safe_str(data), border=1, align=align, fill=fill)
-    pdf.ln(row_height)
-
-# ---------- Draw Header ----------
-def draw_header(pdf, headers, col_widths, row_height=7):
-    pdf.set_font("Arial", "B", 8)
-    x_start = pdf.get_x()
-    y_start = pdf.get_y()
-    for i, header in enumerate(headers):
-        pdf.multi_cell(col_widths[i], row_height, header, border=1, align='L')
-        pdf.set_xy(x_start + sum(col_widths[:i+1]), y_start)
-    pdf.ln(row_height)
-
-# ---------- Branch Header ----------
-def add_branch_header(pdf, branch, headers, col_widths):
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(0, 8, f"Branch: {branch}", ln=True)
-    draw_header(pdf, headers, col_widths)
-
-# ------------------- STREAMLIT UI --------------------
-st.title("Branch-wise Cheque Report PDF")
-
-uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
+# File upload
+uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+    df = pd.read_excel(uploaded_file)
 
-    # Fix Wrong Spellings
-    df = df.rename(columns={
-        "sacnction_no": "sanction_no",
+    # Fix common wrong spellings
+    df.rename(columns={
+        "date_disbursed": "date_disburse",
+        "date_of_disbursement": "date_disburse",
+        "tranch_no": "tranch",
+        "group_no": "group_no",
         "grouo_no": "group_no",
-        "date_of_disbursement": "date_disbursed",
-        "tranch": "tranch_no"
-    })
+    }, inplace=True)
 
-    # Required Columns
-    required_cols = [
-        "branch_id", "date_disbursed", "cheque_no", "sanction_no",
-        "tranch_no", "loan_amount", "group_no", "member_name"
-    ]
+    # Required columns
+    required_cols = ["branch_id", "member_name", "member_cnic", "loan_amount",
+                     "tranch", "cheque_no", "sanction_no", "group_no", "date_disburse"]
 
-    for col in required_cols:
-        if col not in df.columns:
-            df[col] = ""
+    missing = [c for c in required_cols if c not in df.columns]
+    if missing:
+        st.error(f"Missing columns: {missing}")
+    else:
+        # Branchwise Loop
+        branches = df["branch_id"].unique()
 
-    df["date_disbursed"] = pd.to_datetime(df["date_disbursed"], errors="coerce")
+        st.subheader("Download Branch-wise PDFs")
 
-    st.write("Preview:", df.head())
+        for br in branches:
+            br_df = df[df["branch_id"] == br]
 
-    # Group by Branch
-    branch_groups = df.groupby("branch_id")
+            st.markdown(f"### 📌 Branch: **{br}**")
 
-    # Create PDF button for each branch
-    for branch, branch_df in branch_groups:
+            # Preview Table
+            st.dataframe(br_df)
 
-        st.subheader(f"Branch {branch}")
+            # PDF Generate Button
+            if st.button(f"Download PDF for {br}"):
 
-        # Create PDF in memory
-        pdf = PDF()
-        pdf.set_auto_page_break(auto=False, margin=12)
-        pdf.add_page()
-
-        headers = [
-            "Date of Disbursement", "Cheque No", "Sanction No",
-            "Tranch", "Loan Amount", "Group No", "Member Name"
-        ]
-
-        col_widths = [25, 32, 22, 15, 22, 22, 38]
-
-        add_branch_header(pdf, branch, headers, col_widths)
-        pdf.set_font("Arial", "", 7.5)
-
-        fill = False
-
-        for _, row in branch_df.iterrows():
-
-            if pdf.get_y() > 255:
+                pdf = FPDF()
+                pdf.set_auto_page_break(auto=True, margin=10)
                 pdf.add_page()
-                add_branch_header(pdf, branch, headers, col_widths)
-                pdf.set_font("Arial", "", 7.5)
+                pdf.set_font("Arial", size=12, style="B")
 
-            row_data = [
-                format_date(row["date_disbursed"]),
-                safe_str(row["cheque_no"]),
-                safe_str(row["sanction_no"]),
-                safe_str(row["tranch_no"]),
-                safe_str(row["loan_amount"]),
-                safe_str(row["group_no"]),
-                safe_str(row["member_name"]),
-            ]
+                pdf.cell(0, 10, f"Branch: {br}", ln=True, align="C")
+                pdf.ln(5)
 
-            draw_row_fixed(pdf, row_data, col_widths, fill=fill)
-            fill = not fill
+                # Table Header
+                pdf.set_font("Arial", size=10, style="B")
+                headers = ["Date Disburse", "Sanction No", "Tranch", "Cheque No",
+                           "Loan Amount", "Group No", "Member Name", "CNIC"]
+                col_widths = [28, 28, 15, 28, 25, 20, 40, 30]
 
-        pdf_bytes = pdf.output(dest="S").encode("latin-1")
+                for i, h in enumerate(headers):
+                    pdf.cell(col_widths[i], 8, h, border=1)
+                pdf.ln()
 
-        st.download_button(
-            label=f"Download Branch {branch} PDF",
-            data=pdf_bytes,
-            file_name=f"branch_{branch}_cheque_report.pdf",
-            mime="application/pdf"
-        )
+                # Table Rows
+                for _, row in br_df.iterrows():
+
+                    # Normal font for all cells
+                    pdf.set_font("Arial", size=10)
+
+                    pdf.cell(col_widths[0], 8, str(row["date_disburse"]), border=1)
+                    pdf.cell(col_widths[1], 8, str(row["sanction_no"]), border=1)
+
+                    # Tranch small font
+                    pdf.set_font("Arial", size=8)
+                    pdf.cell(col_widths[2], 8, str(row["tranch"]), border=1)
+
+                    # Back to normal font
+                    pdf.set_font("Arial", size=10)
+
+                    pdf.cell(col_widths[3], 8, str(row["cheque_no"]), border=1)
+                    pdf.cell(col_widths[4], 8, str(row["loan_amount"]), border=1)
+                    pdf.cell(col_widths[5], 8, str(row["group_no"]), border=1)
+                    pdf.cell(col_widths[6], 8, str(row["member_name"]), border=1)
+                    pdf.cell(col_widths[7], 8, str(row["member_cnic"]), border=1)
+
+                    pdf.ln()
+
+                # Create PDF in memory
+                pdf_output = pdf.output(dest="S").encode("latin-1")
+
+                st.download_button(
+                    label=f"Download {br} PDF",
+                    data=pdf_output,
+                    file_name=f"{br}_Loan_Disbursement.pdf",
+                    mime="application/pdf"
+                )
+
+        st.success("All branchwise PDFs ready!")

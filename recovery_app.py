@@ -1141,7 +1141,7 @@ from fpdf import FPDF
 
 st.title("Loan Disbursement PDF Generator (Branchwise)")
 
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+uploaded_file = st.file_uploader("Upload Excel File", type=["Csv"])
 
 # ---------------------- Safe Functions ----------------------
 def safe(val):
@@ -1251,3 +1251,4 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+

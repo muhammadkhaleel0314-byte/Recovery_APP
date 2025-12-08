@@ -1138,116 +1138,98 @@ if uploaded_cheque:
 import streamlit as st
 import pandas as pd
 from fpdf import FPDF
+from io import BytesIO
+import zipfile
 
-st.title("Loan Disbursement PDF Generator (Branchwise)")
+st.title("Branchwise PDF Generator")
 
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+uploaded_file = st.file_uploader("Upload Excel/CSV", type=["csv", "xlsx"])
 
-# ---------------------- Safe Functions ----------------------
-def safe(val):
-    try:
-        if pd.isna(val):
-            return ""
-        return str(val)
-    except:
-        return ""
+# ------------------------------------------------------------
+# CREATE PDF FUNCTION
+# ------------------------------------------------------------
+def generate_pdf(df, branch_name):
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.add_page()
 
-# ---------------------- PDF Class ----------------------
-class PDF(FPDF):
-    def header(self):
-        self.set_font("Arial", 'B', 12)
-        self.cell(0, 8, "Loan Disbursement Report", ln=True, align="C")
-        self.ln(3)
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(0, 10, f"Branch: {branch_name}", ln=True, align="C")
 
-# ---------------------- MAIN ----------------------
+    pdf.set_font("Arial", size=9)
+
+    # Row colors (White / Light blue)
+    fill = False
+
+    col_width = 40
+    row_height = 8
+
+    # HEADER
+    for col in df.columns:
+        pdf.cell(col_width, row_height, str(col), border=1, align="C")
+    pdf.ln(row_height)
+
+    # DATA ROWS
+    for _, row in df.iterrows():
+        pdf.set_fill_color(230, 240, 255) if fill else pdf.set_fill_color(255, 255, 255)
+        for item in row:
+            pdf.cell(col_width, row_height, str(item), border=1, align="C", fill=True)
+        pdf.ln(row_height)
+        fill = not fill
+
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+    return pdf_output
+
+
+# ------------------------------------------------------------
+# MAIN LOGIC
+# ------------------------------------------------------------
 if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+    # ----------- READ FILE ----------
+    if uploaded_file.name.endswith(".csv"):
+        df = pd.read_csv(uploaded_file)
+    else:
+        df = pd.read_excel(uploaded_file)
 
-    # Fix column spellings
-    df.rename(columns={
-        "date_disbursed": "date_disburse",
-        "date_of_disbursement": "date_disburse",
-        "tranch_no": "tranch",
-        "grouo_no": "group_no",
-    }, inplace=True)
+    # ----------- RENAME FIXES ----------
+    df = df.rename(columns={
+        "Date of disbursement": "Date Disburse",
+        "sacnction_no": "sanction_no",
+        "grouo_no": "group_no"
+    })
 
-    # Required Columns
-    required_cols = [
-        "branch_id", "member_name", "member_cnic", "loan_amount",
-        "tranch", "cheque_no", "sanction_no",
-        "group_no", "date_disburse"
-    ]
+    # ----------- NONE FIXING ----------
+    df = df.fillna("")   # ★ MAIN FIX ★
 
-    # Check Missing Columns
-    missing = [c for c in required_cols if c not in df.columns]
+    st.subheader("Preview (None removed)")
+    st.dataframe(df)
 
-    if missing:
-        st.error(f"Missing columns: {missing}")
-        st.stop()
+    # ----------- BRANCH LIST ----------
+    if "branch" not in df.columns:
+        st.error("❌ 'branch' column missing!")
+    else:
+        branches = df["branch"].unique()
 
-    branches = df["branch_id"].unique()
+        st.subheader("Download Branch-wise PDFs")
 
-    for br in branches:
+        # ZIP memory buffer
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zipf:
+            for branch in branches:
+                branch_df = df[df["branch"] == branch]
 
-        br_df = df[df["branch_id"] == br]
+                pdf_file = generate_pdf(branch_df, branch)
+                zipf.writestr(f"{branch}.pdf", pdf_file.read())
 
-        st.markdown(f"### 📌 Branch: **{br}**")
-        st.dataframe(br_df)
+        zip_buffer.seek(0)
 
-        if st.button(f"Download PDF for Branch {br}"):
+        # DOWNLOAD ZIP
+        st.download_button(
+            label="📦 Download All Branch PDFs (ZIP)",
+            data=zip_buffer,
+            file_name="branch_pdfs.zip",
+            mime="application/zip"
+        )
 
-            pdf = PDF(orientation="L", unit="mm", format="A4")  # LANDSCAPE
-            pdf.set_auto_page_break(auto=True, margin=10)
-            pdf.add_page()
-
-            pdf.set_font("Arial", 'B', 12)
-            pdf.cell(0, 8, f"Branch: {br}", ln=True, align="C")
-            pdf.ln(3)
-
-            # ---------------------- TABLE HEADER ----------------------
-            headers = [
-                "Date Disburse", "Sanction No", "Tranch", "Cheque No",
-                "Loan Amount", "Group No", "Member Name", "CNIC"
-            ]
-
-            # Landscape column widths (Perfect Ajustment)
-            col_widths = [30, 35, 15, 40, 30, 30, 55, 45]
-
-            pdf.set_fill_color(200, 200, 200)
-            pdf.set_font("Arial", 'B', 9)
-
-            for i, h in enumerate(headers):
-                pdf.cell(col_widths[i], 8, h, border=1, align="C", fill=True)
-            pdf.ln()
-
-            # ---------------------- TABLE ROWS ----------------------
-            fill = False
-
-            for _, row in br_df.iterrows():
-
-                pdf.set_fill_color(235, 245, 255) if fill else pdf.set_fill_color(255, 255, 255)
-                pdf.set_font("Arial", '', 9)
-
-                pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
-                pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
-                pdf.cell(col_widths[2], 7, safe(row["tranch"]), border=1, fill=True)
-                pdf.cell(col_widths[3], 7, safe(row["cheque_no"]), border=1, fill=True)
-                pdf.cell(col_widths[4], 7, safe(row["loan_amount"]), border=1, fill=True)
-                pdf.cell(col_widths[5], 7, safe(row["group_no"]), border=1, fill=True)
-                pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
-                pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
-
-                pdf.ln()
-                fill = not fill
-
-            # Export PDF
-            pdf_bytes = pdf.output(dest="S").encode("latin-1")
-
-            st.download_button(
-                label=f"Download {br} PDF",
-                data=pdf_bytes,
-                file_name=f"{br}_Loan_Disbursement.pdf",
-                mime="application/pdf"
-            )
-
-    st.success("All Branch PDF Buttons Ready!")
+        st.success("Branch-wise PDF buttons ready!")

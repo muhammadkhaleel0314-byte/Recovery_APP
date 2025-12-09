@@ -40,7 +40,7 @@ if uploaded_file:
         'receipt_no': 'count'
     }).reset_index()
 
-    branch_totals = df.groupby('branch_id')['amount'].sum().reset_index().rename(columns={'amount': 'total_amount'})
+    branch_totals = df.groupby('branch_id')['amount'].sum().reset_index().rename(columns={'Amount': 'total_amount'})
     summary = summary.merge(branch_totals, on='branch_id')
     summary['percentage'] = (summary['amount'] / summary['total_amount']) * 100
 
@@ -1251,4 +1251,5 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 

@@ -1137,71 +1137,117 @@ if uploaded_cheque:
         )
 import streamlit as st
 import pandas as pd
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-from reportlab.lib.pagesizes import landscape, A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from fpdf import FPDF
 
-st.title("Recovery Report PDF Generator")
+st.title("Loan Disbursement PDF Generator (Branchwise)")
 
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
-if uploaded_file is not None:
-    # ---- SAFE EXCEL READ ----
+# ---------------------- Safe Functions ----------------------
+def safe(val):
+    try:
+        if pd.isna(val):
+            return ""
+        return str(val)
+    except:
+        return ""
+
+# ---------------------- PDF Class ----------------------
+class PDF(FPDF):
+    def header(self):
+        self.set_font("Arial", 'B', 12)
+        self.cell(0, 8, "Loan Disbursement Report", ln=True, align="C")
+        self.ln(3)
+
+# ---------------------- MAIN ----------------------
+if uploaded_file:
     df = pd.read_excel(uploaded_file)
 
-    # ---- REMOVE EMPTY ROWS ----
-    df = df.dropna(how='all')
+    # Fix column spellings
+    df.rename(columns={
+        "date_disbursed": "date_disburse",
+        "date_of_disbursement": "date_disburse",
+        "tranch_no": "tranch",
+        "grouo_no": "group_no",
+    }, inplace=True)
 
-    # ---- REMOVE EMPTY COLUMNS ----
-    df = df.dropna(axis=1, how='all')
+    # Required Columns
+    required_cols = [
+        "branch_id", "member_name", "member_cnic", "loan_amount",
+        "tranch", "cheque_no", "sanction_no",
+        "group_no", "date_disburse"
+    ]
 
-    # ---- REPLACE NaN / None ----
-    df = df.fillna("")
+    # Check Missing Columns
+    missing = [c for c in required_cols if c not in df.columns]
 
-    # ---- FIX COLUMN NAME ----
-    rename_map = {
-        "Date of Disbursement": "Date Disburse",
-        "Date of disbursement": "Date Disburse",
-        "date of disbursement": "Date Disburse"
-    }
-    df = df.rename(columns=rename_map)
+    if missing:
+        st.error(f"Missing columns: {missing}")
+        st.stop()
 
-    st.success("File Loaded Successfully!")
-    st.dataframe(df)
+    branches = df["branch_id"].unique()
 
-    if st.button("Generate PDF"):
-        pdf_path = "report_output.pdf"
-        styles = getSampleStyleSheet()
+    for br in branches:
 
-        # --- Landscape PDF ---
-        doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
+        br_df = df[df["branch_id"] == br]
 
-        # Convert DF → list
-        data = [list(df.columns)] + df.values.tolist()
+        st.markdown(f"### 📌 Branch: **{br}**")
+        st.dataframe(br_df)
 
-        # Create table
-        table = Table(data)
+        if st.button(f"Download PDF for Branch {br}"):
 
-        # Create alternating colors
-        row_count = len(data)
-        ts = [('BACKGROUND', (0, 0), (-1, 0), colors.lightblue)]  # header
+            pdf = PDF(orientation="L", unit="mm", format="A4")  # LANDSCAPE
+            pdf.set_auto_page_break(auto=True, margin=10)
+            pdf.add_page()
 
-        for i in range(1, row_count):
-            bg_color = colors.whitesmoke if i % 2 == 0 else colors.white
-            ts.append(('BACKGROUND', (0, i), (-1, i), bg_color))
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(0, 8, f"Branch: {br}", ln=True, align="C")
+            pdf.ln(3)
 
-        # Border + alignment
-        ts += [
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ]
+            # ---------------------- TABLE HEADER ----------------------
+            headers = [
+                "Date Disburse", "Sanction No", "Tranch", "Cheque No",
+                "Loan Amount", "Group No", "Member Name", "CNIC"
+            ]
 
-        table.setStyle(TableStyle(ts))
+            # Landscape column widths (Perfect Ajustment)
+            col_widths = [30, 35, 15, 40, 30, 30, 55, 45]
 
-        # Build PDF
-        doc.build([table])
+            pdf.set_fill_color(200, 200, 200)
+            pdf.set_font("Arial", 'B', 9)
 
-        with open(pdf_path, "rb") as f:
-            st.download_button("Download PDF", f, file_name="Recovered_Report.pdf")
+            for i, h in enumerate(headers):
+                pdf.cell(col_widths[i], 8, h, border=1, align="C", fill=True)
+            pdf.ln()
+
+            # ---------------------- TABLE ROWS ----------------------
+            fill = False
+
+            for _, row in br_df.iterrows():
+
+                pdf.set_fill_color(235, 245, 255) if fill else pdf.set_fill_color(255, 255, 255)
+                pdf.set_font("Arial", '', 9)
+
+                pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
+                pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
+                pdf.cell(col_widths[2], 7, safe(row["tranch"]), border=1, fill=True)
+                pdf.cell(col_widths[3], 7, safe(row["cheque_no"]), border=1, fill=True)
+                pdf.cell(col_widths[4], 7, safe(row["loan_amount"]), border=1, fill=True)
+                pdf.cell(col_widths[5], 7, safe(row["group_no"]), border=1, fill=True)
+                pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
+                pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
+
+                pdf.ln()
+                fill = not fill
+
+            # Export PDF
+            pdf_bytes = pdf.output(dest="S").encode("latin-1")
+
+            st.download_button(
+                label=f"Download {br} PDF",
+                data=pdf_bytes,
+                file_name=f"{br}_Loan_Disbursement.pdf",
+                mime="application/pdf"
+            )
+
+    st.success("All Branch PDF Buttons Ready!")

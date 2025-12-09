@@ -40,9 +40,9 @@ if uploaded_file:
         'receipt_no': 'count'
     }).reset_index()
 
-    branch_totals = df.groupby('branch_id')['amount'].sum().reset_index().rename(columns={'Amount': 'total_Amount'})
+    branch_totals = df.groupby('branch_id')['amount'].sum().reset_index().rename(columns={'amount': 'total_amount'})
     summary = summary.merge(branch_totals, on='branch_id')
-    summary['percentage'] = (summary['Amount'] / summary['total_Amount']) * 100
+    summary['percentage'] = (summary['amount'] / summary['total_amount']) * 100
 
     st.subheader("📊 Branch-wise Recovery Summary")
     st.dataframe(summary.style.format({
@@ -64,7 +64,7 @@ if uploaded_file:
     st.subheader("📌 Pivot Table (Branch → Project → Date)")
     pivot_df = df.groupby(['branch_id', 'project', 'recovery_date']).agg(
         Receipts=('receipt_no', 'count'),
-        Amount=('Amount', 'sum')
+        Amount=('amount', 'sum')
     ).reset_index()
 
     st.dataframe(pivot_df)
@@ -465,7 +465,7 @@ if terabyte_pdf_file is not None:
             # Date-wise summary
             date_summary = branch_df.groupby("Recovery Date").agg(
                 Receipts_Count=("Receipt No", "count"),
-                Amount_Sum=("Credit Amount", "sum")
+                Amount_Sum=("Credit amount", "sum")
             ).reset_index()
             elements.append(Paragraph("Date-wise Summary", styles['Heading2']))
             date_table = Table([list(date_summary.columns)] + date_summary.values.tolist())
@@ -1251,6 +1251,7 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 
 
 

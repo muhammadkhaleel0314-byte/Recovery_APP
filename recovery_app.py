@@ -6,8 +6,8 @@ from fpdf import FPDF
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
 st.markdown("""
-    <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal</h1>
-    <h3 style='text-align: center; color: Blue;'>Recovery and Overdue Portal</h3>
+    <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
+    <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 
@@ -1251,3 +1251,4 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+

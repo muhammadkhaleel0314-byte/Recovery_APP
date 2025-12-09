@@ -552,7 +552,7 @@ if 'recovery_file' in locals() or recovery_file is not None:
                         pdf.cell(60, 8, str(row.get("Name", ""))[:25], 1, 0, "L")
                         pdf.cell(40, 8, str(row.get("Sanction No", "")), 1, 1, "C")
                         try:
-                            total_amount += float(row.get("Amount", 0) if row.get("Amount", 0) != "" else 0)
+                            total_amount += float(row.get("Amount", 0) if row.get("amount", 0) != "" else 0)
                         except Exception:
                             pass
 
@@ -1251,6 +1251,7 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 
 
 

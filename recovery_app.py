@@ -539,7 +539,7 @@ if 'recovery_file' in locals() or recovery_file is not None:
                     pdf.set_font("Arial", "B", 10)
                     pdf.cell(12, 8, "Sr#", 1, 0, "C")
                     pdf.cell(50, 8, "Date", 1, 0, "C")
-                    pdf.cell(40, 8, "Amount", 1, 0, "C")
+                    pdf.cell(40, 8, "amount", 1, 0, "C")
                     pdf.cell(60, 8, "Name", 1, 0, "C")
                     pdf.cell(40, 8, "Sanction No", 1, 1, "C")
 
@@ -548,11 +548,11 @@ if 'recovery_file' in locals() or recovery_file is not None:
                     for i, (_, row) in enumerate(branch_data.iterrows(), start=1):
                         pdf.cell(12, 8, str(i), 1, 0, "C")
                         pdf.cell(50, 8, str(row.get("Date", ""))[:10], 1, 0, "C")
-                        pdf.cell(40, 8, str(row.get("Amount", "")), 1, 0, "R")
+                        pdf.cell(40, 8, str(row.get("amount", "")), 1, 0, "R")
                         pdf.cell(60, 8, str(row.get("Name", ""))[:25], 1, 0, "L")
                         pdf.cell(40, 8, str(row.get("Sanction No", "")), 1, 1, "C")
                         try:
-                            total_amount += float(row.get("Amount", 0) if row.get("amount", 0) != "" else 0)
+                            total_amount += float(row.get("amount", 0) if row.get("amount", 0) != "" else 0)
                         except Exception:
                             pass
 
@@ -1251,6 +1251,7 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 
 
 

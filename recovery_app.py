@@ -1025,11 +1025,3 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
-
-
-
-
-
-
-
-

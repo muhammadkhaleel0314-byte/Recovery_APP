@@ -638,231 +638,179 @@ if uploaded_files:
 else:
     st.info("Please upload at least one CSV file to merge.")
 
-import streamlit as st
-import pandas as pd
-import os
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
 
-st.header("📑 Cheque-wise Analysis 1st And 2nd Tranch's")
+  <style>
+    body{
+      font-family: Arial, sans-serif;
+      padding: 18px;
+      max-width: 760px;
+      margin: auto;
+      text-align: center;
+    }
 
-uploaded_cheque = st.file_uploader("Upload Cheque-wise List", type=["xlsx", "csv"])
+    /* K&F Golden Circle */
+    .logo-circle{
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FFD700, #FFC107);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 12px rgba(0,0,0,0.18);
+      margin: 20px auto;
+      font-size: 36px;
+      font-weight: bold;
+      color: white;
+      letter-spacing: 2px;
+    }
 
-if uploaded_cheque:
-    # Read uploaded file
-    if uploaded_cheque.name.endswith(".csv"):
-        cheque_df = pd.read_csv(uploaded_cheque)
-    else:
-        cheque_df = pd.read_excel(uploaded_cheque)
+    input{
+      padding: 10px;
+      width: 320px;
+      margin-right: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
 
-    # Required columns
-    required_cols = ["branch_id", "date_disbursed", "sanction_no", "tranch_no", "member_name", "member_cnic"]
-    cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
+    button{
+      padding: 10px 14px;
+      border-radius: 4px;
+      border: 0;
+      cursor: pointer;
+      background: #1976d2;
+      color: white;
+      margin-top: 6px;
+    }
 
-    # Name column
-    cheque_df["Name"] = cheque_df["member_name"]
-    cheque_df.drop(columns=["member_name"], inplace=True)
+    .msg{
+      margin-top: 12px;
+      color: #555;
+    }
 
-    # Convert date
-    cheque_df["date_disbursed"] = pd.to_datetime(cheque_df["date_disbursed"], errors="coerce")
-    today = datetime.today()
-    cheque_df["Months Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else None
-    )
-    cheque_df["Days Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: (today - x).days if pd.notnull(x) else None
-    )
+    table{
+      border-collapse: collapse;
+      margin-top: 12px;
+      width: 100%;
+    }
 
-    # Add House Complete, Shifted if missing
-    for col in ["House Complete", "Shifted"]:
-        if col not in cheque_df.columns:
-            cheque_df[col] = "No"
+    th, td{
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
 
-    # Load previously saved flags if exist
-    if os.path.exists("cheque_flags.csv"):
-        saved_flags = pd.read_csv("cheque_flags.csv")
-        cheque_df = cheque_df.merge(
-            saved_flags,
-            on=["sanction_no", "tranch_no"],
-            how="left",
-            suffixes=("", "_saved")
-        )
-        for col in ["House Complete", "Shifted"]:
-            if f"{col}_saved" in cheque_df.columns:
-                cheque_df[col] = cheque_df[f"{col}_saved"].combine_first(cheque_df[col])
-                cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
+    th{
+      background: #f7f7f7;
+    }
 
-    # Order: branch_id ke baad Name
-    cols = cheque_df.columns.tolist()
-    if "branch_id" in cols and "Name" in cols:
-        cols.insert(cols.index("branch_id") + 1, cols.pop(cols.index("Name")))
-        cheque_df = cheque_df[cols]
+    /* PRINT / PDF STYLE */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #result, #result * {
+        visibility: visible;
+      }
+      #result {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
 
-    # -----------------------------
-    # Editable Table
-    # -----------------------------
-    edited_df = st.data_editor(
-        cheque_df,
-        use_container_width=True,
-        num_rows="dynamic",
-        column_config={
-            "House Complete": st.column_config.SelectboxColumn(options=["Yes", "No"]),
-            "Shifted": st.column_config.SelectboxColumn(options=["Yes", "No"])
+<body>
+
+  <!-- LOGO -->
+  <div class="logo-circle">K&F</div>
+
+  <h2 style="font-weight:700; letter-spacing:1px;">
+    CNIC CHECK PORTAL
+  </h2>
+
+  <p style="margin-top:-6px; font-size:13px; color:#777;">
+    Created by <strong>M Khaleel</strong>
+  </p>
+
+  <!-- SEARCH -->
+  <div style="margin-top:20px;">
+    <input id="cnic"
+           placeholder="Enter CNIC (with or without dashes)"
+           onkeypress="if(event.key==='Enter'){search()}">
+    <br>
+    <button id="btn" onclick="search()">Search</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+  </div>
+
+  <div id="result" class="msg"></div>
+
+  <script>
+    function _showMessage(text){
+      document.getElementById('result').innerText = text;
+    }
+
+    function _showRecord(obj){
+      let html = '<h3>Record Found</h3>';
+      html += '<table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>';
+
+      Object.keys(obj).forEach(function(k){
+        html += '<tr><td>' + escapeHtml(k) + '</td><td>' +
+                escapeHtml(String(obj[k] ?? '')) +
+                '</td></tr>';
+      });
+
+      html += '</tbody></table>';
+      document.getElementById('result').innerHTML = html;
+    }
+
+    function escapeHtml(s){
+      return s.replace(/[&<>"'`=\/]/g, function(c){
+        return {
+          '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',
+          "'":'&#39;','/':'&#47;','`':'&#96;','=':'&#61;'
+        }[c];
+      });
+    }
+
+    function search(){
+      const cnic = document.getElementById('cnic').value.trim();
+      if(!cnic){
+        _showMessage('Please enter CNIC.');
+        return;
+      }
+
+      _showMessage('Searching...');
+      document.getElementById('btn').disabled = true;
+
+      google.script.run.withSuccessHandler(function(res){
+        document.getElementById('btn').disabled = false;
+
+        if(res && res.found){
+          _showRecord(res.data);
+        }else{
+          _showMessage(res?.message || 'Record not found');
         }
-    )
+      }).searchByCNIC(cnic);
+    }
 
-    # -----------------------------
-    # Fully Working Risk Level calculation (after edits)
-    # -----------------------------
-    def calc_risk(row):
-        house = str(row.get("House Complete", "")).strip().lower()
-        shifted = str(row.get("Shifted", "")).strip().lower()
-        if house == "yes" or shifted == "yes":
-            return "No Risk"
-        
-        months = row.get("Months Passed", 0)
-        if pd.isna(months):
-            return "Low"
-        if months >= 4:
-            return "High"
-        if 2 <= months < 4:
-            return "Medium"
-        if 0 < months < 2:
-            return "Low"
-        return "Low"
+    function downloadPDF(){
+      if(!document.getElementById('result').innerText.trim()){
+        alert('No record to download');
+        return;
+      }
+      window.print();
+    }
+  </script>
 
-    edited_df["Risk Level"] = edited_df.apply(calc_risk, axis=1)
-
-    # -----------------------------
-    # Save Flags Button
-    # -----------------------------
-    if st.button("💾 Save Flags"):
-        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted"]].to_csv("cheque_flags.csv", index=False)
-        st.success("✅ Flags saved successfully!")
-
-    # -----------------------------
-    # Branch-wise PDF with Risk Level colors
-    # -----------------------------
-    if st.button("⬇️ Download Branch-wise PDF Reports"):
-        branches = edited_df["branch_id"].unique()
-        os.makedirs("branch_pdfs", exist_ok=True)
-
-        risk_colors = {
-            "High": colors.red,
-            "Medium": colors.yellow,
-            "Low": colors.green,
-            "No Risk": colors.lightgrey
-        }
-
-        for branch in branches:
-            branch_df = edited_df[edited_df["branch_id"] == branch]
-            pdf_path = f"branch_pdfs/branch_{branch}.pdf"
-
-            tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()
-            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-
-            house_complete = branch_df["House Complete"].astype(str).str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].astype(str).str.lower().eq("yes").sum()
-
-            risk_high = branch_df["Risk Level"].eq("High").sum()
-            risk_med = branch_df["Risk Level"].eq("Medium").sum()
-            risk_low = branch_df["Risk Level"].eq("Low").sum()
-            risk_none = branch_df["Risk Level"].eq("No Risk").sum()
-
-            doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
-            styles = getSampleStyleSheet()
-            elements = []
-
-            elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
-            elements.append(Spacer(1, 12))
-
-            summary_text = f"""
-            <b>Summary:</b><br/>
-            1st Tranch Cases: {tranch1}<br/>
-            2nd Tranch Cases: {tranch2}<br/>
-            Pending (1st - 2nd): {pending}<br/>
-            House Complete: {house_complete}<br/>
-            Shifted: {shifted}<br/><br/>
-            <b>Risk Level Summary:</b><br/>
-            High Risk: {risk_high}<br/>
-            Medium Risk: {risk_med}<br/>
-            Low Risk: {risk_low}<br/>
-            No Risk: {risk_none}<br/>
-            """
-            elements.append(Paragraph(summary_text, styles["Normal"]))
-            elements.append(Spacer(1, 20))
-
-            # Table with color-coded Risk Level
-            data = [branch_df.columns.tolist()] + branch_df.astype(str).values.tolist()
-            table = Table(data, repeatRows=1)
-            style = [
-                ("BACKGROUND", (0,0), (-1,0), colors.grey),
-                ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-                ("ALIGN", (0,0), (-1,-1), "CENTER"),
-                ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-                ("BOTTOMPADDING", (0,0), (-1,0), 12),
-                ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-                ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-            ]
-
-            risk_col_idx = branch_df.columns.get_loc("Risk Level")
-            for i, row in enumerate(branch_df["Risk Level"], start=1):
-                color = risk_colors.get(row, colors.white)
-                style.append(("BACKGROUND", (risk_col_idx, i), (risk_col_idx, i), color))
-                if row == "Medium":
-                    style.append(("TEXTCOLOR", (risk_col_idx, i), (risk_col_idx, i), colors.black))
-                else:
-                    style.append(("TEXTCOLOR", (risk_col_idx, i), (risk_col_idx, i), colors.white))
-
-            table.setStyle(TableStyle(style))
-            elements.append(table)
-            doc.build(elements)
-
-        st.success("✅ Branch-wise PDFs with Risk Levels & Colors generated Successfully!")
-
-    # -----------------------------
-    # Color-coded Risk Table in Streamlit
-    # -----------------------------
-    st.subheader("📋 Cheque-wise Table with Risk Colors")
-    def color_risk(val):
-        if val == "High": return "background-color: red; color: white;"
-        elif val == "Medium": return "background-color: yellow; color: black;"
-        elif val == "Low": return "background-color: green; color: white;"
-        elif val == "No Risk": return "background-color: gray; color: white;"
-        else: return ""
-    st.dataframe(edited_df.style.applymap(color_risk, subset=["Risk Level"]), use_container_width=True)
-
-    # -----------------------------
-    # Area-wise Risk Distribution Chart (Tranch 1 only)
-    # -----------------------------
-    st.subheader("📊 Area-wise Risk Distribution Chart (Tranch 1 only)")
-    area_df = edited_df[edited_df["tranch_no"] == 1]
-    risk_count = area_df.groupby(["branch_id", "Risk Level"]).size().reset_index(name="count")
-    total_per_branch = area_df.groupby("branch_id").size().reset_index(name="total")
-    risk_count = risk_count.merge(total_per_branch, on="branch_id")
-    risk_count["percent"] = (risk_count["count"]/risk_count["total"])*100
-    chart_data = risk_count.pivot(index="branch_id", columns="Risk Level", values="percent").fillna(0)
-    st.bar_chart(chart_data, use_container_width=True)
-
-    # -----------------------------
-    # Example chart (Pichand branch)
-    # -----------------------------
-    example_data = pd.DataFrame({
-        "branch_id": ["Pichand"]*500,
-        "Risk Level": ["High"]*200 + ["Medium"]*100 + ["Low"]*100 + ["No Risk"]*100
-    })
-    example_count = example_data.groupby(["branch_id", "Risk Level"]).size().reset_index(name="count")
-    example_total = example_data.groupby("branch_id").size().reset_index(name="total")
-    example_count = example_count.merge(example_total, on="branch_id")
-    example_count["percent"] = (example_count["count"]/example_count["total"])*100
-    example_chart = example_count.pivot(index="branch_id", columns="Risk Level", values="percent").fillna(0)
-    st.subheader("📊 Example Area-wise Risk Chart (Pichand Branch)")
-    st.bar_chart(example_chart, use_container_width=True)
+</body>
+</html>
 
 import streamlit as st
 import pandas as pd
@@ -1251,6 +1199,7 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 
 
 

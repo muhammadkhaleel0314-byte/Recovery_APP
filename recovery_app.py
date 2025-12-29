@@ -1,18 +1,3 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-t = np.linspace(0, 20*np.pi, 2000)
-
-x = np.sin(t) * np.cos(t/2)
-y = np.cos(t)
-
-colors = t
-
-plt.figure(figsize=(6,6))
-plt.scatter(x, y, c=colors, cmap='rainbow', s=1)
-
-plt.axis('off')
-plt.show()
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -1040,4 +1025,5 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 

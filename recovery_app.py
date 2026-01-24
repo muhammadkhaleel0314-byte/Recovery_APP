@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 from fpdf import FPDF
 
@@ -1223,3 +1224,4 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
+

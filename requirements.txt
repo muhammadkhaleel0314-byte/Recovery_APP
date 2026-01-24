@@ -1,11 +1,4 @@
 pandas
 numpy
 streamlit
-plotly
 openpyxl
-xlsxwriter
-fpdf
-reportlab
-pandas
-matplotlib
-pip install 

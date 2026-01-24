@@ -7,7 +7,7 @@ from fpdf import FPDF
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
 st.markdown("""
-    <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal</h1>
+    <h1 style='text-align: center; color: white;'>📊 Welcome to Recovery Portal</h1>
     <h3 style='text-align: center; color: Blue;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
@@ -1224,4 +1224,5 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
+
 

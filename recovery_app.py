@@ -1047,8 +1047,6 @@ import plotly.express as px
 # -------------------
 # PAGE CONFIG (must be top)
 # -------------------
-st.set_page_config(page_title="Branch Recovery Dashboard", layout="wide")
-
 # -------------------
 # HEADER
 # -------------------
@@ -1132,4 +1130,5 @@ if file:
 
 else:
     st.info("Please upload a recovery file to view the branch recovery table and charts.")
+
 

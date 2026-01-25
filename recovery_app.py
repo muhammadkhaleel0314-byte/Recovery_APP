@@ -1042,55 +1042,52 @@ if uploaded_file:
 
 import streamlit as st
 import pandas as pd
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table
 
 st.title("Recovery Date Range Summary")
 
+# ---------------- File Upload ----------------
 uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
 if uploaded:
 
-    # Read file
+    # ---------------- Read File ----------------
     if uploaded.name.endswith(".csv"):
         df = pd.read_csv(uploaded)
     else:
         df = pd.read_excel(uploaded)
 
-    st.subheader("Raw Data Preview")
-    st.dataframe(df.head())
+    st.subheader("Available Columns")
+    st.write(list(df.columns))
 
-    # Show columns
-    st.write("Available Columns:", df.columns.tolist())
-
-    # Select columns
+    # ---------------- Column Selection ----------------
     date_col = st.selectbox("Select Date Column", df.columns)
     branch_col = st.selectbox("Select Branch Column", df.columns)
 
-    # Convert date safely
+    # ---------------- Convert Date ----------------
     df[date_col] = pd.to_datetime(
-    df[date_col].astype(str).str.strip(),
-    format="%Y-%b-%d",
-    errors="coerce"
-)
-    # Remove empty rows
+        df[date_col].astype(str).str.strip(),
+        format="%Y-%b-%d",  # 2026-jan-18 format
+        errors="coerce"
+    )
+
     df = df.dropna(subset=[date_col, branch_col])
-
-    # Extract day
     df["Day"] = df[date_col].dt.day
-
     df = df[df["Day"].notna()]
 
-    # Create ranges
     df["Range"] = pd.cut(
         df["Day"],
-        bins=[0, 10, 20, 31],
-        labels=["1-10", "11-20", "21-31"]
+        bins=[0,10,20,31],
+        labels=["1-10","11-20","21-31"]
     )
 
     if df["Range"].isna().all():
         st.error("Date column sahi format me nahi.")
         st.stop()
 
-    # Pivot
+    # ---------------- Pivot Table ----------------
     pivot = pd.pivot_table(
         df,
         index=branch_col,
@@ -1100,64 +1097,45 @@ if uploaded:
     )
 
     # Ensure columns exist
-    for c in ["1-10", "11-20", "21-31"]:
+    for c in ["1-10","11-20","21-31"]:
         if c not in pivot.columns:
             pivot[c] = 0
 
-    # Total
     pivot["Total"] = pivot.sum(axis=1)
-
-    # Percentages
     pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
     pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
     pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
 
-    st.subheader("Branch Wise Recovery Result")
-    st.dataframe(pivot.reset_index())
-from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table
+    result_df = pivot.reset_index()
 
-result_df = pivot.reset_index()
+    # ---------------- Show Table ----------------
+    st.subheader("Branch Wise Recovery Summary")
+    st.dataframe(result_df)
 
-# Show table
-st.dataframe(result_df)
+    # ---------------- CSV Download ----------------
+    csv = result_df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="⬇ Download CSV",
+        data=csv,
+        file_name="recovery_summary.csv",
+        mime="text/csv"
+    )
 
-# ---------------- CSV DOWNLOAD ----------------
+    # ---------------- PDF Download ----------------
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+    table = Table(table_data)
+    doc.build([table])
+    pdf_bytes = buffer.getvalue()
+    buffer.close()
 
-csv = result_df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="⬇ Download PDF",
+        data=pdf_bytes,
+        file_name="recovery_summary.pdf",
+        mime="application/pdf"
+    )
 
-st.download_button(
-    label="⬇ Download CSV",
-    data=csv,
-    file_name="recovery_summary.csv",
-    mime="text/csv"
-)
-
-# ---------------- PDF DOWNLOAD ----------------
-
-buffer = BytesIO()
-
-doc = SimpleDocTemplate(buffer, pagesize=A4)
-
-table_data = [result_df.columns.tolist()] + result_df.values.tolist()
-
-table = Table(table_data)
-
-doc.build([table])
-
-pdf_bytes = buffer.getvalue()
-buffer.close()
-
-st.download_button(
-    label="⬇ Download PDF",
-    data=pdf_bytes,
-    file_name="recovery_summary.pdf",
-    mime="application/pdf"
-)
 else:
     st.info("Please upload recovery file.")
-
-
-
-

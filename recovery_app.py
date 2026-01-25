@@ -1053,9 +1053,9 @@ st.set_page_config(page_title="Branch Recovery Dashboard", layout="wide")
 # HEADER
 # -------------------
 st.markdown("""
-    <h1 style='text-align: center; color: #1f77b4;'>📊 Branch Recovery Dashboard</h1>
-    <h4 style='text-align: center; color: gray;'>Recovery % per Bucket</h4>
-    <hr style='border-top: 3px solid #bbb;'>
+<h1 style='text-align: center; color: #1f77b4;'>📊 Branch Recovery Dashboard</h1>
+<h4 style='text-align: center; color: gray;'>Recovery % per Bucket</h4>
+<hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 
 # -------------------
@@ -1064,7 +1064,6 @@ st.markdown("""
 file = st.file_uploader("Upload Recovery File (Excel/CSV)", type=["xlsx","csv"])
 
 if file:
-
     # -------------------
     # READ FILE
     # -------------------

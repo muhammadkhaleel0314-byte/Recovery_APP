@@ -1039,6 +1039,38 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+import streamlit as st
+import pandas as pd
+
+st.title("Recovery Dashboard")
+
+file = st.file_uploader("Upload Recovery File", ["xlsx", "csv"])
+
+if file:
+    if file.name.endswith(".csv"):
+        df = pd.read_csv(file)
+    else:
+        df = pd.read_excel(file)
+
+    # Pivot exactly like picture
+    pivot = df.pivot_table(
+        index="Branch Name",
+        columns="Bucket",
+        values="Recovery %",
+        aggfunc="sum"
+    )
+
+    # Rename columns like picture
+    pivot = pivot.rename(columns={
+        "1-10": "Recovery 1-10",
+        "11-20": "Recovery 11-20",
+        "21-30": "Recovery 21-30"
+    })
+
+    # Percentage sign add
+    pivot = pivot.fillna(0).astype(int).astype(str) + "%"
+
+    st.dataframe(pivot, use_container_width=True)
 
 
 

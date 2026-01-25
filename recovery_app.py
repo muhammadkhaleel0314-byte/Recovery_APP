@@ -244,7 +244,6 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape, A4
 from reportlab.lib.styles import getSampleStyleSheet
 import plotly.express as px
-(page_title="Recovery App", layout="wide")
 st.title("🏦 Recovery & Reports App")
 
 # --------------------
@@ -1223,6 +1222,7 @@ if uploaded_cheque:
             mime="application/pdf",
             key="download_pdf_summary_grandtotal"
         )
+
 
 
 

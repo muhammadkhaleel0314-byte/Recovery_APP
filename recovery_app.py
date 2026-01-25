@@ -1040,10 +1040,13 @@ if uploaded_file:
 
     st.success("All Branch PDF Buttons Ready!")
 
-    st.info("Please upload recovery file")
-import streamlit as st
+   import streamlit as st
 import pandas as pd
+import plotly.express as px
 
+# -------------------
+# PAGE CONFIG (must be top)
+# -------------------
 st.set_page_config(page_title="Branch Recovery Dashboard", layout="wide")
 
 # -------------------
@@ -1061,6 +1064,7 @@ st.markdown("""
 file = st.file_uploader("Upload Recovery File (Excel/CSV)", type=["xlsx","csv"])
 
 if file:
+
     # -------------------
     # READ FILE
     # -------------------
@@ -1072,7 +1076,7 @@ if file:
     st.success("File uploaded successfully!")
 
     # -------------------
-    # CREATE PIVOT TABLE
+    # PIVOT TABLE
     # -------------------
     pivot = df.pivot_table(
         index="Branch Name",
@@ -1101,6 +1105,31 @@ if file:
     st.subheader("Branch Wise Recovery %")
     st.dataframe(pivot, use_container_width=True)
 
-else:
-    st.info("Please upload a recovery file to view the branch recovery table.")
+    # -------------------
+    # CHARTS SIDE-BY-SIDE
+    # -------------------
+    col1, col2 = st.columns(2)
 
+    with col1:
+        bar_data = df.groupby("Branch Name")["Recovery %"].sum().reset_index()
+        fig_bar = px.bar(bar_data, x="Branch Name", y="Recovery %", title="Total Recovery by Branch")
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+    with col2:
+        pie_data = df.groupby("Branch Name")["Recovery %"].sum().reset_index()
+        fig_pie = px.pie(pie_data, names="Branch Name", values="Recovery %", title="Recovery Distribution")
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+    # -------------------
+    # DOWNLOAD BUTTON
+    # -------------------
+    csv = pivot.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        "⬇️ Download Branch Recovery CSV",
+        csv,
+        "branch_recovery.csv",
+        "text/csv"
+    )
+
+else:
+    st.info("Please upload a recovery file to view the branch recovery table and charts.")

@@ -1066,8 +1066,11 @@ if uploaded:
     branch_col = st.selectbox("Select Branch Column", df.columns)
 
     # Convert date safely
-    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
-
+    df[date_col] = pd.to_datetime(
+    df[date_col].astype(str).str.strip(),
+    format="%Y-%b-%d",
+    errors="coerce"
+)
     # Remove empty rows
     df = df.dropna(subset=[date_col, branch_col])
 
@@ -1114,5 +1117,6 @@ if uploaded:
 
 else:
     st.info("Please upload recovery file.")
+
 
 

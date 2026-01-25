@@ -1039,54 +1039,68 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
+    st.info("Please upload recovery file")
+import streamlit as st
 import pandas as pd
-import plotly.express as px
 
-st.markdown("<h2 style='text-align:center'>📊 Recovery Portal</h2>", unsafe_allow_html=True)
+st.set_page_config(page_title="Branch Recovery Dashboard", layout="wide")
 
-uploaded_file = st.file_uploader("Upload Recovery File (Excel)", type=["xlsx","csv"])
+# -------------------
+# HEADER
+# -------------------
+st.markdown("""
+    <h1 style='text-align: center; color: #1f77b4;'>📊 Branch Recovery Dashboard</h1>
+    <h4 style='text-align: center; color: gray;'>Recovery % per Bucket</h4>
+    <hr style='border-top: 3px solid #bbb;'>
+""", unsafe_allow_html=True)
 
-if uploaded_file:
+# -------------------
+# FILE UPLOADER
+# -------------------
+file = st.file_uploader("Upload Recovery File (Excel/CSV)", type=["xlsx","csv"])
 
-    if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
+if file:
+    # -------------------
+    # READ FILE
+    # -------------------
+    if file.name.endswith(".csv"):
+        df = pd.read_csv(file)
     else:
-        df = pd.read_excel(uploaded_file)
+        df = pd.read_excel(file)
 
-    st.success("File uploaded successfully")
+    st.success("File uploaded successfully!")
 
-    st.write("Columns:", df.columns.tolist())
-
-    df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
-
-    # ================= TOTAL =================
-    total = df["amount"].sum()
-    st.metric("Total Recovery", f"{total:,.0f}")
-
-    # ================= PIVOT =================
+    # -------------------
+    # CREATE PIVOT TABLE
+    # -------------------
     pivot = df.pivot_table(
-        index=["region_id","area_id","branch_id"],
-        values="amount",
+        index="Branch Name",
+        columns="Bucket",
+        values="Recovery %",
         aggfunc="sum"
-    ).reset_index()
-
-    st.subheader("Branch Wise Recovery")
-    st.dataframe(pivot)
-
-    # ================= CHART =================
-    fig = px.bar(pivot, x="branch_id", y="amount", title="Branch Wise Recovery")
-    st.plotly_chart(fig, use_container_width=True)
-
-    # ================= DOWNLOAD =================
-    csv = pivot.to_csv(index=False).encode("utf-8")
-
-    st.download_button(
-        "Download Branch Recovery",
-        csv,
-        "branch_recovery.csv",
-        "text/csv"
     )
 
+    # -------------------
+    # RENAME COLUMNS LIKE PICTURE
+    # -------------------
+    pivot = pivot.rename(columns={
+        "1-10": "Recovery 1-10",
+        "11-20": "Recovery 11-20",
+        "21-30": "Recovery 21-30"
+    })
+
+    # -------------------
+    # FORMAT AS PERCENTAGE
+    # -------------------
+    pivot = pivot.fillna(0).astype(int).astype(str) + "%"
+
+    # -------------------
+    # DISPLAY PIVOT TABLE
+    # -------------------
+    st.subheader("Branch Wise Recovery %")
+    st.dataframe(pivot, use_container_width=True)
+
 else:
-    st.info("Please upload recovery file")
+    st.info("Please upload a recovery file to view the branch recovery table.")
 

@@ -259,7 +259,6 @@ from reportlab.lib.pagesizes import letter, landscape, A4
 from reportlab.lib.styles import getSampleStyleSheet
 import plotly.express as px
 
-st.set_page_config(page_title="Recovery App", layout="wide")
 st.title("🏦 Recovery & Reports App")
 
 # --------------------
@@ -1040,6 +1039,7 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
+
 
 
 

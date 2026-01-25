@@ -1081,7 +1081,7 @@ if uploaded:
     df["Range"] = pd.cut(
         df["Day"],
         bins=[0,10,20,31],
-        labels=["1-10","11-20","21-31"]
+        labels=["Recovery1-10","Recovery11-20","Recovery21-31"]
     )
 
     if df["Range"].isna().all():
@@ -1103,9 +1103,9 @@ if uploaded:
             pivot[c] = 0
 
     pivot["Total"] = pivot.sum(axis=1)
-    pivot["Recovery1-10 %"] = (pivot["Recovery1-10"] / pivot["Total"] * 100).round(2)
-    pivot["Recovery11-20 %"] = (pivot["Recovery11-20"] / pivot["Total"] * 100).round(2)
-    pivot["Recovery21-31 %"] = (pivot["Recovery21-31"] / pivot["Total"] * 100).round(2)
+    pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
+    pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
+    pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
 
     result_df = pivot.reset_index()
 
@@ -1154,5 +1154,6 @@ if uploaded:
 
 else:
     st.info("Please upload recovery file.")
+
 
 

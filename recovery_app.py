@@ -1,3 +1,18 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+t = np.linspace(0, 20*np.pi, 2000)
+
+x = np.sin(t) * np.cos(t/2)
+y = np.cos(t)
+
+colors = t
+
+plt.figure(figsize=(6,6))
+plt.scatter(x, y, c=colors, cmap='rainbow', s=1)
+
+plt.axis('off')
+plt.show()
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -6,8 +21,8 @@ from fpdf import FPDF
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
 st.markdown("""
-    <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal</h1>
-    <h3 style='text-align: center; color: Blue;'>Recovery and Overdue Portal</h3>
+    <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
+    <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 
@@ -465,7 +480,7 @@ if terabyte_pdf_file is not None:
             # Date-wise summary
             date_summary = branch_df.groupby("Recovery Date").agg(
                 Receipts_Count=("Receipt No", "count"),
-                Amount_Sum=("Credit Amount", "sum")
+                Amount_Sum=("Credit amount", "sum")
             ).reset_index()
             elements.append(Paragraph("Date-wise Summary", styles['Heading2']))
             date_table = Table([list(date_summary.columns)] + date_summary.values.tolist())
@@ -539,7 +554,7 @@ if 'recovery_file' in locals() or recovery_file is not None:
                     pdf.set_font("Arial", "B", 10)
                     pdf.cell(12, 8, "Sr#", 1, 0, "C")
                     pdf.cell(50, 8, "Date", 1, 0, "C")
-                    pdf.cell(40, 8, "Amount", 1, 0, "C")
+                    pdf.cell(40, 8, "amount", 1, 0, "C")
                     pdf.cell(60, 8, "Name", 1, 0, "C")
                     pdf.cell(40, 8, "Sanction No", 1, 1, "C")
 
@@ -548,11 +563,11 @@ if 'recovery_file' in locals() or recovery_file is not None:
                     for i, (_, row) in enumerate(branch_data.iterrows(), start=1):
                         pdf.cell(12, 8, str(i), 1, 0, "C")
                         pdf.cell(50, 8, str(row.get("Date", ""))[:10], 1, 0, "C")
-                        pdf.cell(40, 8, str(row.get("Amount", "")), 1, 0, "R")
+                        pdf.cell(40, 8, str(row.get("amount", "")), 1, 0, "R")
                         pdf.cell(60, 8, str(row.get("Name", ""))[:25], 1, 0, "L")
                         pdf.cell(40, 8, str(row.get("Sanction No", "")), 1, 1, "C")
                         try:
-                            total_amount += float(row.get("Amount", 0) if row.get("Amount", 0) != "" else 0)
+                            total_amount += float(row.get("amount", 0) if row.get("amount", 0) != "" else 0)
                         except Exception:
                             pass
 
@@ -579,185 +594,65 @@ if 'recovery_file' in locals() or recovery_file is not None:
 
 import streamlit as st
 import pandas as pd
-from fpdf import FPDF
-from io import BytesIO
-import zipfile
-import datetime
-
-# ---------- PDF Class ----------
-class PDF(FPDF):
-    def header(self):
-        self.set_font("Arial", 'B', 12)
-        self.cell(0, 10, "Cheque Report", ln=True, align="C")
-        self.ln(5)
-
-# ---------- Draw Row Function (Fixed Wrap) ----------
-def draw_row(pdf, row_data, col_widths, row_height=8):
-    # پہلے ہر cell کی height calculate کریں
-    cell_heights = []
-    x_start = pdf.get_x()
-    y_start = pdf.get_y()
-
-    for i, data in enumerate(row_data):
-        text = str(data)
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.multi_cell(col_widths[i], row_height, text, border=0, align="C")
-        h = pdf.get_y() - y
-        cell_heights.append(h)
-        pdf.set_xy(x + col_widths[i], y)
-
-    max_height = max(cell_heights)  # پوری row کی max height
-
-    # دوبارہ draw کریں proper border کے ساتھ
-    pdf.set_xy(x_start, y_start)
-    for i, data in enumerate(row_data):
-        x = pdf.get_x()
-        y = pdf.get_y()
-        pdf.multi_cell(col_widths[i], row_height, str(data), border=1, align="C")
-        pdf.set_xy(x + col_widths[i], y)
-    pdf.set_y(y_start + max_height)
-
-# ---------- Branch Header ----------
-def add_branch_header(pdf, branch, headers, col_widths):
-    pdf.set_font("Arial", 'B', 10)
-    pdf.cell(0, 10, f"Branch: {branch}", ln=True, align="L")
-    pdf.set_font("Arial", 'B', 9)
-    for i, header in enumerate(headers):
-        pdf.cell(col_widths[i], 8, header, 1, 0, "C")
-    pdf.ln()
-
-# ---------- Streamlit UI ----------
-st.title("Cheque Wise Report to PDF (Branch Wise)")
-
-uploaded_file = st.file_uploader("Upload Cheque Data CSV", type=["csv"])
-
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-
-    # ✅ Expected columns
-    expected_cols = ["branch_id", "date", "cheque_no", "sanction_no", "tranch_no", "name", "amount", "group_no"]
-    df = df[expected_cols]
-
-    # ✅ Date Handling
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    today = datetime.date.today()
-    df["Months Passed"] = df["date"].apply(lambda d: (today.year - d.year) * 12 + today.month - d.month if pd.notnull(d) else "")
-    df["Days Passed"] = df["date"].apply(lambda d: (today - d.date()).days if pd.notnull(d) else "")
-
-    st.write("Data Preview:", df.head())
-
-    # ---------- Group by branch ----------
-    branch_groups = df.groupby("branch_id")
-
-    # ZIP buffer
-    zip_buffer = BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w") as zf:
-        for branch, branch_df in branch_groups:
-            pdf = PDF()
-            pdf.set_auto_page_break(auto=False, margin=15)
-            pdf.add_page()
-
-            headers = ["Branch ID", "Date", "Cheque No", "Sanction No", "Tranch No", "Name", "Amount", "Group No", "Months Passed", "Days Passed"]
-            col_widths = [20, 22, 25, 25, 20, 35, 20, 20, 20, 20]
-
-            add_branch_header(pdf, branch, headers, col_widths)
-            pdf.set_font("Arial", '', 8)
-
-            for _, row in branch_df.iterrows():
-                if pdf.get_y() > 260:  # page overflow
-                    pdf.add_page()
-                    add_branch_header(pdf, branch, headers, col_widths)
-                    pdf.set_font("Arial", '', 8)
-
-                row_data = [
-                    row["branch_id"],
-                    row["date"].strftime("%Y-%m-%d") if pd.notnull(row["date"]) else "",
-                    row["cheque_no"],
-                    row["sanction_no"],
-                    row["tranch_no"],
-                    row["name"],
-                    row["amount"],
-                    row["group_no"],
-                    row["Months Passed"],
-                    row["Days Passed"]
-                ]
-                draw_row(pdf, row_data, col_widths)
-
-            # Save each branch PDF into ZIP
-            pdf_bytes = pdf.output(dest="S").encode("latin-1")
-            zf.writestr(f"{branch}_cheque_report.pdf", pdf_bytes)
-
-    zip_buffer.seek(0)
-
-    # ---------- Download Button ----------
-    st.download_button(
-        label="Download All Branch Reports (ZIP)",
-        data=zip_buffer,
-        file_name="all_branches_cheque_reports.zip",
-        mime="application/zip"
-    )
-
-import streamlit as st
-import pandas as pd
-import os
-import glob
 import re
 
-st.header("📂 Merge All CSVs (Skip first 2 rows)")
-
-folder_path = "due list"  # آپ کا فولڈر
-
-csv_files = glob.glob(os.path.join(folder_path, "*.csv"))
-st.write(f"Found {len(csv_files)} CSV files.")
-
-merged_data = []
-missing_sanction_files = []
+st.header("📂 Merge CSV Files (Skip first 2 rows)")
 
 def clean_colname(name):
     return re.sub(r'[^a-z0-9]', '', str(name).lower())
 
-for file in csv_files:
-    try:
-        # Skip first 2 rows so row 3 becomes header
-        df = pd.read_csv(file, skiprows=2)
+# --- Users select multiple CSV files ---
+uploaded_files = st.file_uploader(
+    "Upload your CSV files",
+    type="csv",
+    accept_multiple_files=True
+)
 
-        # Clean column names
-        df.columns = [clean_colname(col) for col in df.columns]
+merged_data = []
+missing_sanction_files = []
 
-        possible_names = ["sanctionno", "sanctionnumber", "sactionno"]
-        sanction_col = None
-        for col in df.columns:
-            if col in possible_names:
-                sanction_col = col
-                break
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        try:
+            # Skip first 2 rows
+            df = pd.read_csv(uploaded_file, skiprows=2)
 
-        if sanction_col:
-            merged_data.append(df)
-        else:
-            missing_sanction_files.append(os.path.basename(file))
+            # Clean columns
+            df.columns = [clean_colname(col) for col in df.columns]
 
-    except Exception as e:
-        st.error(f"Error reading {file}: {e}")
+            # Check for Sanction No column
+            possible_names = ["sanctionno", "sanctionnumber", "sactionno"]
+            sanction_col = next((col for col in df.columns if col in possible_names), None)
 
-if missing_sanction_files:
-    st.warning("No 'Sanction No' column found in these files:")
-    for f in missing_sanction_files:
-        st.write(f"- {f}")
+            if sanction_col:
+                merged_data.append(df)
+            else:
+                missing_sanction_files.append(uploaded_file.name)
 
-if merged_data:
-    final_df = pd.concat(merged_data, ignore_index=True)
-    st.success(f"Merged {len(merged_data)} CSV files successfully! Total rows: {len(final_df)}")
+        except Exception as e:
+            st.error(f"Error reading {uploaded_file.name}: {e}")
 
-    csv_download = final_df.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="⬇ Download Merged CSV",
-        data=csv_download,
-        file_name="merged_due_list.csv",
-        mime="text/csv"
-    )
+    # --- Show warning for files without Sanction No ---
+    if missing_sanction_files:
+        st.warning("No 'Sanction No' column found in these files:")
+        for f in missing_sanction_files:
+            st.write(f"- {f}")
+
+    # --- Merge and allow download ---
+    if merged_data:
+        final_df = pd.concat(merged_data, ignore_index=True)
+        st.success(f"Merged {len(merged_data)} CSV files! Total rows: {len(final_df)}")
+
+        csv_download = final_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="⬇ Download Merged CSV",
+            data=csv_download,
+            file_name="merged_due_list.csv",
+            mime="text/csv"
+        )
 else:
-    st.error("No valid files to merge.")
+    st.info("Please upload at least one CSV file to merge.")
+
 import streamlit as st
 import pandas as pd
 import os
@@ -768,13 +663,14 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, A4
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
+from zipfile import ZipFile
 
 st.header("📑 Cheque-wise Analysis")
 
 # --- File Upload ---
 uploaded_cheque = st.file_uploader(
-    "Upload Cheque-wise List", 
-    type=["xlsx", "csv"], 
+    "Upload Cheque-wise List",
+    type=["xlsx", "csv"],
     key="cheque_uploader"
 )
 
@@ -785,8 +681,18 @@ if uploaded_cheque:
     else:
         cheque_df = pd.read_excel(uploaded_cheque)
 
+    # --- Clean column names for consistent access ---
+    cheque_df.columns = [str(c).strip() for c in cheque_df.columns]
+
     # --- Required columns ---
-    required_cols = ["branch_id", "date_disbursed", "sanction_no", "tranch_no", "member_name", "member_cnic"]
+    required_cols = [
+        "branch_id", "date_disbursed", "sanction_no",
+        "tranch_no", "member_name", "member_cnic"
+    ]
+    # Keep NumberN if exists
+    if any("number" in str(c).strip().lower() for c in cheque_df.columns):
+        required_cols.append([c for c in cheque_df.columns if "number" in str(c).strip().lower()][0])
+
     cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
 
     # --- Name column ---
@@ -797,21 +703,18 @@ if uploaded_cheque:
     cheque_df["date_disbursed"] = pd.to_datetime(cheque_df["date_disbursed"], errors="coerce")
     today = datetime.today()
     cheque_df["Months Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else None
+        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else ""
     )
     cheque_df["Days Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: (today - x).days if pd.notnull(x) else None
+        lambda x: (today - x).days if pd.notnull(x) else ""
     )
 
-    # --- Add missing columns ---
+    # --- Add missing flags ---
     for col in ["House Complete", "Shifted", "Design"]:
         if col not in cheque_df.columns:
-            if col in ["House Complete", "Shifted"]:
-                cheque_df[col] = "No"
-            else:
-                cheque_df[col] = ""
+            cheque_df[col] = "No" if col in ["House Complete", "Shifted"] else ""
 
-    # --- Load previously saved flags ---
+    # --- Load saved flags ---
     if os.path.exists("cheque_flags.csv"):
         saved_flags = pd.read_csv("cheque_flags.csv")
         cheque_df = cheque_df.merge(
@@ -825,15 +728,41 @@ if uploaded_cheque:
                 cheque_df[col] = cheque_df[f"{col}_saved"].combine_first(cheque_df[col])
                 cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
 
-    # --- Order columns ---
-    cols = cheque_df.columns.tolist()
-    if "branch_id" in cols and "Name" in cols:
-        cols.insert(cols.index("branch_id") + 1, cols.pop(cols.index("Name")))
-        cheque_df = cheque_df[cols]
+    # -----------------------------------------
+    # 1st Tranch + 2nd Tranch logic
+    # -----------------------------------------
+    cheque_df["2nd Tranch Status"] = ""
 
-    # --- Editable table: only 2nd Tranch ---
-    editable_df = cheque_df[cheque_df["tranch_no"] == 2]
+    second_tranch_map = (
+        cheque_df[cheque_df["tranch_no"] == 2]
+        .groupby("sanction_no")
+        .size()
+        .to_dict()
+    )
 
+    first_tranch_df = cheque_df[cheque_df["tranch_no"] == 1].copy()
+    first_tranch_df["2nd Tranch Status"] = first_tranch_df["sanction_no"].apply(
+        lambda x: "OK" if x in second_tranch_map else ""
+    )
+
+    display_columns = [
+        "branch_id", "sanction_no", "tranch_no", "Name", "member_cnic",
+        "date_disbursed", "Months Passed", "2nd Tranch Status",
+        "House Complete", "Shifted", "Design"
+    ]
+
+    # Add NumberN if exists
+    number_col_name = None
+    for col in first_tranch_df.columns:
+        if "number" in str(col).strip().lower():
+            number_col_name = col
+            display_columns.append(number_col_name)
+            break
+
+    display_columns = [c for c in display_columns if c in first_tranch_df.columns]
+    editable_df = first_tranch_df[display_columns]
+
+    # --- Editable table for 1st tranche ---
     edited_df = st.data_editor(
         editable_df,
         use_container_width=True,
@@ -846,65 +775,90 @@ if uploaded_cheque:
 
     # --- Save updated flags ---
     if st.button("💾 Save Flags", key="save_flags_btn"):
-        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted", "Design"]].to_csv("cheque_flags.csv", index=False)
+        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted", "Design"]].to_csv(
+            "cheque_flags.csv",
+            index=False
+        )
         st.success("✅ Flags saved successfully!")
 
-    # --- Branch-wise PDF Export (existing) ---
-    if st.button("⬇️ Download Branch-wise PDF Reports", key="pdf_download_btn"):
-        branches = cheque_df["branch_id"].unique()
-        os.makedirs("branch_pdfs", exist_ok=True)
+    # --- Branch-wise PDFs ZIP Download Button ---
+    if st.button("⬇️ Download All Branch PDFs (ZIP)"):
+        zip_buffer = BytesIO()
+        with ZipFile(zip_buffer, "w") as zip_file:
+            for branch in cheque_df["branch_id"].unique():
+                branch_df = edited_df[edited_df["branch_id"] == branch]
+                branch_full_df = cheque_df[cheque_df["branch_id"] == branch]
 
-        for branch in branches:
-            branch_df = cheque_df[cheque_df["branch_id"] == branch]
-            pdf_path = f"branch_pdfs/branch_{branch}.pdf"
+                pdf_buffer = BytesIO()
+                doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
+                styles = getSampleStyleSheet()
+                elements = []
 
-            # --- Summary counts ---
-            tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()
-            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+                elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
+                elements.append(Spacer(1, 12))
 
-            house_complete = branch_df["House Complete"].astype(str).str.strip().str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].astype(str).str.strip().str.lower().eq("yes").sum()
-            design_complete = branch_df["Design"].astype(str).str.strip().str.lower().eq("yes").sum()
+                # --- Correct counts ---
+                tranch1 = (branch_df["tranch_no"] == 1).sum()
+                tranch2 = (branch_full_df["tranch_no"] == 2).sum()
+                pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
+                house_complete = branch_df["House Complete"].eq("Yes").sum()
+                shifted = branch_df["Shifted"].eq("Yes").sum()
+                design_complete = branch_df["Design"].eq("Yes").sum()
 
-            # --- PDF setup ---
-            doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
-            styles = getSampleStyleSheet()
-            elements = []
+                summary_text = f"""
+                <b>Summary:</b><br/>
+                1st Tranch Cases: {tranch1}<br/>
+                2nd Tranch Cases: {tranch2}<br/>
+                Pending (1st - 2nd): {pending}<br/>
+                House Complete: {house_complete}<br/>
+                Shifted: {shifted}<br/>
+                Design Complete: {design_complete}<br/>
+                """
+                elements.append(Paragraph(summary_text, styles["Normal"]))
+                elements.append(Spacer(1, 12))
 
-            elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
-            elements.append(Spacer(1,12))
+                # --- Prepare table ---
+                table_df = branch_df.copy()
+                table_df = table_df.drop(columns=["branch_id", "tranch_no"], errors="ignore")
 
-            summary_text = f"""
-            <b>Summary:</b><br/>
-            1st Tranch Cases: {tranch1}<br/>
-            2nd Tranch Cases: {tranch2}<br/>
-            Pending (1st - 2nd): {pending}<br/>
-            House Complete: {house_complete}<br/>
-            Shifted: {shifted}<br/>
-            Design Complete: {design_complete}<br/>
-            """
-            elements.append(Paragraph(summary_text, styles["Normal"]))
-            elements.append(Spacer(1,12))
+                # Add serial number
+                table_df.insert(0, "S.No", range(1, len(table_df) + 1))
 
-            table_df = branch_df[branch_df["tranch_no"] == 2]
-            data = [table_df.columns.tolist()] + table_df.astype(str).values.tolist()
-            table = Table(data, repeatRows=1, hAlign="CENTER")
-            table.setStyle(TableStyle([
-                ("BACKGROUND", (0,0), (-1,0), colors.grey),
-                ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-                ("ALIGN", (0,0), (-1,-1), "CENTER"),
-                ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-                ("BOTTOMPADDING", (0,0), (-1,0), 12),
-                ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-                ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-            ]))
-            elements.append(table)
-            doc.build(elements)
+                # --- NumberN: keep original Excel data ---
+                if number_col_name:
+                    table_df["NumberN"] = branch_df[number_col_name].fillna("")
+                else:
+                    table_df["NumberN"] = ""
 
-        st.success("✅ Branch-wise PDFs generated (existing logic).")
+                # --- House Complete / Shifted: keep exact value ---
+                for col in ["House Complete", "Shifted"]:
+                    if col in table_df.columns:
+                        table_df[col] = table_df[col].fillna("")
 
-    # --- New Single-page Branch-wise PDF Summary with Grand Total ---
+                # --- Create table for PDF ---
+                data = [table_df.columns.tolist()] + table_df.values.tolist()
+                table = Table(data, repeatRows=1, hAlign="CENTER")
+                table.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ]))
+                elements.append(table)
+                doc.build(elements)
+                pdf_buffer.seek(0)
+
+                zip_file.writestr(f"branch_{branch}.pdf", pdf_buffer.getvalue())
+
+        zip_buffer.seek(0)
+        st.download_button(
+            label="⬇️ Download All Branch PDFs (ZIP)",
+            data=zip_buffer.getvalue(),
+            file_name="branch_pdfs.zip",
+            mime="application/zip"
+        )
+
+    # --- Grand Total PDF ---
     if st.button("⬇️ Download Branch-wise PDF Summary with Grand Total", key="pdf_grandtotal_btn"):
         pdf_buffer = BytesIO()
         doc = SimpleDocTemplate(pdf_buffer, pagesize=landscape(A4))
@@ -912,7 +866,7 @@ if uploaded_cheque:
         elements = []
 
         elements.append(Paragraph("Branch-wise Summary Report", styles["Heading1"]))
-        elements.append(Spacer(1,12))
+        elements.append(Spacer(1, 12))
 
         summary_list = []
         total_tranch1 = total_tranch2 = total_pending = 0
@@ -923,11 +877,14 @@ if uploaded_cheque:
             tranch1 = (branch_df["tranch_no"] == 1).sum()
             tranch2 = (branch_df["tranch_no"] == 2).sum()
             pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-            house_complete = branch_df["House Complete"].str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].str.lower().eq("yes").sum()
-            design_complete = branch_df["Design"].str.lower().eq("yes").sum()
+            house_complete = branch_df["House Complete"].eq("Yes").sum()
+            shifted = branch_df["Shifted"].eq("Yes").sum()
+            design_complete = branch_df["Design"].eq("Yes").sum()
 
-            summary_list.append([branch, tranch1, tranch2, pending, house_complete, shifted, design_complete])
+            summary_list.append([
+                branch, tranch1, tranch2, pending,
+                house_complete, shifted, design_complete
+            ])
 
             total_tranch1 += tranch1
             total_tranch2 += tranch2
@@ -937,26 +894,26 @@ if uploaded_cheque:
             total_design += design_complete
 
         summary_df = pd.DataFrame(summary_list, columns=[
-            "Branch", "1st Tranch", "2nd Tranch", "Pending", "House Complete", "Shifted", "Design Complete"
+            "Branch", "1st Tranch", "2nd Tranch", "Pending",
+            "House Complete", "Shifted", "Design Complete"
         ])
 
-        summary_df.loc["Grand Total"] = ["Grand Total", total_tranch1, total_tranch2, total_pending,
-                                         total_house, total_shifted, total_design]
+        summary_df.loc["Grand Total"] = [
+            "Grand Total",
+            total_tranch1, total_tranch2, total_pending,
+            total_house, total_shifted, total_design
+        ]
 
         data = [summary_df.columns.tolist()] + summary_df.astype(str).values.tolist()
         table = Table(data, repeatRows=1, hAlign="CENTER")
         table.setStyle(TableStyle([
-            ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#004080")),
-            ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-            ("ALIGN", (0,0), (-1,-1), "CENTER"),
-            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-            ("FONTSIZE", (0,0), (-1,-1), 10),
-            ("BOTTOMPADDING", (0,0), (-1,0), 8),
-            ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-            ("BACKGROUND", (0,-1), (-1,-1), colors.lightgrey),
-            ("FONTNAME", (0,-1), (-1,-1), "Helvetica-Bold")
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#004080")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
         ]))
         elements.append(table)
+
         doc.build(elements)
         pdf_buffer.seek(0)
 
@@ -969,226 +926,121 @@ if uploaded_cheque:
         )
 import streamlit as st
 import pandas as pd
-import os
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from fpdf import FPDF
 
-st.header("📑 Cheque-wise Analysis 1st And 2nd Tranch's")
+st.title("Loan Disbursement PDF Generator (Branchwise)")
 
-uploaded_cheque = st.file_uploader("Upload Cheque-wise List", type=["xlsx", "csv"])
+uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
-if uploaded_cheque:
-    # Read uploaded file
-    if uploaded_cheque.name.endswith(".csv"):
-        cheque_df = pd.read_csv(uploaded_cheque)
-    else:
-        cheque_df = pd.read_excel(uploaded_cheque)
+# ---------------------- Safe Functions ----------------------
+def safe(val):
+    try:
+        if pd.isna(val):
+            return ""
+        return str(val)
+    except:
+        return ""
 
-    # Required columns
-    required_cols = ["branch_id", "date_disbursed", "sanction_no", "tranch_no", "member_name", "member_cnic"]
-    cheque_df = cheque_df[[col for col in required_cols if col in cheque_df.columns]]
+# ---------------------- PDF Class ----------------------
+class PDF(FPDF):
+    def header(self):
+        self.set_font("Arial", 'B', 12)
+        self.cell(0, 8, "Loan Disbursement Report", ln=True, align="C")
+        self.ln(3)
 
-    # Name column
-    cheque_df["Name"] = cheque_df["member_name"]
-    cheque_df.drop(columns=["member_name"], inplace=True)
+# ---------------------- MAIN ----------------------
+if uploaded_file:
+    df = pd.read_excel(uploaded_file)
 
-    # Convert date
-    cheque_df["date_disbursed"] = pd.to_datetime(cheque_df["date_disbursed"], errors="coerce")
-    today = datetime.today()
-    cheque_df["Months Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: relativedelta(today, x).months + relativedelta(today, x).years * 12 if pd.notnull(x) else None
-    )
-    cheque_df["Days Passed"] = cheque_df["date_disbursed"].apply(
-        lambda x: (today - x).days if pd.notnull(x) else None
-    )
+    # Fix column spellings
+    df.rename(columns={
+        "date_disbursed": "date_disburse",
+        "date_of_disbursement": "date_disburse",
+        "tranch_no": "tranch",
+        "grouo_no": "group_no",
+    }, inplace=True)
 
-    # Add House Complete, Shifted if missing
-    for col in ["House Complete", "Shifted"]:
-        if col not in cheque_df.columns:
-            cheque_df[col] = "No"
+    # Required Columns
+    required_cols = [
+        "branch_id", "member_name", "member_cnic", "loan_amount",
+        "tranch", "cheque_no", "sanction_no",
+        "group_no", "date_disburse"
+    ]
 
-    # Load previously saved flags if exist
-    if os.path.exists("cheque_flags.csv"):
-        saved_flags = pd.read_csv("cheque_flags.csv")
-        cheque_df = cheque_df.merge(
-            saved_flags,
-            on=["sanction_no", "tranch_no"],
-            how="left",
-            suffixes=("", "_saved")
-        )
-        for col in ["House Complete", "Shifted"]:
-            if f"{col}_saved" in cheque_df.columns:
-                cheque_df[col] = cheque_df[f"{col}_saved"].combine_first(cheque_df[col])
-                cheque_df.drop(columns=[f"{col}_saved"], inplace=True)
+    # Check Missing Columns
+    missing = [c for c in required_cols if c not in df.columns]
 
-    # Order: branch_id ke baad Name
-    cols = cheque_df.columns.tolist()
-    if "branch_id" in cols and "Name" in cols:
-        cols.insert(cols.index("branch_id") + 1, cols.pop(cols.index("Name")))
-        cheque_df = cheque_df[cols]
+    if missing:
+        st.error(f"Missing columns: {missing}")
+        st.stop()
 
-    # -----------------------------
-    # Editable Table
-    # -----------------------------
-    edited_df = st.data_editor(
-        cheque_df,
-        use_container_width=True,
-        num_rows="dynamic",
-        column_config={
-            "House Complete": st.column_config.SelectboxColumn(options=["Yes", "No"]),
-            "Shifted": st.column_config.SelectboxColumn(options=["Yes", "No"])
-        }
-    )
+    branches = df["branch_id"].unique()
 
-    # -----------------------------
-    # Fully Working Risk Level calculation (after edits)
-    # -----------------------------
-    def calc_risk(row):
-        house = str(row.get("House Complete", "")).strip().lower()
-        shifted = str(row.get("Shifted", "")).strip().lower()
-        if house == "yes" or shifted == "yes":
-            return "No Risk"
-        
-        months = row.get("Months Passed", 0)
-        if pd.isna(months):
-            return "Low"
-        if months >= 4:
-            return "High"
-        if 2 <= months < 4:
-            return "Medium"
-        if 0 < months < 2:
-            return "Low"
-        return "Low"
+    for br in branches:
 
-    edited_df["Risk Level"] = edited_df.apply(calc_risk, axis=1)
+        br_df = df[df["branch_id"] == br]
 
-    # -----------------------------
-    # Save Flags Button
-    # -----------------------------
-    if st.button("💾 Save Flags"):
-        edited_df[["sanction_no", "tranch_no", "House Complete", "Shifted"]].to_csv("cheque_flags.csv", index=False)
-        st.success("✅ Flags saved successfully!")
+        st.markdown(f"### 📌 Branch: **{br}**")
+        st.dataframe(br_df)
 
-    # -----------------------------
-    # Branch-wise PDF with Risk Level colors
-    # -----------------------------
-    if st.button("⬇️ Download Branch-wise PDF Reports"):
-        branches = edited_df["branch_id"].unique()
-        os.makedirs("branch_pdfs", exist_ok=True)
+        if st.button(f"Download PDF for Branch {br}"):
 
-        risk_colors = {
-            "High": colors.red,
-            "Medium": colors.yellow,
-            "Low": colors.green,
-            "No Risk": colors.lightgrey
-        }
+            pdf = PDF(orientation="L", unit="mm", format="A4")  # LANDSCAPE
+            pdf.set_auto_page_break(auto=True, margin=10)
+            pdf.add_page()
 
-        for branch in branches:
-            branch_df = edited_df[edited_df["branch_id"] == branch]
-            pdf_path = f"branch_pdfs/branch_{branch}.pdf"
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(0, 8, f"Branch: {br}", ln=True, align="C")
+            pdf.ln(3)
 
-            tranch1 = (branch_df["tranch_no"] == 1).sum()
-            tranch2 = (branch_df["tranch_no"] == 2).sum()
-            pending = tranch1 - tranch2 if tranch1 > tranch2 else 0
-
-            house_complete = branch_df["House Complete"].astype(str).str.lower().eq("yes").sum()
-            shifted = branch_df["Shifted"].astype(str).str.lower().eq("yes").sum()
-
-            risk_high = branch_df["Risk Level"].eq("High").sum()
-            risk_med = branch_df["Risk Level"].eq("Medium").sum()
-            risk_low = branch_df["Risk Level"].eq("Low").sum()
-            risk_none = branch_df["Risk Level"].eq("No Risk").sum()
-
-            doc = SimpleDocTemplate(pdf_path, pagesize=landscape(A4))
-            styles = getSampleStyleSheet()
-            elements = []
-
-            elements.append(Paragraph(f"Branch ID: {branch}", styles["Heading1"]))
-            elements.append(Spacer(1, 12))
-
-            summary_text = f"""
-            <b>Summary:</b><br/>
-            1st Tranch Cases: {tranch1}<br/>
-            2nd Tranch Cases: {tranch2}<br/>
-            Pending (1st - 2nd): {pending}<br/>
-            House Complete: {house_complete}<br/>
-            Shifted: {shifted}<br/><br/>
-            <b>Risk Level Summary:</b><br/>
-            High Risk: {risk_high}<br/>
-            Medium Risk: {risk_med}<br/>
-            Low Risk: {risk_low}<br/>
-            No Risk: {risk_none}<br/>
-            """
-            elements.append(Paragraph(summary_text, styles["Normal"]))
-            elements.append(Spacer(1, 20))
-
-            # Table with color-coded Risk Level
-            data = [branch_df.columns.tolist()] + branch_df.astype(str).values.tolist()
-            table = Table(data, repeatRows=1)
-            style = [
-                ("BACKGROUND", (0,0), (-1,0), colors.grey),
-                ("TEXTCOLOR", (0,0), (-1,0), colors.whitesmoke),
-                ("ALIGN", (0,0), (-1,-1), "CENTER"),
-                ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
-                ("BOTTOMPADDING", (0,0), (-1,0), 12),
-                ("GRID", (0,0), (-1,-1), 0.5, colors.black),
-                ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
+            # ---------------------- TABLE HEADER ----------------------
+            headers = [
+                "Date Disburse", "Sanction No", "Tranch", "Cheque No",
+                "Loan Amount", "Group No", "Member Name", "CNIC"
             ]
 
-            risk_col_idx = branch_df.columns.get_loc("Risk Level")
-            for i, row in enumerate(branch_df["Risk Level"], start=1):
-                color = risk_colors.get(row, colors.white)
-                style.append(("BACKGROUND", (risk_col_idx, i), (risk_col_idx, i), color))
-                if row == "Medium":
-                    style.append(("TEXTCOLOR", (risk_col_idx, i), (risk_col_idx, i), colors.black))
-                else:
-                    style.append(("TEXTCOLOR", (risk_col_idx, i), (risk_col_idx, i), colors.white))
+            # Landscape column widths (Perfect Ajustment)
+            col_widths = [30, 35, 15, 40, 30, 30, 55, 45]
 
-            table.setStyle(TableStyle(style))
-            elements.append(table)
-            doc.build(elements)
+            pdf.set_fill_color(200, 200, 200)
+            pdf.set_font("Arial", 'B', 9)
 
-        st.success("✅ Branch-wise PDFs with Risk Levels & Colors generated Successfully!")
+            for i, h in enumerate(headers):
+                pdf.cell(col_widths[i], 8, h, border=1, align="C", fill=True)
+            pdf.ln()
 
-    # -----------------------------
-    # Color-coded Risk Table in Streamlit
-    # -----------------------------
-    st.subheader("📋 Cheque-wise Table with Risk Colors")
-    def color_risk(val):
-        if val == "High": return "background-color: red; color: white;"
-        elif val == "Medium": return "background-color: yellow; color: black;"
-        elif val == "Low": return "background-color: green; color: white;"
-        elif val == "No Risk": return "background-color: gray; color: white;"
-        else: return ""
-    st.dataframe(edited_df.style.applymap(color_risk, subset=["Risk Level"]), use_container_width=True)
+            # ---------------------- TABLE ROWS ----------------------
+            fill = False
 
-    # -----------------------------
-    # Area-wise Risk Distribution Chart (Tranch 1 only)
-    # -----------------------------
-    st.subheader("📊 Area-wise Risk Distribution Chart (Tranch 1 only)")
-    area_df = edited_df[edited_df["tranch_no"] == 1]
-    risk_count = area_df.groupby(["branch_id", "Risk Level"]).size().reset_index(name="count")
-    total_per_branch = area_df.groupby("branch_id").size().reset_index(name="total")
-    risk_count = risk_count.merge(total_per_branch, on="branch_id")
-    risk_count["percent"] = (risk_count["count"]/risk_count["total"])*100
-    chart_data = risk_count.pivot(index="branch_id", columns="Risk Level", values="percent").fillna(0)
-    st.bar_chart(chart_data, use_container_width=True)
+            for _, row in br_df.iterrows():
 
-    # -----------------------------
-    # Example chart (Pichand branch)
-    # -----------------------------
-    example_data = pd.DataFrame({
-        "branch_id": ["Pichand"]*500,
-        "Risk Level": ["High"]*200 + ["Medium"]*100 + ["Low"]*100 + ["No Risk"]*100
-    })
-    example_count = example_data.groupby(["branch_id", "Risk Level"]).size().reset_index(name="count")
-    example_total = example_data.groupby("branch_id").size().reset_index(name="total")
-    example_count = example_count.merge(example_total, on="branch_id")
-    example_count["percent"] = (example_count["count"]/example_count["total"])*100
-    example_chart = example_count.pivot(index="branch_id", columns="Risk Level", values="percent").fillna(0)
-    st.subheader("📊 Example Area-wise Risk Chart (Pichand Branch)")
-    st.bar_chart(example_chart, use_container_width=True)
+                pdf.set_fill_color(235, 245, 255) if fill else pdf.set_fill_color(255, 255, 255)
+                pdf.set_font("Arial", '', 9)
+
+                pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
+                pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
+                pdf.cell(col_widths[2], 7, safe(row["tranch"]), border=1, fill=True)
+                pdf.cell(col_widths[3], 7, safe(row["cheque_no"]), border=1, fill=True)
+                pdf.cell(col_widths[4], 7, safe(row["loan_amount"]), border=1, fill=True)
+                pdf.cell(col_widths[5], 7, safe(row["group_no"]), border=1, fill=True)
+                pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
+                pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
+
+                pdf.ln()
+                fill = not fill
+
+            # Export PDF
+            pdf_bytes = pdf.output(dest="S").encode("latin-1")
+
+            st.download_button(
+                label=f"Download {br} PDF",
+                data=pdf_bytes,
+                file_name=f"{br}_Loan_Disbursement.pdf",
+                mime="application/pdf"
+            )
+
+    st.success("All Branch PDF Buttons Ready!")
+
+
+
+

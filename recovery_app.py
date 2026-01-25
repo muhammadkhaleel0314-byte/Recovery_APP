@@ -1040,43 +1040,80 @@ if uploaded_file:
 
     st.success("All Branch PDF Buttons Ready!")
 
-import pandas as pd
 import streamlit as st
+import pandas as pd
 
-uploaded = st.file_uploader("Upload Recovery File", type=["xlsx","csv"])
+st.set_page_config(page_title="Recovery Summary", layout="wide")
+
+st.title("Recovery Date Range Summary")
+
+uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
 if uploaded:
-    df = pd.read_excel(uploaded)
 
-    # Date column ko datetime banao
-    df["Recovery_Date"] = pd.to_datetime(df["Recovery_Date"])
+    # Read file
+    if uploaded.name.endswith(".csv"):
+        df = pd.read_csv(uploaded)
+    else:
+        df = pd.read_excel(uploaded)
 
-    # Day extract karo
-    df["Day"] = df["Recovery_Date"].dt.day
+    st.subheader("Raw Data Preview")
+    st.dataframe(df.head())
 
-    # Date ranges
+    # Show columns
+    st.write("Available Columns:", df.columns.tolist())
+
+    # Select columns
+    date_col = st.selectbox("Select Date Column", df.columns)
+    branch_col = st.selectbox("Select Branch Column", df.columns)
+
+    # Convert date safely
+    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+
+    # Remove empty rows
+    df = df.dropna(subset=[date_col, branch_col])
+
+    # Extract day
+    df["Day"] = df[date_col].dt.day
+
+    df = df[df["Day"].notna()]
+
+    # Create ranges
     df["Range"] = pd.cut(
         df["Day"],
-        bins=[0,10,20,31],
-        labels=["1-10","11-20","21-31"]
+        bins=[0, 10, 20, 31],
+        labels=["1-10", "11-20", "21-31"]
     )
 
-    # Count per branch + range
-    pivot = df.pivot_table(
-        index="Branch",
+    if df["Range"].isna().all():
+        st.error("Date column sahi format me nahi.")
+        st.stop()
+
+    # Pivot
+    pivot = pd.pivot_table(
+        df,
+        index=branch_col,
         columns="Range",
-        values="Day",
-        aggfunc="count",
+        aggfunc="size",
         fill_value=0
     )
 
-    # Total per branch
+    # Ensure columns exist
+    for c in ["1-10", "11-20", "21-31"]:
+        if c not in pivot.columns:
+            pivot[c] = 0
+
+    # Total
     pivot["Total"] = pivot.sum(axis=1)
 
-    # Percentage columns
+    # Percentages
     pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
     pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
     pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
 
-    st.subheader("Branch Wise Recovery Date Summary")
+    st.subheader("Branch Wise Recovery Result")
     st.dataframe(pivot.reset_index())
+
+else:
+    st.info("Please upload recovery file.")
+

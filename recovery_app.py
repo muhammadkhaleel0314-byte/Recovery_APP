@@ -1040,39 +1040,56 @@ if uploaded_file:
 
     st.success("All Branch PDF Buttons Ready!")
 import streamlit as st
+
+st.set_page_config(page_title="Recovery Portal", layout="wide")
+
 import pandas as pd
+import plotly.express as px
 
-st.title("Recovery Dashboard")
+st.markdown("<h2 style='text-align:center'>📊 Recovery Portal</h2>", unsafe_allow_html=True)
 
-file = st.file_uploader("Upload Recovery File", ["xlsx", "csv"])
+uploaded_file = st.file_uploader("Upload Recovery File (Excel)", type=["xlsx","csv"])
 
-if file:
-    if file.name.endswith(".csv"):
-        df = pd.read_csv(file)
+if uploaded_file:
+
+    if uploaded_file.name.endswith(".csv"):
+        df = pd.read_csv(uploaded_file)
     else:
-        df = pd.read_excel(file)
+        df = pd.read_excel(uploaded_file)
 
-    # Pivot exactly like picture
+    st.success("File uploaded successfully")
+
+    st.write("Columns:", df.columns.tolist())
+
+    df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
+
+    # ================= TOTAL =================
+    total = df["amount"].sum()
+    st.metric("Total Recovery", f"{total:,.0f}")
+
+    # ================= PIVOT =================
     pivot = df.pivot_table(
-        index="Branch Name",
-        columns="Bucket",
-        values="Recovery %",
+        index=["region_id","area_id","branch_id"],
+        values="amount",
         aggfunc="sum"
+    ).reset_index()
+
+    st.subheader("Branch Wise Recovery")
+    st.dataframe(pivot)
+
+    # ================= CHART =================
+    fig = px.bar(pivot, x="branch_id", y="amount", title="Branch Wise Recovery")
+    st.plotly_chart(fig, use_container_width=True)
+
+    # ================= DOWNLOAD =================
+    csv = pivot.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "Download Branch Recovery",
+        csv,
+        "branch_recovery.csv",
+        "text/csv"
     )
 
-    # Rename columns like picture
-    pivot = pivot.rename(columns={
-        "1-10": "Recovery 1-10",
-        "11-20": "Recovery 11-20",
-        "21-30": "Recovery 21-30"
-    })
-
-    # Percentage sign add
-    pivot = pivot.fillna(0).astype(int).astype(str) + "%"
-
-    st.dataframe(pivot, use_container_width=True)
-
-
-
-
-
+else:
+    st.info("Please upload recovery file")

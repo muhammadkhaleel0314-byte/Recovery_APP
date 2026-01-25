@@ -1044,7 +1044,8 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
 
 st.title("Recovery Date Range Summary")
 
@@ -1124,8 +1125,22 @@ if uploaded:
     # ---------------- PDF Download ----------------
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
+
+    # Table data
     table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+
+    # Create Table with style (borders + header + alignment)
     table = Table(table_data)
+    style = TableStyle([
+        ('GRID', (0,0), (-1,-1), 1, colors.black),    # Full borders
+        ('BACKGROUND', (0,0), (-1,0), colors.grey),   # Header background
+        ('ALIGN', (0,0), (-1,-1), 'CENTER'),          # Center all cells
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('FONTSIZE', (0,0), (-1,-1), 10),
+        ('BOTTOMPADDING', (0,0), (-1,0), 6),
+    ])
+    table.setStyle(style)
+
     doc.build([table])
     pdf_bytes = buffer.getvalue()
     buffer.close()

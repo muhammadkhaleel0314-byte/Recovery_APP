@@ -1043,8 +1043,6 @@ if uploaded_file:
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Recovery Summary", layout="wide")
-
 st.title("Recovery Date Range Summary")
 
 uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
@@ -1116,4 +1114,5 @@ if uploaded:
 
 else:
     st.info("Please upload recovery file.")
+
 

@@ -1039,10 +1039,6 @@ if uploaded_file:
             )
 
     st.success("All Branch PDF Buttons Ready!")
-import streamlit as st
-
-st.set_page_config(page_title="Recovery Portal", layout="wide")
-
 import pandas as pd
 import plotly.express as px
 
@@ -1093,3 +1089,4 @@ if uploaded_file:
 
 else:
     st.info("Please upload recovery file")
+

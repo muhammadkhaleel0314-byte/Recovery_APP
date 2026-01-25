@@ -1098,7 +1098,7 @@ if uploaded:
     )
 
     # Ensure columns exist
-    for c in ["1-10","11-20","21-31"]:
+    for c in ["Recovery1-10","Recovery11-20","Recovery21-31"]:
         if c not in pivot.columns:
             pivot[c] = 0
 
@@ -1154,3 +1154,4 @@ if uploaded:
 
 else:
     st.info("Please upload recovery file.")
+

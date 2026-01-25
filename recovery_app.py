@@ -1040,7 +1040,7 @@ if uploaded_file:
 
     st.success("All Branch PDF Buttons Ready!")
 
-   import streamlit as st
+import streamlit as st
 import pandas as pd
 import plotly.express as px
 
@@ -1132,3 +1132,4 @@ if file:
 
 else:
     st.info("Please upload a recovery file to view the branch recovery table and charts.")
+

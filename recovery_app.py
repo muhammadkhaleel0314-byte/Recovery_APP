@@ -1076,7 +1076,7 @@ if file:
     # PIVOT TABLE
     # -------------------
     pivot = df.pivot_table(
-        index="Branch Name",
+        index="branch_id",
         columns="Bucket",
         values="Recovery %",
         aggfunc="sum"
@@ -1130,5 +1130,6 @@ if file:
 
 else:
     st.info("Please upload a recovery file to view the branch recovery table and charts.")
+
 
 

@@ -1114,9 +1114,50 @@ if uploaded:
 
     st.subheader("Branch Wise Recovery Result")
     st.dataframe(pivot.reset_index())
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table
 
+result_df = pivot.reset_index()
+
+# Show table
+st.dataframe(result_df)
+
+# ---------------- CSV DOWNLOAD ----------------
+
+csv = result_df.to_csv(index=False).encode("utf-8")
+
+st.download_button(
+    label="⬇ Download CSV",
+    data=csv,
+    file_name="recovery_summary.csv",
+    mime="text/csv"
+)
+
+# ---------------- PDF DOWNLOAD ----------------
+
+buffer = BytesIO()
+
+doc = SimpleDocTemplate(buffer, pagesize=A4)
+
+table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+
+table = Table(table_data)
+
+doc.build([table])
+
+pdf_bytes = buffer.getvalue()
+buffer.close()
+
+st.download_button(
+    label="⬇ Download PDF",
+    data=pdf_bytes,
+    file_name="recovery_summary.pdf",
+    mime="application/pdf"
+)
 else:
     st.info("Please upload recovery file.")
+
 
 
 

@@ -678,7 +678,6 @@ if uploaded_cheque:
     cheque_df.columns = [str(c).strip() for c in cheque_df.columns]
 
     required_cols = ["branch_id","date_disbursed","sanction_no","tranch_no","member_name","member_cnic"]
-
     cheque_df = cheque_df[[c for c in required_cols if c in cheque_df.columns]]
 
     cheque_df["Name"] = cheque_df["member_name"]
@@ -713,15 +712,27 @@ if uploaded_cheque:
 
     editable_df = first_df[display_cols]
 
-    # OLD streamlit compatible editor
+    # -------- Editable Table --------
     edited_df = st.experimental_data_editor(editable_df, use_container_width=True)
 
+    # -------- CSV Download --------
+    csv_data = edited_df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        "⬇️ Download Edited CSV",
+        csv_data,
+        "cheque_analysis.csv",
+        "text/csv"
+    )
+
+    # -------- Save Flags --------
     if st.button("💾 Save Flags"):
         edited_df[["sanction_no","tranch_no","House Complete","Shifted","Design"]].to_csv(
             "cheque_flags.csv", index=False
         )
         st.success("Saved")
 
+    # -------- ZIP PDFs --------
     if st.button("⬇️ Download All Branch PDFs (ZIP)"):
 
         zip_buffer = BytesIO()
@@ -759,7 +770,12 @@ if uploaded_cheque:
 
         zip_buffer.seek(0)
 
-        st.download_button("Download ZIP",zip_buffer.getvalue(),"branches.zip","application/zip")
+        st.download_button(
+            "Download ZIP",
+            zip_buffer.getvalue(),
+            "branches.zip",
+            "application/zip"
+        )
 import streamlit as st
 import pandas as pd
 from fpdf import FPDF
@@ -1018,6 +1034,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

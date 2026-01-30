@@ -1,10 +1,3 @@
-with st.sidebar.expander("📂 Menu (Click to Open)", expanded=False):
-
-    st.write("Welcome Khaleel bhai")
-
-    show_table = st.checkbox("Show Table")
-    show_csv = st.checkbox("Show CSV Download")
-    show_pdf = st.checkbox("Show PDF")
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -1041,6 +1034,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

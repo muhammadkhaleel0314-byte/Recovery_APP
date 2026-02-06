@@ -1127,7 +1127,7 @@ if uploaded:
     else:
         df = pd.read_excel(uploaded)
 
-    st.session_state["df"] = df  # save in session
+    st.session_state["df"] = df
     df.to_excel(LOCAL_FILE, index=False)
     st.success("File uploaded and saved locally!")
 
@@ -1143,13 +1143,12 @@ else:
     st.info("Please upload recovery file.")
     st.stop()
 
-# ---------------- Available Columns ----------------
+# ---------------- Column Selection ----------------
 st.subheader("Available Columns")
 st.write(list(df.columns))
 
-# ---------------- Column Selection ----------------
 date_col = st.selectbox("Select Date Column", df.columns)
-branch_col = st.selectbox("Select Branch Column", df.columns)
+branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
 area_col = None
 if 'area_id' in df.columns:
     area_col = 'area_id'
@@ -1176,7 +1175,7 @@ if df["Range"].isna().all():
 # ---------------- Pivot Table ----------------
 pivot = pd.pivot_table(
     df,
-    index=[branch_col] + ([area_col] if area_col else []),
+    index=[branch_col],
     columns="Range",
     aggfunc="size",
     fill_value=0
@@ -1203,25 +1202,38 @@ pivot.rename(columns={
 
 result_df = pivot.reset_index()
 
+# ---------------- Add Area column BEFORE Branch ----------------
+if area_col:
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    # Move Area column before Branch column
+    cols = result_df.columns.tolist()
+    branch_idx = cols.index(branch_col)
+    cols.insert(branch_idx, cols.pop(cols.index(area_col)))
+    result_df = result_df[cols]
+
 # ---------------- Grand Total Row ----------------
-grand_total_counts = result_df[["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]].sum()
+numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
+# Sum numeric counts
+grand_total_counts = result_df[numeric_cols].sum()
+# Calculate percentages for Grand Total
 grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
 
-grand_values = {
-    branch_col: "Grand Total"
-}
-if area_col:
-    grand_values[area_col] = ""
+grand_values = {}
+for col in result_df.columns:
+    if col == branch_col:
+        grand_values[col] = "Grand Total"
+    elif col == area_col:
+        grand_values[col] = ""
+    elif col in numeric_cols:
+        grand_values[col] = grand_total_counts[col]
+    elif col in ["1-10 %","11-20 %","21-31 %"]:
+        # Map numeric col to percentage col
+        pct_map = {"1-10 %":"Recovery 1-10","11-20 %":"Recovery 11-20","21-31 %":"Recovery 21-31"}
+        grand_values[col] = grand_total_percent[pct_map[col]]
+    else:
+        grand_values[col] = ""
 
-# Add numeric counts
-for col in ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]:
-    grand_values[col] = grand_total_counts[col]
-
-# Add percentage columns
-for col, pct_col in zip(["Recovery 1-10","Recovery 11-20","Recovery 21-31"], ["1-10 %","11-20 %","21-31 %"]):
-    grand_values[pct_col] = grand_total_percent[col]
-
-# Append grand total
 result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
 # ---------------- Show Table ----------------
@@ -1244,7 +1256,7 @@ doc = SimpleDocTemplate(buffer, pagesize=A4)
 # Table data
 table_data = [result_df.columns.tolist()] + result_df.values.tolist()
 
-# Create Table with style (borders + header + alignment)
+# Create Table with style
 table = Table(table_data)
 style = TableStyle([
     ('GRID', (0,0), (-1,-1), 1, colors.black),

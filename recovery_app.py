@@ -1,15 +1,3 @@
-import getpass
-import sys
-
-# Allowed username (lowercase, no spaces)
-allowed_user = "Khaleel"
-
-# Get current user, strip spaces and convert to lowercase
-current_user = getpass.getuser().strip().lower()
-
-# Check
-if current_user != allowed_user:
-    sys.exit("This app is not allowed for this user.")
 import matplotlib.pyplot as plt
 
 t = np.linspace(0, 20*np.pi, 2000)
@@ -1289,6 +1277,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

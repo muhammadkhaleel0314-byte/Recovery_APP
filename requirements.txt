@@ -7,3 +7,5 @@ plotly
 fpdf
 reportlab
 matplotlib
+pandas
+xlsxwriter

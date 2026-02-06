@@ -1034,35 +1034,32 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
-import streamlit as st
-import pandas as pd
-from io import BytesIO
+# -------------------
+# MDP Section (Bottom of the Portal)
+# -------------------
 
-st.title("Recovery Portal with MDP Feature")
+st.markdown("---")  # Divider
 
-st.subheader("📊 MDP Report Generator")
+st.subheader("📊 MDP Report (Bottom Section)")
 
-# --- Upload Section ---
+# --- File Upload (Bottom) ---
 col1, col2 = st.columns(2)
 with col1:
-    active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="active_upload")
+    active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="mdp_active_upload")
 with col2:
-    mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_upload")
+    mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_mdp_upload")
 
-st.markdown("---")
-st.write("### MDP Report Table & Download Options")
-
-# --- Placeholders ---
+# --- Placeholders for table & download buttons ---
 table_placeholder = st.empty()
 overall_download_placeholder = st.empty()
 area_dropdown_placeholder = st.empty()
 area_download_placeholder = st.empty()
 
-# --- Always show message if files not uploaded ---
+# --- Show info if files not uploaded ---
 if not active_file or not mdp_file:
     table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")
 
-# --- Generate report only if both files uploaded ---
+# --- Generate Report if both files uploaded ---
 if active_file and mdp_file:
     try:
         active_df = pd.read_csv(active_file) if active_file.name.endswith(".csv") else pd.read_excel(active_file)
@@ -1071,7 +1068,7 @@ if active_file and mdp_file:
         table_placeholder.error(f"Error reading files: {e}")
         st.stop()
 
-    # --- Generate Report ---
+    # --- Generate MDP Report ---
     report_data = []
     for idx, row in mdp_df.iterrows():
         area = row['area_id']
@@ -1088,7 +1085,7 @@ if active_file and mdp_file:
         report_data.append({
             'Area': area,
             'Branch': branch,
-            'Active': '',
+            'Active': '',  # Blank column
             'Due': due_count,
             'Amount': amount_sum,
             'G/BY': g_by_count,
@@ -1117,7 +1114,7 @@ if active_file and mdp_file:
         data=excel_data,
         file_name="MDP_Report_Overall.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key="overall_download"
+        key="mdp_overall_download"
     )
 
     # --- Area-wise Dropdown & Download ---
@@ -1125,7 +1122,7 @@ if active_file and mdp_file:
     areas.sort()
     areas.insert(0, "All Areas")
 
-    selected_area = area_dropdown_placeholder.selectbox("Select Area", areas, key="area_dropdown")
+    selected_area = area_dropdown_placeholder.selectbox("Select Area", areas, key="mdp_area_dropdown")
     df_to_download = report_df if selected_area == "All Areas" else report_df[report_df['Area'] == selected_area]
     excel_data_area = to_excel(df_to_download)
 
@@ -1134,5 +1131,5 @@ if active_file and mdp_file:
         data=excel_data_area,
         file_name=f"MDP_Report_{selected_area}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key="area_download"
+        key="mdp_area_download"
     )

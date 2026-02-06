@@ -187,7 +187,7 @@ if merge_file and branch_file:
     df_branch.columns = df_branch.columns.str.strip()
 
     # --- Check required columns ---
-    if 'Sanction No' not in df_merge.columns:
+    if 'sanctionno' not in df_merge.columns:
         st.error("Merge File must have column 'sanctionno'")
         st.stop()
     if 'branch code' not in df_branch.columns or 'branch_name' not in df_branch.columns or 'area_name' not in df_branch.columns:
@@ -1278,4 +1278,5 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 

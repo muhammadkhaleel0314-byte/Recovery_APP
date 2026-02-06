@@ -14,6 +14,25 @@ plt.scatter(x, y, c=colors, cmap='rainbow', s=1)
 plt.axis('off')
 plt.show()
 import streamlit as st
+# ------------------ Login ------------------
+USERNAME = "Khaleel"
+PASSWORD = "12345"  # apna strong password
+
+st.title("🔒 Recovery App Login")
+
+user_input = st.text_input("Username")
+pass_input = st.text_input("Password", type="password")
+
+if st.button("Login"):
+    if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
+        st.success("Login successful! App is loading...")
+        # ----------------- App main code call -----------------
+        # Yahan aapka poora recovery app ka code start hoga
+    else:
+        st.error("Invalid username or password!")
+        st.stop()  # Stop until correct login
+else:
+    st.stop()  # Stop execution until login button clicked
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
@@ -1278,6 +1297,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

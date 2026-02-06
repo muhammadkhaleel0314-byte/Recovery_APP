@@ -13,6 +13,9 @@ plt.scatter(x, y, c=colors, cmap='rainbow', s=1)
 
 plt.axis('off')
 plt.show()
+import pandas as pd
+import plotly.express as px
+from fpdf import FPDF
 import streamlit as st
 # ------------------ Login ------------------
 USERNAME = "Khaleel"
@@ -33,10 +36,6 @@ if st.button("Login"):
         st.stop()  # Stop until correct login
 else:
     st.stop()  # Stop execution until login button clicked
-import pandas as pd
-import plotly.express as px
-from fpdf import FPDF
-
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
 st.markdown("""
@@ -1297,6 +1296,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

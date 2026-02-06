@@ -43,7 +43,7 @@ with col1:
 with col2:
     mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_mdp_upload")
 
-# --- Placeholders for table & download buttons ---
+# --- Placeholders ---
 table_placeholder = st.empty()
 overall_download_placeholder = st.empty()
 area_dropdown_placeholder = st.empty()
@@ -67,7 +67,7 @@ if active_file and mdp_file:
     mdp_df.columns = mdp_df.columns.str.strip()
 
     # --- Check required columns ---
-    required_active = ['Branch', 'Due Amount', 'Sanction No']
+    required_active = ['branch_id', 'Due Amount', 'Sanction No']
     required_mdp = ['area_id', 'branch_id', 'sanction_no']
 
     for col in required_active:
@@ -79,47 +79,50 @@ if active_file and mdp_file:
             st.error(f"MDP Sheet missing column: {col}")
             st.stop()
 
-    # --- Generate MDP Report ---
-    report_data = []
-    for idx, row in mdp_df.iterrows():
-        area = row['area_id']
-        branch = row['branch_id']
+    # --- Pivot Table Generation ---
+    # Merge active_df & mdp_df on branch_id
+    merged = active_df.merge(mdp_df[['area_id','branch_id','sanction_no']], 
+                             on='branch_id', how='right', suffixes=('_active','_mdp'))
 
-        branch_active = active_df[active_df['Branch'] == branch]
-        due_count = len(branch_active)
-        amount_sum = branch_active['Due Amount'].sum() if 'Due Amount' in branch_active.columns else 0
-        g_by_count = branch_active[branch_active['Sanction No'].isin(mdp_df['sanction_no'])].shape[0]
-        n_a_count = due_count - g_by_count
-        p_b = round((g_by_count / due_count * 100), 2) if due_count != 0 else 0
-        n_p = round((n_a_count / due_count * 100), 2) if due_count != 0 else 0
+    # Calculate flags
+    merged['G_BY_flag'] = merged.apply(lambda x: 1 if pd.notna(x['Sanction No']) and x['Sanction No'] in mdp_df['sanction_no'].values else 0, axis=1)
+    merged['N_A_flag'] = 1 - merged['G_BY_flag']
 
-        report_data.append({
-            'Area': area,
-            'Branch': branch,
-            'Active': '',  # Blank column
-            'Due': due_count,
-            'Amount': amount_sum,
-            'G/BY': g_by_count,
-            'P/B %': p_b,
-            'N/A': n_a_count,
-            'N/P %': n_p
-        })
+    # Pivot Table
+    pivot_df = merged.pivot_table(
+        index=['area_id','branch_id'],
+        values=['Due Amount','G_BY_flag','N_A_flag'],
+        aggfunc={'Due Amount':'sum','G_BY_flag':'sum','N_A_flag':'sum'}
+    ).reset_index()
 
-    report_df = pd.DataFrame(report_data)
+    pivot_df.rename(columns={
+        'area_id':'Area',
+        'branch_id':'Branch',
+        'Due Amount':'Amount',
+        'G_BY_flag':'G/BY',
+        'N_A_flag':'N/A'
+    }, inplace=True)
+
+    pivot_df['Active'] = ''  # blank column
+    pivot_df['Due'] = merged.groupby(['area_id','branch_id']).size().values
+    pivot_df['P/B %'] = round(pivot_df['G/BY'] / pivot_df['Due'] * 100,2)
+    pivot_df['N/P %'] = round(pivot_df['N/A'] / pivot_df['Due'] * 100,2)
+
+    # Reorder columns
+    pivot_df = pivot_df[['Area','Branch','Active','Due','Amount','G/BY','P/B %','N/A','N/P %']]
 
     # --- Display Table ---
-    table_placeholder.dataframe(report_df)
+    table_placeholder.dataframe(pivot_df)
 
     # --- Excel Helper ---
     def to_excel(df):
         output = BytesIO()
-        writer = pd.ExcelWriter(output, engine='xlsxwriter')
-        df.to_excel(writer, index=False, sheet_name='MDP_Report')
-        writer.save()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='MDP_Report')
         return output.getvalue()
 
     # --- Overall Download ---
-    excel_data = to_excel(report_df)
+    excel_data = to_excel(pivot_df)
     overall_download_placeholder.download_button(
         label="📥 Download Overall Report",
         data=excel_data,
@@ -129,12 +132,12 @@ if active_file and mdp_file:
     )
 
     # --- Area-wise Dropdown & Download ---
-    areas = report_df['Area'].unique().tolist()
+    areas = pivot_df['Area'].unique().tolist()
     areas.sort()
-    areas.insert(0, "All Areas")
+    areas.insert(0,"All Areas")
 
     selected_area = area_dropdown_placeholder.selectbox("Select Area", areas, key="mdp_area_dropdown")
-    df_to_download = report_df if selected_area == "All Areas" else report_df[report_df['Area'] == selected_area]
+    df_to_download = pivot_df if selected_area=="All Areas" else pivot_df[pivot_df['Area']==selected_area]
     excel_data_area = to_excel(df_to_download)
 
     area_download_placeholder.download_button(
@@ -1152,3 +1155,4 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+

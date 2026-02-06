@@ -1,5 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+# ---------------- System restriction ----------------
+import platform
+import getpass
+import sys
+
+allowed_user = "Muhammad Khaleel"       # aapka laptop username
+allowed_machine = "MY-LAPTOP-NAME"     # aapka PC name (jo platform.node() return kare)
+
+if getpass.getuser() != allowed_user or platform.node() != allowed_machine:
+    sys.exit("This app is not allowed on this machine.")
 
 t = np.linspace(0, 20*np.pi, 2000)
 
@@ -1278,5 +1288,6 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 

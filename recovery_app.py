@@ -1,22 +1,13 @@
+import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
-
-t = np.linspace(0, 20*np.pi, 2000)
-
-x = np.sin(t) * np.cos(t/2)
-y = np.cos(t)
-
-colors = t
-
-plt.figure(figsize=(6,6))
-plt.scatter(x, y, c=colors, cmap='rainbow', s=1)
-
-plt.axis('off')
-plt.show()
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
-import streamlit as st
+
+# ----------------- Page config MUST be first -----------------
+st.set_page_config(page_title="Recovery Portal", layout="wide")
+
 # ------------------ Login ------------------
 USERNAME = "Khaleel"
 PASSWORD = "12345"  # apna strong password
@@ -33,11 +24,9 @@ if st.button("Login"):
         # Yahan aapka poora recovery app ka code start hoga
     else:
         st.error("Invalid username or password!")
-        st.stop()  # Stop until correct login
+        st.stop()
 else:
     st.stop()  # Stop execution until login button clicked
-st.set_page_config(page_title="Recovery Portal", layout="wide")
-
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1296,6 +1285,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

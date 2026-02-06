@@ -26,7 +26,7 @@ st.markdown("""
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 # -------------------
-# Corrected MDP Section
+# MDP Section with G/P and Grand Total
 # -------------------
 
 import streamlit as st
@@ -78,16 +78,15 @@ if active_file and mdp_file:
     # --- Pivot Calculation ---
     report_data = []
 
-    # Unique combinations of area and branch from MDP
     for (area, branch), group in mdp_df.groupby(['area_id','branch_id']):
         due_count = len(active_df[active_df['branch_id']==branch])
-        amount_sum = group['Due Amount'].sum()  # sum from MDP sheet
-        # Count of Active borrowers whose sanction no exists in MDP
+        amount_sum = group['Due Amount'].sum()
         active_sanctions = active_df[active_df['branch_id']==branch]['Sanction No'].tolist()
         g_by_count = sum([1 for x in active_sanctions if x in group['sanction_no'].values])
         n_a_count = due_count - g_by_count
         p_b = round((g_by_count/due_count)*100,2) if due_count!=0 else 0
         n_p = round((n_a_count/due_count)*100,2) if due_count!=0 else 0
+        g_p = p_b  # G/P = same as % of counted borrowers
 
         report_data.append({
             'Area': area,
@@ -96,12 +95,29 @@ if active_file and mdp_file:
             'Due': due_count,
             'Amount': amount_sum,
             'G/BY': g_by_count,
+            'G/P %': g_p,
             'P/B %': p_b,
             'N/A': n_a_count,
             'N/P %': n_p
         })
 
     report_df = pd.DataFrame(report_data)
+
+    # --- Add Grand Total Row ---
+    grand_total = {
+        'Area': 'Grand Total',
+        'Branch': '',
+        'Active': '',
+        'Due': report_df['Due'].sum(),
+        'Amount': report_df['Amount'].sum(),
+        'G/BY': report_df['G/BY'].sum(),
+        'G/P %': round((report_df['G/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
+        'P/B %': round((report_df['G/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
+        'N/A': report_df['N/A'].sum(),
+        'N/P %': round((report_df['N/A'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0
+    }
+
+    report_df = pd.concat([report_df, pd.DataFrame([grand_total])], ignore_index=True)
 
     # --- Display Table ---
     table_placeholder.dataframe(report_df)
@@ -125,6 +141,7 @@ if active_file and mdp_file:
 
     # --- Area-wise Dropdown & Download ---
     areas = report_df['Area'].unique().tolist()
+    areas = [x for x in areas if x!='Grand Total']
     areas.sort()
     areas.insert(0,"All Areas")
 
@@ -1147,5 +1164,6 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 

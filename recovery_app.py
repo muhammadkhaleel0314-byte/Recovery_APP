@@ -2,7 +2,7 @@ import getpass
 import sys
 
 # Allowed username (lowercase, no spaces)
-allowed_user = "khaleel"
+allowed_user = "Khaleel"
 
 # Get current user, strip spaces and convert to lowercase
 current_user = getpass.getuser().strip().lower()
@@ -1289,6 +1289,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

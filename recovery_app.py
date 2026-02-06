@@ -26,7 +26,7 @@ st.markdown("""
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 # -------------------
-# MDP Section (Bottom of the Portal)
+# Corrected MDP Section
 # -------------------
 
 import streamlit as st
@@ -36,7 +36,7 @@ from io import BytesIO
 st.markdown("---")
 st.subheader("📊 MDP Report (Bottom Section)")
 
-# --- File Upload (Bottom) ---
+# --- File Upload ---
 col1, col2 = st.columns(2)
 with col1:
     active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="mdp_active_upload")
@@ -53,7 +53,6 @@ area_download_placeholder = st.empty()
 if not active_file or not mdp_file:
     table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")
 
-# --- Generate Report if both files uploaded ---
 if active_file and mdp_file:
     try:
         active_df = pd.read_csv(active_file) if active_file.name.endswith(".csv") else pd.read_excel(active_file)
@@ -62,57 +61,50 @@ if active_file and mdp_file:
         table_placeholder.error(f"Error reading files: {e}")
         st.stop()
 
-    # --- Clean column names ---
+    # --- Clean columns ---
     active_df.columns = active_df.columns.str.strip()
     mdp_df.columns = mdp_df.columns.str.strip()
 
     # --- Check required columns ---
-    required_active = ['branch_id', 'Due Amount', 'Sanction No']
-    required_mdp = ['area_id', 'branch_id', 'sanction_no']
-
-    for col in required_active:
-        if col not in active_df.columns:
+    for col in ['branch_id','Due Amount','Sanction No']:
+        if col not in active_df.columns and col != 'Due Amount':
             st.error(f"Active Sheet missing column: {col}")
             st.stop()
-    for col in required_mdp:
+    for col in ['area_id','branch_id','sanction_no','Due Amount']:
         if col not in mdp_df.columns:
             st.error(f"MDP Sheet missing column: {col}")
             st.stop()
 
-    # --- Pivot Table Generation ---
-    # Merge active_df & mdp_df on branch_id
-    merged = active_df.merge(mdp_df[['area_id','branch_id','sanction_no']], 
-                             on='branch_id', how='right', suffixes=('_active','_mdp'))
+    # --- Pivot Calculation ---
+    report_data = []
 
-    # Calculate flags
-    merged['G_BY_flag'] = merged.apply(lambda x: 1 if pd.notna(x['Sanction No']) and x['Sanction No'] in mdp_df['sanction_no'].values else 0, axis=1)
-    merged['N_A_flag'] = 1 - merged['G_BY_flag']
+    # Unique combinations of area and branch from MDP
+    for (area, branch), group in mdp_df.groupby(['area_id','branch_id']):
+        due_count = len(active_df[active_df['branch_id']==branch])
+        amount_sum = group['Due Amount'].sum()  # sum from MDP sheet
+        # Count of Active borrowers whose sanction no exists in MDP
+        active_sanctions = active_df[active_df['branch_id']==branch]['Sanction No'].tolist()
+        g_by_count = sum([1 for x in active_sanctions if x in group['sanction_no'].values])
+        n_a_count = due_count - g_by_count
+        p_b = round((g_by_count/due_count)*100,2) if due_count!=0 else 0
+        n_p = round((n_a_count/due_count)*100,2) if due_count!=0 else 0
 
-    # Pivot Table
-    pivot_df = merged.pivot_table(
-        index=['area_id','branch_id'],
-        values=['Due Amount','G_BY_flag','N_A_flag'],
-        aggfunc={'Due Amount':'sum','G_BY_flag':'sum','N_A_flag':'sum'}
-    ).reset_index()
+        report_data.append({
+            'Area': area,
+            'Branch': branch,
+            'Active': '',
+            'Due': due_count,
+            'Amount': amount_sum,
+            'G/BY': g_by_count,
+            'P/B %': p_b,
+            'N/A': n_a_count,
+            'N/P %': n_p
+        })
 
-    pivot_df.rename(columns={
-        'area_id':'Area',
-        'branch_id':'Branch',
-        'Due Amount':'Amount',
-        'G_BY_flag':'G/BY',
-        'N_A_flag':'N/A'
-    }, inplace=True)
-
-    pivot_df['Active'] = ''  # blank column
-    pivot_df['Due'] = merged.groupby(['area_id','branch_id']).size().values
-    pivot_df['P/B %'] = round(pivot_df['G/BY'] / pivot_df['Due'] * 100,2)
-    pivot_df['N/P %'] = round(pivot_df['N/A'] / pivot_df['Due'] * 100,2)
-
-    # Reorder columns
-    pivot_df = pivot_df[['Area','Branch','Active','Due','Amount','G/BY','P/B %','N/A','N/P %']]
+    report_df = pd.DataFrame(report_data)
 
     # --- Display Table ---
-    table_placeholder.dataframe(pivot_df)
+    table_placeholder.dataframe(report_df)
 
     # --- Excel Helper ---
     def to_excel(df):
@@ -122,7 +114,7 @@ if active_file and mdp_file:
         return output.getvalue()
 
     # --- Overall Download ---
-    excel_data = to_excel(pivot_df)
+    excel_data = to_excel(report_df)
     overall_download_placeholder.download_button(
         label="📥 Download Overall Report",
         data=excel_data,
@@ -132,12 +124,12 @@ if active_file and mdp_file:
     )
 
     # --- Area-wise Dropdown & Download ---
-    areas = pivot_df['Area'].unique().tolist()
+    areas = report_df['Area'].unique().tolist()
     areas.sort()
     areas.insert(0,"All Areas")
 
     selected_area = area_dropdown_placeholder.selectbox("Select Area", areas, key="mdp_area_dropdown")
-    df_to_download = pivot_df if selected_area=="All Areas" else pivot_df[pivot_df['Area']==selected_area]
+    df_to_download = report_df if selected_area=="All Areas" else report_df[report_df['Area']==selected_area]
     excel_data_area = to_excel(df_to_download)
 
     area_download_placeholder.download_button(
@@ -1155,4 +1147,5 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 

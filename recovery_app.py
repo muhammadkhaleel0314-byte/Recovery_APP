@@ -1034,6 +1034,116 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+import streamlit as st
+import pandas as pd
+from io import BytesIO
+
+st.set_page_config(page_title="MDP Report", layout="wide")
+
+st.title("📊 MDP Report Generator")
+
+# --- Upload Sheets ---
+active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"])
+mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"])
+
+if active_file and mdp_file:
+    # --- Read Files ---
+    try:
+        if active_file.name.endswith(".csv"):
+            active_df = pd.read_csv(active_file)
+        else:
+            active_df = pd.read_excel(active_file)
+            
+        if mdp_file.name.endswith(".csv"):
+            mdp_df = pd.read_csv(mdp_file)
+        else:
+            mdp_df = pd.read_excel(mdp_file)
+    except Exception as e:
+        st.error(f"Error reading files: {e}")
+        st.stop()
+
+    # --- Preprocess ---
+    # Assuming columns:
+    # Active Sheet: 'Branch', 'Sanction No', 'Due Amount'
+    # MDP Sheet: 'area_id','branch_id','sanction_no'
+    
+    # Unique Areas from MDP sheet
+    areas = mdp_df['area_id'].unique().tolist()
+    areas.sort()
+    areas.insert(0, "All Areas")  # Add option to download all
+
+    # --- Generate MDP Report ---
+    report_data = []
+
+    for idx, row in mdp_df.iterrows():
+        area = row['area_id']
+        branch = row['branch_id']
+        
+        # Filter Active sheet for this branch
+        branch_active = active_df[active_df['Branch'] == branch]
+        
+        due_count = len(branch_active)
+        amount_sum = branch_active['Due Amount'].sum() if 'Due Amount' in branch_active.columns else 0
+        
+        # G/BY → Sanction No matching MDP
+        g_by_count = branch_active[branch_active['Sanction No'].isin(mdp_df['sanction_no'])].shape[0]
+        n_a_count = due_count - g_by_count
+        
+        p_b = round((g_by_count / due_count * 100), 2) if due_count !=0 else 0
+        n_p = round((n_a_count / due_count * 100), 2) if due_count !=0 else 0
+        
+        report_data.append({
+            'Area': area,
+            'Branch': branch,
+            'Active': '',  # Blank column
+            'Due': due_count,
+            'Amount': amount_sum,
+            'G/BY': g_by_count,
+            'P/B %': p_b,
+            'N/A': n_a_count,
+            'N/P %': n_p
+        })
+
+    report_df = pd.DataFrame(report_data)
+
+    st.subheader("MDP Report Table")
+    st.dataframe(report_df)
+
+    # --- Download Functions ---
+    def to_excel(df):
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        df.to_excel(writer, index=False, sheet_name='MDP_Report')
+        writer.save()
+        processed_data = output.getvalue()
+        return processed_data
+
+    # Overall Download
+    excel_data = to_excel(report_df)
+    st.download_button(
+        label="📥 Download Overall Report",
+        data=excel_data,
+        file_name="MDP_Report_Overall.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    # Area-wise Download Dropdown
+    st.subheader("Download by Area")
+    selected_area = st.selectbox("Select Area", areas)
+
+    if st.button("📥 Download Selected Area"):
+        if selected_area == "All Areas":
+            df_to_download = report_df
+        else:
+            df_to_download = report_df[report_df['Area'] == selected_area]
+        
+        excel_data_area = to_excel(df_to_download)
+        st.download_button(
+            label=f"Download {selected_area} Report",
+            data=excel_data_area,
+            file_name=f"MDP_Report_{selected_area}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 
 
 

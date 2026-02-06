@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 t = np.linspace(0, 20*np.pi, 2000)
 
 x = np.sin(t) * np.cos(t/2)
@@ -1276,6 +1278,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

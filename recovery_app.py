@@ -156,7 +156,7 @@ if active_file and mdp_file:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         key="mdp_area_download"
     )
-    import streamlit as st
+import streamlit as st
 import pandas as pd
 from io import BytesIO
 
@@ -194,23 +194,24 @@ if merge_file and branch_file:
         st.error("Branch File must have columns 'branch code', 'branch_name', 'area_name'")
         st.stop()
 
-    # --- Extract first 4 digits of Sanction No ---
+    # --- Ensure columns are string for merge ---
     df_merge['Sanction_Prefix'] = df_merge['Sanction No'].astype(str).str[:4]
+    df_branch['branch code'] = df_branch['branch code'].astype(str)
 
     # --- Merge logic ---
-    merged_df = df_merge.merge(
+    merged_df = pd.merge(
+        df_merge,
         df_branch.rename(columns={'branch code':'Sanction_Prefix'}),
         on='Sanction_Prefix',
         how='left'
     )
 
-    # --- Add Branch Name and Area Name 2 columns after first 2 columns ---
-    cols = merged_df.columns.tolist()
-    # Insert Branch Name & Area Name after 2nd column
-    branch_col = merged_df.pop('branch_name')
-    area_col = merged_df.pop('area_name')
-    merged_df.insert(2, 'Branch Name', branch_col)
-    merged_df.insert(3, 'Area Name', area_col)
+    # --- Add Branch Name & Area Name as 3rd and 4th column ---
+    if 'branch_name' in merged_df.columns and 'area_name' in merged_df.columns:
+        branch_col = merged_df.pop('branch_name')
+        area_col = merged_df.pop('area_name')
+        merged_df.insert(2, 'Branch Name', branch_col)
+        merged_df.insert(3, 'Area Name', area_col)
 
     # --- Display table ---
     merge_table_placeholder.dataframe(merged_df)
@@ -1322,6 +1323,7 @@ if merge_file and branch_file:
 
 else:
     merge_table_placeholder.info("Upload both Merge File and Branch File to generate merged report.")
+
 
 
 

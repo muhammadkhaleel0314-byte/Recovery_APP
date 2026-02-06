@@ -1153,6 +1153,11 @@ st.write(list(df.columns))
 date_col = st.selectbox("Select Date Column", df.columns)
 branch_col = st.selectbox("Select Branch Column", df.columns)
 
+# Optional Area column
+area_col = None
+if 'Area' in df.columns:
+    area_col = 'Area'
+
 # ---------------- Convert Date ----------------
 df[date_col] = pd.to_datetime(
     df[date_col].astype(str).str.strip(),
@@ -1202,6 +1207,27 @@ pivot.rename(columns={
 
 result_df = pivot.reset_index()
 
+# ---------------- Add Area column next to Branch ----------------
+if area_col:
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    # Move Area column after Branch column
+    cols = result_df.columns.tolist()
+    cols.insert(cols.index(branch_col)+1, cols.pop(cols.index(area_col)))
+    result_df = result_df[cols]
+
+# ---------------- Grand Total Row ----------------
+grand_total = result_df.copy()
+numeric_cols = result_df.select_dtypes(include='number').columns
+grand_values = {col: grand_total[col].sum() for col in numeric_cols}
+for col in result_df.columns:
+    if col not in numeric_cols:
+        if col == branch_col:
+            grand_values[col] = "Grand Total"
+        else:
+            grand_values[col] = ""
+result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
+
 # ---------------- Show Table ----------------
 st.subheader("Branch Wise Recovery Summary")
 st.dataframe(result_df)
@@ -1244,87 +1270,3 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
-import streamlit as st
-import pandas as pd
-from io import BytesIO
-
-st.markdown("---")
-st.subheader("📁 Merge Sanction & Branch File")
-
-# --- File Upload ---
-col1, col2 = st.columns(2)
-with col1:
-    merge_file = st.file_uploader("Upload Merge File (Sanction No)", type=["xlsx","xls","csv"], key="merge_file")
-with col2:
-    branch_file = st.file_uploader("Upload Branch File (Branch Code)", type=["xlsx","xls","csv"], key="branch_file")
-
-# --- Placeholders ---
-merge_table_placeholder = st.empty()
-merge_download_placeholder = st.empty()
-
-if merge_file and branch_file:
-    try:
-        df_merge = pd.read_csv(merge_file) if merge_file.name.endswith(".csv") else pd.read_excel(merge_file)
-        df_branch = pd.read_csv(branch_file) if branch_file.name.endswith(".csv") else pd.read_excel(branch_file)
-    except Exception as e:
-        merge_table_placeholder.error(f"Error reading files: {e}")
-        st.stop()
-
-    # --- Clean column names ---
-    df_merge.columns = df_merge.columns.str.strip()
-    df_branch.columns = df_branch.columns.str.strip()
-
-    # --- Check required columns ---
-    if 'Sanction No' not in df_merge.columns:
-        st.error("Merge File must have column 'Sanction No'")
-        st.stop()
-    if 'branch code' not in df_branch.columns or 'branch_name' not in df_branch.columns or 'area_name' not in df_branch.columns:
-        st.error("Branch File must have columns 'branch code', 'branch_name', 'area_name'")
-        st.stop()
-
-    # --- Extract first 4 digits of Sanction No ---
-    df_merge['Sanction_Prefix'] = df_merge['Sanction No'].astype(str).str[:4]
-
-    # --- Merge logic ---
-    merged_df = df_merge.merge(
-        df_branch.rename(columns={'branch code':'Sanction_Prefix'}),
-        on='Sanction_Prefix',
-        how='left'
-    )
-
-    # --- Add Branch Name and Area Name 2 columns after first 2 columns ---
-    cols = merged_df.columns.tolist()
-    # Insert Branch Name & Area Name after 2nd column
-    branch_col = merged_df.pop('branch_name')
-    area_col = merged_df.pop('area_name')
-    merged_df.insert(2, 'Branch Name', branch_col)
-    merged_df.insert(3, 'Area Name', area_col)
-
-    # --- Display table ---
-    merge_table_placeholder.dataframe(merged_df)
-
-    # --- Download helper ---
-    def to_excel(df):
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Merged_Report')
-        return output.getvalue()
-
-    excel_data = to_excel(merged_df)
-
-    # --- Download button ---
-    merge_download_placeholder.download_button(
-        label="📥 Download Merged File",
-        data=excel_data,
-        file_name="Merged_Report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        key="merge_download"
-    )
-
-else:
-    merge_table_placeholder.info("Upload both Merge File and Branch File to generate merged report.")
-
-
-
-
-

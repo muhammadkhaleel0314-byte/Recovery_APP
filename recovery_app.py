@@ -1,3 +1,12 @@
+import platform
+import getpass
+import sys
+
+allowed_user = "Khaleel"
+allowed_machine = "Khaleel"
+
+if getpass.getuser() != allowed_user or platform.node() != allowed_machine:
+    sys.exit("This app is not allowed on this machine.")
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -1278,6 +1287,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

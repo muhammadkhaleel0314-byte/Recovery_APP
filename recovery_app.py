@@ -188,14 +188,14 @@ if merge_file and branch_file:
 
     # --- Check required columns ---
     if 'Sanction No' not in df_merge.columns:
-        st.error("Merge File must have column 'Sanction No'")
+        st.error("Merge File must have column 'sanctionno'")
         st.stop()
     if 'branch code' not in df_branch.columns or 'branch_name' not in df_branch.columns or 'area_name' not in df_branch.columns:
         st.error("Branch File must have columns 'branch code', 'branch_name', 'area_name'")
         st.stop()
 
     # --- Ensure columns are string for merge ---
-    df_merge['Sanction_Prefix'] = df_merge['Sanction No'].astype(str).str[:4]
+    df_merge['Sanction_Prefix'] = df_merge['sanctionno'].astype(str).str[:4]
     df_branch['branch code'] = df_branch['branch code'].astype(str)
 
     # --- Merge logic ---
@@ -1278,3 +1278,4 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+

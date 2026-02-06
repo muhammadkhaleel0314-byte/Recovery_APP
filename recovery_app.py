@@ -1058,6 +1058,11 @@ overall_download_placeholder = st.empty()
 area_dropdown_placeholder = st.empty()
 area_download_placeholder = st.empty()
 
+# --- Always show message if files not uploaded ---
+if not active_file or not mdp_file:
+    table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")
+
+# --- Generate report only if both files uploaded ---
 if active_file and mdp_file:
     try:
         active_df = pd.read_csv(active_file) if active_file.name.endswith(".csv") else pd.read_excel(active_file)
@@ -1066,7 +1071,7 @@ if active_file and mdp_file:
         table_placeholder.error(f"Error reading files: {e}")
         st.stop()
 
-    # --- Generate MDP Report ---
+    # --- Generate Report ---
     report_data = []
     for idx, row in mdp_df.iterrows():
         area = row['area_id']
@@ -1131,6 +1136,3 @@ if active_file and mdp_file:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         key="area_download"
     )
-
-else:
-    table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")

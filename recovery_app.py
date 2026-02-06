@@ -1,8 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-if getpass.getuser() != allowed_user or platform.node() != allowed_machine:
-    sys.exit("This app is not allowed on this machine.")
-
 t = np.linspace(0, 20*np.pi, 2000)
 
 x = np.sin(t) * np.cos(t/2)
@@ -1280,6 +1276,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -36,8 +36,6 @@ if not st.session_state.logged_in:
 
 # ================= AFTER LOGIN =================
 st.success("Login successful! App is loading...")
-
-# 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1296,6 +1294,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

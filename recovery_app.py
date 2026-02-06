@@ -25,7 +25,105 @@ st.markdown("""
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
+# -------------------
+# MDP Section (Bottom of the Portal)
+# -------------------
 
+st.markdown("---")  # Divider
+
+st.subheader("📊 MDP Report (Bottom Section)")
+
+# --- File Upload (Bottom) ---
+col1, col2 = st.columns(2)
+with col1:
+    active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="mdp_active_upload")
+with col2:
+    mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_mdp_upload")
+
+# --- Placeholders for table & download buttons ---
+table_placeholder = st.empty()
+overall_download_placeholder = st.empty()
+area_dropdown_placeholder = st.empty()
+area_download_placeholder = st.empty()
+
+# --- Show info if files not uploaded ---
+if not active_file or not mdp_file:
+    table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")
+
+# --- Generate Report if both files uploaded ---
+if active_file and mdp_file:
+    try:
+        active_df = pd.read_csv(active_file) if active_file.name.endswith(".csv") else pd.read_excel(active_file)
+        mdp_df = pd.read_csv(mdp_file) if mdp_file.name.endswith(".csv") else pd.read_excel(mdp_file)
+    except Exception as e:
+        table_placeholder.error(f"Error reading files: {e}")
+        st.stop()
+
+    # --- Generate MDP Report ---
+    report_data = []
+    for idx, row in mdp_df.iterrows():
+        area = row['area_id']
+        branch = row['branch_id']
+
+        branch_active = active_df[active_df['Branch'] == branch]
+        due_count = len(branch_active)
+        amount_sum = branch_active['Due Amount'].sum() if 'Due Amount' in branch_active.columns else 0
+        g_by_count = branch_active[branch_active['Sanction No'].isin(mdp_df['sanction_no'])].shape[0]
+        n_a_count = due_count - g_by_count
+        p_b = round((g_by_count / due_count * 100), 2) if due_count != 0 else 0
+        n_p = round((n_a_count / due_count * 100), 2) if due_count != 0 else 0
+
+        report_data.append({
+            'Area': area,
+            'Branch': branch,
+            'Active': '',  # Blank column
+            'Due': due_count,
+            'Amount': amount_sum,
+            'G/BY': g_by_count,
+            'P/B %': p_b,
+            'N/A': n_a_count,
+            'N/P %': n_p
+        })
+
+    report_df = pd.DataFrame(report_data)
+
+    # --- Display Table ---
+    table_placeholder.dataframe(report_df)
+
+    # --- Excel Helper ---
+    def to_excel(df):
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        df.to_excel(writer, index=False, sheet_name='MDP_Report')
+        writer.save()
+        return output.getvalue()
+
+    # --- Overall Download ---
+    excel_data = to_excel(report_df)
+    overall_download_placeholder.download_button(
+        label="📥 Download Overall Report",
+        data=excel_data,
+        file_name="MDP_Report_Overall.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key="mdp_overall_download"
+    )
+
+    # --- Area-wise Dropdown & Download ---
+    areas = report_df['Area'].unique().tolist()
+    areas.sort()
+    areas.insert(0, "All Areas")
+
+    selected_area = area_dropdown_placeholder.selectbox("Select Area", areas, key="mdp_area_dropdown")
+    df_to_download = report_df if selected_area == "All Areas" else report_df[report_df['Area'] == selected_area]
+    excel_data_area = to_excel(df_to_download)
+
+    area_download_placeholder.download_button(
+        label=f"📥 Download {selected_area} Report",
+        data=excel_data_area,
+        file_name=f"MDP_Report_{selected_area}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        key="mdp_area_download"
+    )
 # Upload Recovery File
 uploaded_file = st.file_uploader("📁 Upload Recovery File (Excel)", type=["xlsx"])
 
@@ -1133,3 +1231,4 @@ if active_file and mdp_file:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         key="mdp_area_download"
     )
+

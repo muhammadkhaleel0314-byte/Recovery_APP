@@ -5,39 +5,28 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-import streamlit as st
-
-# ----------------- Page config -----------------
+# ----------------- Page config MUST be first -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ----------------- Session state -----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
+# ------------------ Login ------------------
 USERNAME = "Khaleel"
-PASSWORD = "12345"
+PASSWORD = "12345"  # apna strong password
 
-# ----------------- Login Screen -----------------
-if not st.session_state.logged_in:
+st.title("🔒 Recovery App Login")
 
-    st.title("🔒 Recovery App Login")
+user_input = st.text_input("Username")
+pass_input = st.text_input("Password", type="password")
 
-    user_input = st.text_input("Username")
-    pass_input = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
-            st.session_state.logged_in = True
-            st.success("Login successful ✅")
-        else:
-            st.error("Invalid username or password!")
-
-    st.stop()   # ❌ Stop execution until login is correct
-
-# ----------------- After Login -----------------
-st.success("Login successful! App is loading...")
-
-# 👇 Yahan se tumhara purana recovery app code paste karo
+if st.button("Login"):
+    if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
+        st.success("Login successful! App is loading...")
+        # ----------------- App main code call -----------------
+        # Yahan aapka poora recovery app ka code start hoga
+    else:
+        st.error("Invalid username or password!")
+        st.stop()
+else:
+    st.stop()  # Stop execution until login button clicked
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1296,6 +1285,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -8,55 +8,68 @@ from fpdf import FPDF
 
 import streamlit as st
 
-st.set_page_config(page_title="Login", layout="centered")
+# ----------------- Page config (MUST be first) -----------------
+st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# -------- SESSION --------
+# ----------------- Credentials -----------------
+USERNAME = "Khaleel"
+PASSWORD = "12345"
+
+# ----------------- Session -----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# -------- CSS --------
-st.markdown("""
-<style>
-.login-card {
-    width: 360px;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0px 6px 25px rgba(0,0,0,0.35);
-    margin: auto;
-    margin-top: 120px;
-}
-.login-title {
-    text-align: center;
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 25px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# -------- LOGIN PAGE --------
+# ----------------- LOGIN SCREEN -----------------
 if not st.session_state.logged_in:
 
-    st.markdown("<div class='login-card'>", unsafe_allow_html=True)
-    st.markdown("<div class='login-title'>Welcome Back</div>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <style>
+        .login-box {
+            max-width: 360px;
+            margin: auto;
+            margin-top: 140px;
+            padding: 30px 28px;
+            border-radius: 14px;
+            background-color: #ffffff;
+            box-shadow: 0px 6px 28px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .login-box input {
+            width: 100% !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
 
-    if st.button("Login"):
-        if username == "admin" and password == "1234":
+    st.markdown("### 👋 Welcome Back")
+    st.markdown(
+        "<p style='color:#6c757d; margin-bottom:20px;'>Sign in to continue</p>",
+        unsafe_allow_html=True
+    )
+
+    user_input = st.text_input("Username", placeholder="Enter username")
+    pass_input = st.text_input("Password", type="password", placeholder="Enter password")
+
+    if st.button("Login", use_container_width=True):
+        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
             st.session_state.logged_in = True
-            st.success("Login Successful")
+            st.success("Login successful")
+            st.rerun()
         else:
-            st.error("Invalid Username or Password")
+            st.error("Invalid username or password")
 
     st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
 
-# -------- MAIN APP --------
-else:
-    st.title("Recovery Dashboard")
-    st.write("✅ Login ke baad ka main app yahan ayega")
+# ----------------- AFTER LOGIN -----------------
+st.success("Welcome Khaleel 👋")
+
+# 👇 MAIN RECOVERY APP STARTS HERE
+st.write("Recovery dashboard loaded...")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1315,6 +1328,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

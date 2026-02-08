@@ -1026,15 +1026,6 @@ st.title("Loan Disbursement PDF Generator (Branchwise)")
 
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
-# ---------------------- Safe Functions ----------------------
-def safe(val):
-    try:
-        if pd.isna(val):
-            return ""
-        return str(val)
-    except:
-        return ""
-
 # ---------------------- PDF Class ----------------------
 class PDF(FPDF):
     def header(self):
@@ -1089,8 +1080,8 @@ if uploaded_file:
 
         # ---------------------- TABLE HEADER ----------------------
         headers = [
-            "Date Disburse", "Sanction No", "Tranch", "Cheque No",
-            "Loan Amount", "Group No", "Member Name", "CNIC"
+            "date_disbursed", "sanction_no", "tranch_no", "cheque_no",
+            "loan_amount", "group_no", "member_name", "member_cnic"
         ]
         col_widths = [30, 35, 15, 40, 30, 30, 55, 45]
 
@@ -1114,7 +1105,7 @@ if uploaded_file:
             pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
             pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
             pdf.ln()
-           
+            fill = not fill
         # Export PDF
         pdf_bytes = pdf.output(dest="S").encode("latin-1")
         st.download_button(
@@ -1298,6 +1289,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

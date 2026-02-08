@@ -5,39 +5,52 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-# ----------------- Page config MUST be first -----------------
+# ----------------- Page config -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ---------------- Session state init ----------------
+# ----------------- Session state -----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ------------------ Login ------------------
 USERNAME = "Khaleel"
 PASSWORD = "12345"
 
-# --------- Show login ONLY if not logged in ----------
+# ----------------- Login Screen -----------------
 if not st.session_state.logged_in:
 
-    st.title("🔒 Recovery App Login")
+    st.markdown(
+        """
+        <div style="
+            max-width: 350px;
+            margin: auto;
+            margin-top: 120px;
+            padding: 30px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+        ">
+            <h2>Welcome Back</h2>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     user_input = st.text_input("Username")
     pass_input = st.text_input("Password", type="password")
 
-    if st.button("Login"):
+    if st.button("Sign In"):
         if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
             st.session_state.logged_in = True
-            st.rerun()   # refresh so login hides
         else:
-            st.error("Invalid username or password!")
-            st.stop()
+            st.error("Invalid username or password")
 
-    st.stop()   # app yahin ruk jay jab tak login na ho
+    st.stop()   # Stop execution until login successful
 
-# ================= AFTER LOGIN =================
+# ----------------- After Login -----------------
 st.success("Login successful! App is loading...")
 
-# 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
+# 👇 Yahan tumhara recovery app code paste karo
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1296,6 +1309,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

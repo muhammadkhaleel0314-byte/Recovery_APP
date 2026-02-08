@@ -1104,7 +1104,6 @@ if uploaded_file:
             pdf.cell(col_widths[5], 7, str(row["group_no"]), border=1, fill=True)
             pdf.cell(col_widths[6], 7,str(row["member_name"]), border=1, fill=True)
             pdf.cell(col_widths[7], 7, str(row["member_cnic"]), border=1, fill=True)
-            pdf.ln()
             fill = not fill
         # Export PDF
         pdf_bytes = pdf.output(dest="S").encode("latin-1")
@@ -1289,6 +1288,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

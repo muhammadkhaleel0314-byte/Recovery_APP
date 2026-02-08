@@ -30,7 +30,8 @@ if not st.session_state.logged_in:
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             text-align: center;
         ">
-            <h2>Welcome Back</h2>
+        <h2 style='color:
+            black;'>Welcome Back</h2>
         </div>
         """,
         unsafe_allow_html=True
@@ -1309,6 +1310,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

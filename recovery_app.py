@@ -5,56 +5,55 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-import streamlit as st
-
-# ----------------- Page config (MUST be first) -----------------
+# ---------------- Page Config ----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ----------------- Credentials -----------------
+# ---------------- Credentials ----------------
 USERNAME = "Khaleel"
 PASSWORD = "12345"
 
-# ----------------- Session -----------------
+# ---------------- Session ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ----------------- LOGIN SCREEN -----------------
+# ---------------- Login Screen ----------------
 if not st.session_state.logged_in:
 
-    st.markdown(
-        """
-        <style>
-        .login-box {
-            max-width: 360px;
-            margin: auto;
-            margin-top: 140px;
-            padding: 30px 28px;
-            border-radius: 14px;
-            background-color: #ffffff;
-            box-shadow: 0px 6px 28px rgba(0,0,0,0.15);
-            text-align: center;
-        }
-        .login-box input {
-            width: 100% !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <style>
+    .login-card {
+        width: 360px;
+        margin: 120px auto;
+        padding: 35px 30px;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+    st.markdown("<div class='login-card'>", unsafe_allow_html=True)
 
-    st.markdown("### 👋 Welcome Back")
-    st.markdown(
-        "<p style='color:#6c757d; margin-bottom:20px;'>Sign in to continue</p>",
-        unsafe_allow_html=True
-    )
+    # 🔹 TITLE INSIDE WHITE BOX
+    st.markdown("<div class='title'>Welcome Back</div>", unsafe_allow_html=True)
 
-    user_input = st.text_input("Username", placeholder="Enter username")
-    pass_input = st.text_input("Password", type="password", placeholder="Enter password")
+    username = st.text_input("Enter Username")
+    password = st.text_input("Enter Password", type="password")
+
+    col1, col2 = st.columns([1,1])
+    with col1:
+        remember = st.checkbox("Remember Me")
+    with col2:
+        st.markdown("<div style='text-align:right; margin-top:28px;'>Reset Password</div>", unsafe_allow_html=True)
 
     if st.button("Login", use_container_width=True):
-        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
+        if username.strip().lower() == USERNAME.lower() and password == PASSWORD:
             st.session_state.logged_in = True
             st.success("Login successful")
             st.rerun()
@@ -64,11 +63,11 @@ if not st.session_state.logged_in:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# ----------------- AFTER LOGIN -----------------
+# ---------------- After Login ----------------
 st.success("Welcome Khaleel 👋")
 
-# 👇 MAIN RECOVERY APP STARTS HERE
-st.write("Recovery dashboard loaded...")
+# ⬇️ Yahan se aapka actual recovery app start hoga
+st.write("Recovery Dashboard Loaded...")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1327,6 +1326,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

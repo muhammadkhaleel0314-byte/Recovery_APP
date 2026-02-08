@@ -5,18 +5,19 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-# ----------------- Page config MUST be first -----------------
+import streamlit as st
+
+# ----------------- Page config -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ---------------- Session state init ----------------
+# ----------------- Session state -----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ------------------ Login ------------------
 USERNAME = "Khaleel"
 PASSWORD = "12345"
 
-# --------- Show login ONLY if not logged in ----------
+# ----------------- Login Screen -----------------
 if not st.session_state.logged_in:
 
     st.title("🔒 Recovery App Login")
@@ -27,17 +28,16 @@ if not st.session_state.logged_in:
     if st.button("Login"):
         if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
             st.session_state.logged_in = True
-            st.rerun()   #login hides
+            st.success("Login successful ✅")
         else:
             st.error("Invalid username or password!")
-            st.stop()
 
-    st.stop()   # app yahin ruk jay jab tak login na ho
+    st.stop()   # ❌ Stop execution until login is correct
 
-# ================= AFTER LOGIN =================
+# ----------------- After Login -----------------
 st.success("Login successful! App is loading...")
 
-# 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
+# 👇 Yahan se tumhara purana recovery app code paste karo
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1296,6 +1296,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

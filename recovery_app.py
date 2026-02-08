@@ -6,110 +6,39 @@ import plotly.express as px
 from fpdf import FPDF
 
 
-import streamlit as st
+# ----------------- Page config MUST be first -----------------
+st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ---------- Page Config ----------
-st.set_page_config(page_title="Recovery Portal", layout="centered")
-
-# ---------- SESSION ----------
+# ---------------- Session state init ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ---------- CSS ----------
-st.markdown("""
-<style>
-body, .main {
-    background-color: #0e1117;
-}
+# ------------------ Login ------------------
+USERNAME = "Khaleel"
+PASSWORD = "12345"
 
-/* Center login card and main app */
-.center-container {
-    width: 400px;
-    max-width: 95%;
-    background: #ffffff;
-    padding: 30px 28px;
-    border-radius: 12px;
-    box-shadow: 0px 6px 25px rgba(0,0,0,0.35);
-    margin: 0 auto;
-    margin-top: 100px;
-    text-align: center;
-}
-
-/* Title */
-.title-text {
-    font-size: 26px;
-    font-weight: 700;
-    margin-bottom: 25px;
-    color: #111;
-}
-
-/* Input fields */
-.center-container input {
-    width: 100% !important;
-    height: 38px;
-    font-size: 14px;
-    margin-bottom: 12px;
-}
-
-/* Login button */
-.center-container button {
-    width: 100%;
-    height: 40px;
-    font-size: 16px;
-    border-radius: 8px;
-    background-color: #1f77b4;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-/* Checkbox */
-.center-container label {
-    font-size: 13px;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ---------- Login Function ----------
-def login_page():
-    st.markdown('<div class="center-container">', unsafe_allow_html=True)
-    st.markdown('<div class="title-text">Welcome Back</div>', unsafe_allow_html=True)
-
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    remember = st.checkbox("Remember Me")
-
-    login_pressed = st.button("Login")
-
-    if login_pressed:
-        if username.strip().lower() == "khaleel" and password == "12345":
-            st.session_state.logged_in = True
-            st.success("Login Successful ✅")
-        else:
-            st.error("Invalid Username or Password ❌")
-
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.stop()  # Stop everything until login successful
-
-# ---------- Main App Function ----------
-def main_app():
-    st.markdown('<div class="center-container">', unsafe_allow_html=True)
-    st.markdown('<div class="title-text">Recovery Dashboard</div>', unsafe_allow_html=True)
-
-    # Example app content (centered)
-    st.write("✅ Login ke baad ka content yahan center me ayega")
-    st.write("Example options:")
-    st.button("Option 1")
-    st.button("Option 2")
-    st.button("Option 3")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ---------- Run ----------
+# --------- Show login ONLY if not logged in ----------
 if not st.session_state.logged_in:
-    login_page()
-else:
-    main_app()
+
+    st.title("🔒Login")
+
+    user_input = st.text_input("Username")
+    pass_input = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
+            st.session_state.logged_in = True
+            st.rerun()   # refresh so login hides
+        else:
+            st.error("Invalid username or password!")
+            st.stop()
+
+    st.stop()   # app yahin ruk jay jab tak login na ho
+
+# ================= AFTER LOGIN =================
+st.success("Login successful! App is loading...")
+
+# 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1368,6 +1297,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

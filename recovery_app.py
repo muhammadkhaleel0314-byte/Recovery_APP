@@ -6,8 +6,6 @@ import plotly.express as px
 from fpdf import FPDF
 
 
-import streamlit as st
-
 # ----------------- Page config (MUST be first) -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
@@ -1328,6 +1326,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

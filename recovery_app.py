@@ -5,47 +5,64 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-# ----------------- Page config MUST be first -----------------
+
+# ----------------- Page config (MUST be first) -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ---------------- Session state init ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-
+# ----------------- Credentials -----------------
 USERNAME = "Khaleel"
 PASSWORD = "12345"
 
-# ---------------- Login Page ----------------
-def login_page():
-    st.title("🔒 Recovery App Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    
-    if st.button("Login"):
-        if username.strip().lower() == USERNAME.lower() and password == PASSWORD:
-            st.session_state.logged_in = True
-            st.success("Login Successful ✅")
-        else:
-            st.error("Invalid Username or Password ❌")
-    st.stop()  # Stop everything until login successful
+# ----------------- Session -----------------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-# ---------------- Main App ----------------
-def main_app():
-    st.success("Login successful! App is loading...")
-
-    # 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
-    st.title("Recovery Dashboard")
-    st.write("Example content goes here...")
-    st.button("Option 1")
-    st.button("Option 2")
-    st.button("Option 3")
-    # 👆 YAHAN TAK 👆
-
-# ---------------- Run ----------------
+# ----------------- LOGIN SCREEN -----------------
 if not st.session_state.logged_in:
-    login_page()
-else:
-    main_app()
+
+    st.markdown(
+        """
+        <style>
+        .login-box {
+            max-width: 420px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            background-color: #ffffff;
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+
+    # 🔰 LOGO
+    st.image("logo.png", width=120)   # <-- apna logo
+
+    st.markdown("### 🔒 Recovery Portal Login")
+
+    user_input = st.text_input("Username")
+    pass_input = st.text_input("Password", type="password")
+
+    if st.button("Login", use_container_width=True):
+        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
+            st.session_state.logged_in = True
+            st.success("Login successful")
+            st.rerun()
+        else:
+            st.error("Invalid username or password")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+
+# ----------------- AFTER LOGIN -----------------
+st.success("Welcome Khaleel 👋")
+
+# 🔽 YAHAN AAPKA POORA RECOVERY APP CODE START HOGA
+st.write("Dashboard / Upload / Pivot / Reports yahan ayenge")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1304,6 +1321,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

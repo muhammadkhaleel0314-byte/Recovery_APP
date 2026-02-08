@@ -5,6 +5,8 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
+import streamlit as st
+
 # ----------------- Page config (MUST be first) -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
@@ -23,14 +25,17 @@ if not st.session_state.logged_in:
         """
         <style>
         .login-box {
-            max-width: 420px;
+            max-width: 360px;
             margin: auto;
-            margin-top: 120px;
-            padding: 35px;
-            border-radius: 12px;
+            margin-top: 140px;
+            padding: 30px 28px;
+            border-radius: 14px;
             background-color: #ffffff;
-            box-shadow: 0px 4px 25px rgba(0,0,0,0.15);
+            box-shadow: 0px 6px 28px rgba(0,0,0,0.15);
             text-align: center;
+        }
+        .login-box input {
+            width: 100% !important;
         }
         </style>
         """,
@@ -39,11 +44,14 @@ if not st.session_state.logged_in:
 
     st.markdown("<div class='login-box'>", unsafe_allow_html=True)
 
-    st.markdown("## 👋 Welcome Back")
-    st.markdown("Please login to continue")
+    st.markdown("### 👋 Welcome Back")
+    st.markdown(
+        "<p style='color:#6c757d; margin-bottom:20px;'>Sign in to continue</p>",
+        unsafe_allow_html=True
+    )
 
-    user_input = st.text_input("Username")
-    pass_input = st.text_input("Password", type="password")
+    user_input = st.text_input("Username", placeholder="Enter username")
+    pass_input = st.text_input("Password", type="password", placeholder="Enter password")
 
     if st.button("Login", use_container_width=True):
         if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
@@ -59,7 +67,7 @@ if not st.session_state.logged_in:
 # ----------------- AFTER LOGIN -----------------
 st.success("Welcome Khaleel 👋")
 
-# 👇 YAHAN AAPKA MAIN RECOVERY APP CODE START HOGA
+# 👇 MAIN RECOVERY APP STARTS HERE
 st.write("Recovery dashboard loaded...")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
@@ -1319,6 +1327,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

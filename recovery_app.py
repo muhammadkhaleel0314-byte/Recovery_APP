@@ -1026,6 +1026,15 @@ st.title("Loan Disbursement PDF Generator (Branchwise)")
 
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
+# ---------------------- Safe Functions ----------------------
+def safe(val):
+    try:
+        if pd.isna(val):
+            return ""
+        return str(val)
+    except:
+        return ""
+
 # ---------------------- PDF Class ----------------------
 class PDF(FPDF):
     def header(self):
@@ -1080,8 +1089,8 @@ if uploaded_file:
 
         # ---------------------- TABLE HEADER ----------------------
         headers = [
-            "date_disbursed", "sanction_no", "tranch_no", "cheque_no",
-            "loan_amount", "group_no", "member_name", "member_cnic"
+            "Date Disburse", "Sanction No", "Tranch", "Cheque No",
+            "Loan Amount", "Group No", "Member Name", "CNIC"
         ]
         col_widths = [30, 35, 15, 40, 30, 30, 55, 45]
 
@@ -1096,15 +1105,17 @@ if uploaded_file:
         for _, row in br_df.iterrows():
             pdf.set_fill_color(235, 245, 255) if fill else pdf.set_fill_color(255, 255, 255)
             pdf.set_font("Arial", '', 9)
-            pdf.cell(col_widths[0], 7, str(row["date_disburse"]), border=1, fill=True)
-            pdf.cell(col_widths[1], 7, str(row["sanction_no"]), border=1, fill=True)
-            pdf.cell(col_widths[2], 7, str(row["tranch"]), border=1, fill=True)
-            pdf.cell(col_widths[3], 7, str(row["cheque_no"]), border=1, fill=True)
-            pdf.cell(col_widths[4], 7, str(row["loan_amount"]), border=1, fill=True)
-            pdf.cell(col_widths[5], 7, str(row["group_no"]), border=1, fill=True)
-            pdf.cell(col_widths[6], 7,str(row["member_name"]), border=1, fill=True)
-            pdf.cell(col_widths[7], 7, str(row["member_cnic"]), border=1, fill=True)
+            pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
+            pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
+            pdf.cell(col_widths[2], 7, safe(row["tranch"]), border=1, fill=True)
+            pdf.cell(col_widths[3], 7, safe(row["cheque_no"]), border=1, fill=True)
+            pdf.cell(col_widths[4], 7, safe(row["loan_amount"]), border=1, fill=True)
+            pdf.cell(col_widths[5], 7, safe(row["group_no"]), border=1, fill=True)
+            pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
+            pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
+            pdf.ln()
             fill = not fill
+
         # Export PDF
         pdf_bytes = pdf.output(dest="S").encode("latin-1")
         st.download_button(
@@ -1288,6 +1299,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

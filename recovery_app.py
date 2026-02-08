@@ -5,69 +5,69 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-# ---------------- Page Config ----------------
-st.set_page_config(page_title="Recovery Portal", layout="wide")
+st.set_page_config(page_title="Login", layout="centered")
 
-# ---------------- Credentials ----------------
-USERNAME = "Khaleel"
-PASSWORD = "12345"
+# ---------- CSS ----------
+st.markdown("""
+<style>
+body {
+    background-color: #0e1117;
+}
 
-# ---------------- Session ----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+.login-card {
+    width: 360px;
+    background: white;
+    padding: 30px 28px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.35);
+    margin: auto;
+    margin-top: 120px;
+}
 
-# ---------------- Login Screen ----------------
-if not st.session_state.logged_in:
+.login-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #111;
+}
 
-    st.markdown("""
-    <style>
-    .login-card {
-        width: 360px;
-        margin: 120px auto;
-        padding: 35px 30px;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
-        text-align: center;
-    }
-    .title {
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 25px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+.login-card label {
+    font-size: 13px;
+}
 
-    st.markdown("<div class='login-card'>", unsafe_allow_html=True)
+.login-btn button {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    border-radius: 8px;
+    background-color: #1f77b4;
+    color: white;
+}
+</style>
+""", unsafe_allow_html=True)
 
-    # 🔹 TITLE INSIDE WHITE BOX
-    st.markdown("<div class='title'>Welcome Back</div>", unsafe_allow_html=True)
+# ---------- LOGIN UI ----------
+st.markdown("<div class='login-card'>", unsafe_allow_html=True)
 
-    username = st.text_input("Enter Username")
-    password = st.text_input("Enter Password", type="password")
+st.markdown("<div class='login-title'>Welcome Back</div>", unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1,1])
-    with col1:
-        remember = st.checkbox("Remember Me")
-    with col2:
-        st.markdown("<div style='text-align:right; margin-top:28px;'>Reset Password</div>", unsafe_allow_html=True)
+username = st.text_input("Username")
+password = st.text_input("Password", type="password")
+remember = st.checkbox("Remember Me")
 
-    if st.button("Login", use_container_width=True):
-        if username.strip().lower() == USERNAME.lower() and password == PASSWORD:
-            st.session_state.logged_in = True
-            st.success("Login successful")
-            st.rerun()
-        else:
-            st.error("Invalid username or password")
+st.markdown("<div class='login-btn'>", unsafe_allow_html=True)
+login = st.button("Login")
+st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+st.markdown("</div>", unsafe_allow_html=True)
 
-# ---------------- After Login ----------------
-st.success("Welcome Khaleel 👋")
-
-# ⬇️ Yahan se aapka actual recovery app start hoga
-st.write("Recovery Dashboard Loaded...")
+# ---------- LOGIN LOGIC ----------
+if login:
+    if username == "admin" and password == "1234":
+        st.success("Login Successful ✅")
+    else:
+        st.error("Invalid Username or Password ❌")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1326,6 +1326,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

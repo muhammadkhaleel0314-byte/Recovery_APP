@@ -57,9 +57,6 @@ st.markdown("""
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
-import streamlit as st
-import pandas as pd
-import numpy as np
 
 st.set_page_config(page_title="Sustainability Report", layout="wide")
 
@@ -1480,4 +1477,5 @@ st.download_button(
     file_name="Sustainability_Report.csv",
     mime="text/csv"
 )
+
 

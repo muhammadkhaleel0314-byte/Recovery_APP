@@ -23,7 +23,7 @@ if not st.session_state.logged_in:
         <div style="
             max-width: 200px;
             margin: auto;
-            margin-top: 60px;
+            margin-top: 180px;
             padding: 30px;
             border-radius: 10px;
             background-color: #ffffff;
@@ -1310,6 +1310,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

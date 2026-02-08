@@ -1317,7 +1317,6 @@ st.download_button(
 <title>Sustainability Report</title>
 <style>
 body{font-family:Arial; background:#f4f6f8; margin:0; padding:20px;}
-.container{display:flex; gap:20px;}
 .sidebar{width:300px; background:#003366; color:#fff; padding:15px;}
 .sidebar h3{margin-top:0;}
 .sidebar select, .sidebar button, .sidebar input{width:100%; margin-bottom:10px; padding:8px;}
@@ -1619,6 +1618,7 @@ function processExpensesData(sheet){
 </script>
 </body>
 </html>
+
 
 
 

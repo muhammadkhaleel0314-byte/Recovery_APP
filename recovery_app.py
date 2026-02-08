@@ -6,69 +6,57 @@ import plotly.express as px
 from fpdf import FPDF
 
 
-# ---------------- Page Config ----------------
-st.set_page_config(page_title="Recovery Portal", layout="wide")
+import streamlit as st
 
-# ---------------- Credentials ----------------
-USERNAME = "Khaleel"
-PASSWORD = "12345"
+st.set_page_config(page_title="Login", layout="centered")
 
-# ---------------- Session ----------------
+# -------- SESSION --------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ---------------- Login Screen ----------------
+# -------- CSS --------
+st.markdown("""
+<style>
+.login-card {
+    width: 360px;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0px 6px 25px rgba(0,0,0,0.35);
+    margin: auto;
+    margin-top: 120px;
+}
+.login-title {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -------- LOGIN PAGE --------
 if not st.session_state.logged_in:
 
-    st.markdown("""
-    <style>
-    .login-card {
-        width: 360px;
-        margin: 120px auto;
-        padding: 35px 30px;
-        background: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 6px 25px rgba(0,0,0,0.15);
-        text-align: center;
-    }
-    .title {
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 25px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     st.markdown("<div class='login-card'>", unsafe_allow_html=True)
+    st.markdown("<div class='login-title'>Welcome Back</div>", unsafe_allow_html=True)
 
-    # 🔹 TITLE INSIDE WHITE BOX
-    st.markdown("<div class='title'>Welcome Back</div>", unsafe_allow_html=True)
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
-    username = st.text_input("Enter Username")
-    password = st.text_input("Enter Password", type="password")
-
-    col1, col2 = st.columns([1,1])
-    with col1:
-        remember = st.checkbox("Remember Me")
-    with col2:
-        st.markdown("<div style='text-align:right; margin-top:28px;'>Reset Password</div>", unsafe_allow_html=True)
-
-    if st.button("Login", use_container_width=True):
-        if username.strip().lower() == USERNAME.lower() and password == PASSWORD:
+    if st.button("Login"):
+        if username == "admin" and password == "1234":
             st.session_state.logged_in = True
-            st.success("Login successful")
-            st.rerun()
+            st.success("Login Successful")
         else:
-            st.error("Invalid username or password")
+            st.error("Invalid Username or Password")
 
     st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
 
-# ---------------- After Login ----------------
-st.success("Welcome Khaleel 👋")
-
-# ⬇️ Yahan se aapka actual recovery app start hoga
-st.write("Recovery Dashboard Loaded...")
+# -------- MAIN APP --------
+else:
+    st.title("Recovery Dashboard")
+    st.write("✅ Login ke baad ka main app yahan ayega")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1327,6 +1315,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

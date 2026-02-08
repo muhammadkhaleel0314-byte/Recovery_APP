@@ -5,6 +5,12 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+from fpdf import FPDF
 
 # ----------------- Page config MUST be first -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
@@ -13,32 +19,40 @@ st.set_page_config(page_title="Recovery Portal", layout="wide")
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ------------------ Login ------------------
 USERNAME = "Khaleel"
 PASSWORD = "12345"
 
-# --------- Show login ONLY if not logged in ----------
-if not st.session_state.logged_in:
-
-    st.title("🔒Login")
-
-    user_input = st.text_input("Username")
-    pass_input = st.text_input("Password", type="password")
-
+# ---------------- Login Page ----------------
+def login_page():
+    st.title("🔒 Recovery App Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    
     if st.button("Login"):
-        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
+        if username.strip().lower() == USERNAME.lower() and password == PASSWORD:
             st.session_state.logged_in = True
-            st.rerun()   # refresh so login hides
+            st.success("Login Successful ✅")
         else:
-            st.error("Invalid username or password!")
-            st.stop()
+            st.error("Invalid Username or Password ❌")
+    st.stop()  # Stop everything until login successful
 
-    st.stop()   # app yahin ruk jay jab tak login na ho
+# ---------------- Main App ----------------
+def main_app():
+    st.success("Login successful! App is loading...")
 
-# ================= AFTER LOGIN =================
-st.success("Login successful! App is loading...")
+    # 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
+    st.title("Recovery Dashboard")
+    st.write("Example content goes here...")
+    st.button("Option 1")
+    st.button("Option 2")
+    st.button("Option 3")
+    # 👆 YAHAN TAK 👆
 
-# 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
+# ---------------- Run ----------------
+if not st.session_state.logged_in:
+    login_page()
+else:
+    main_app()
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1297,6 +1311,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

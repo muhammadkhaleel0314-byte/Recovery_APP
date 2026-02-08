@@ -40,8 +40,11 @@ if not st.session_state.logged_in:
 
     st.markdown("<div class='login-box'>", unsafe_allow_html=True)
 
-    # 🔰 LOGO
-    st.image("logo.png", width=120)   # <-- apna logo
+    # 🔰 GITHUB LOGO (RAW LINK)
+    st.image(
+        "https://raw.githubusercontent.com/USERNAME/REPO_NAME/main/logo.png",
+        width=120
+    )
 
     st.markdown("### 🔒 Recovery Portal Login")
 
@@ -62,8 +65,8 @@ if not st.session_state.logged_in:
 # ----------------- AFTER LOGIN -----------------
 st.success("Welcome Khaleel 👋")
 
-# 🔽 YAHAN AAPKA POORA RECOVERY APP CODE START HOGA
-st.write("Dashboard / Upload / Pivot / Reports yahan ayenge")
+# 👇 YAHAN SE AAPKA RECOVERY APP START HOGA
+st.write("Recovery dashboard yahan load ho raha hai...")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1322,6 +1325,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

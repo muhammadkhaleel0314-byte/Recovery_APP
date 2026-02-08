@@ -5,64 +5,39 @@ import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
 
-
-# ----------------- Page config (MUST be first) -----------------
+# ----------------- Page config MUST be first -----------------
 st.set_page_config(page_title="Recovery Portal", layout="wide")
 
-# ----------------- Credentials -----------------
-USERNAME = "Khaleel"
-PASSWORD = "12345"
-
-# ----------------- Session -----------------
+# ---------------- Session state init ----------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-# ----------------- LOGIN SCREEN -----------------
+# ------------------ Login ------------------
+USERNAME = "Khaleel"
+PASSWORD = "12345"
+
+# --------- Show login ONLY if not logged in ----------
 if not st.session_state.logged_in:
 
-    st.markdown(
-        """
-        <style>
-        .login-box {
-            max-width: 420px;
-            margin: auto;
-            padding: 30px;
-            border-radius: 12px;
-            background-color: #ffffff;
-            box-shadow: 0px 4px 20px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-
-    # 🔰 LOGO
-    st.image("logo.png", width=120)   # <-- apna logo
-
-    st.markdown("### 🔒 Recovery Portal Login")
+    st.title("🔒 Recovery App Login")
 
     user_input = st.text_input("Username")
     pass_input = st.text_input("Password", type="password")
 
-    if st.button("Login", use_container_width=True):
+    if st.button("Login"):
         if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
             st.session_state.logged_in = True
-            st.success("Login successful")
-            st.rerun()
+            st.rerun()   # refresh so login hides
         else:
-            st.error("Invalid username or password")
+            st.error("Invalid username or password!")
+            st.stop()
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+    st.stop()   # app yahin ruk jay jab tak login na ho
 
-# ----------------- AFTER LOGIN -----------------
-st.success("Welcome Khaleel 👋")
+# ================= AFTER LOGIN =================
+st.success("Login successful! App is loading...")
 
-# 🔽 YAHAN AAPKA POORA RECOVERY APP CODE START HOGA
-st.write("Dashboard / Upload / Pivot / Reports yahan ayenge")
+# 👇👇 YAHAN SE AAPKA RECOVERY APP KA CODE START HOGA 👇👇
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1321,6 +1296,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

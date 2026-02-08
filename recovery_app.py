@@ -21,10 +21,10 @@ if not st.session_state.logged_in:
     st.markdown(
         """
         <div style="
-            max-width: 200px;
+            max-width: 360px;
             margin: auto;
-            margin-top: 180px;
-            padding: 30px;
+            margin-top: 120px;
+            padding: 5px;
             border-radius: 10px;
             background-color: #ffffff;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
@@ -1310,6 +1310,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

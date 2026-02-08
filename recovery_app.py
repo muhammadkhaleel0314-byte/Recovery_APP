@@ -27,7 +27,7 @@ if not st.session_state.logged_in:
     if st.button("Login"):
         if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
             st.session_state.logged_in = True
-            st.rerun()   # refresh so login hides
+            st.rerun()   #login hides
         else:
             st.error("Invalid username or password!")
             st.stop()
@@ -1296,6 +1296,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -66,7 +66,7 @@ import pandas as pd
 from io import BytesIO
 
 st.markdown("---")
-st.subheader("📊 MDP Report (Bottom Section)")
+st.subheader("📊 MDP Report ")
 
 # --- File Upload ---
 col1, col2 = st.columns(2)
@@ -193,7 +193,7 @@ import pandas as pd
 from io import BytesIO
 
 st.markdown("---")
-st.subheader("📁 Merge Sanction & Branch File")
+st.subheader("📁 Merge File Upload And Take File With Branch&Area")
 
 # --- File Upload ---
 col1, col2 = st.columns(2)
@@ -1299,6 +1299,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -49,7 +49,7 @@ if not st.session_state.logged_in:
     st.stop()   # Stop execution until login successful
 
 # ----------------- After Login -----------------
-st.success("Login successful! App is loading...")
+st.success("Login successful!")
 
 # 👇 Yahan tumhara recovery app code paste karo
 st.markdown("""
@@ -1299,6 +1299,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

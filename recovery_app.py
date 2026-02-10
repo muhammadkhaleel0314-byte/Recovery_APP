@@ -12,8 +12,8 @@ st.set_page_config(page_title="Recovery Portal", layout="wide")
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-USERNAME = "Khaleel"
-PASSWORD = "12345"
+USERNAME = ".Khaleel"
+PASSWORD = "12345."
 
 # ----------------- Login Screen -----------------
 if not st.session_state.logged_in:
@@ -1299,6 +1299,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

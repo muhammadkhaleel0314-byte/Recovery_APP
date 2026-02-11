@@ -1179,8 +1179,8 @@ st.write(list(df.columns))
 date_col = st.selectbox("Select Date Column", df.columns)
 branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
 area_col = None
-if 'area_id' in df.columns:
-    area_col = 'area_id'
+if 'Area_id' in df.columns:
+    area_col = 'Area_id'
 
 # ---------------- Convert Date ----------------
 df[date_col] = pd.to_datetime(
@@ -1307,6 +1307,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

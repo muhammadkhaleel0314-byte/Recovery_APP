@@ -1139,10 +1139,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 import os
-
 # ---------------- Sidebar ----------------
-st.title("Recovery Date Range Summary")
-st.sidebar.header("📁 Upload & Options")
+st.sidebar.header("Recovery Date Range Summary")
 
 uploaded = st.sidebar.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
@@ -1296,6 +1294,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

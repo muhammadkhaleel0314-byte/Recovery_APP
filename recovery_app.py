@@ -6,84 +6,68 @@ import plotly.express as px
 from fpdf import FPDF
 import sqlite3
 
-# ---------- DATABASE ----------
-conn = sqlite3.connect("users.db", check_same_thread=False)
-c = conn.cursor()
+st.set_page_config(page_title="Login System", layout="centered")
 
-c.execute("""
-CREATE TABLE IF NOT EXISTS users(
-    username TEXT PRIMARY KEY,
-    password TEXT
-)
-""")
-conn.commit()
+# ---------- USERS ----------
+USERS = {
+    "Khaleel123": "12345",
+    "ali": "111",
+    "ahmed": "222"
+}
 
+ADMIN_USER = "Khaleel123"
 
-# ---------- FUNCTIONS ----------
-def add_user(username, password):
-    try:
-        c.execute("INSERT INTO users VALUES (?,?)", (username, password))
-        conn.commit()
-        return True
-    except:
-        return False
+# ---------- SESSION ----------
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
+if "username" not in st.session_state:
+    st.session_state.username = ""
 
-def login_user(username, password):
-    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-    return c.fetchone()
+# ---------- LOGIN PAGE ----------
+if not st.session_state.logged_in:
 
+    st.markdown("<h2 style='text-align:center;'>Login</h2>", unsafe_allow_html=True)
 
-# ---------- UI ----------
-st.title("🔐 Multi User Login System")
-
-menu = ["Login", "Signup"]
-choice = st.sidebar.selectbox("Menu", menu)
-
-
-# ---------- LOGIN ----------
-if choice == "Login":
-    st.subheader("Login Section")
-
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
+    user = st.text_input("Username")
+    pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        result = login_user(username, password)
-
-        if result:
-            st.success(f"Welcome {username} ✅")
-            st.session_state["user"] = username
-
+        if user in USERS and USERS[user] == pwd:
+            st.session_state.logged_in = True
+            st.session_state.username = user
+            st.rerun()
         else:
-            st.error("Invalid credentials ❌")
+            st.error("Invalid Login")
+
+    st.stop()
+
+# ---------- AFTER LOGIN ----------
+st.success(f"Welcome {st.session_state.username}")
+
+# ---------- MENU ----------
+if st.session_state.username == ADMIN_USER:
+    menu = ["Dashboard", "Signup", "Logout"]
+else:
+    menu = ["Dashboard", "Logout"]
+
+choice = st.sidebar.selectbox("Menu", menu)
+
+# ---------- LOGOUT ----------
+if choice == "Logout":
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+    st.rerun()
+
+# ---------- PAGES ----------
+if choice == "Dashboard":
+    st.title("Dashboard Screen")
+
+elif choice == "Signup":
+    st.title("Signup Page (Only Admin Can See)")
 
 
 
-# ---------- SIGNUP ----------
-if choice == "Signup":
-    st.subheader("Create New Account")
-
-    new_user = st.text_input("Username")
-    new_pass = st.text_input("Password", type="password")
-
-    if st.button("Signup"):
-        if add_user(new_user, new_pass):
-            st.success("Account created successfully ✅")
-        else:
-            st.warning("User already exists ⚠️")
-
-
-# ---------- DASHBOARD ----------
-if "user" in st.session_state:
-    st.sidebar.success(f"Logged in as {st.session_state['user']}")
-
-    if st.sidebar.button("Logout"):
-        del st.session_state["user"]
-        st.rerun()
-
-    st.header("📊 Dashboard")
-    st.write("Yahan app ka main content ayega.")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1331,6 +1315,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

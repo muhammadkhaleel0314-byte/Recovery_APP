@@ -36,7 +36,7 @@ if not st.session_state.logged_in:
         if user in USERS and USERS[user] == pwd:
             st.session_state.logged_in = True
             st.session_state.username = user
-            st.rerun()
+            st.experimental_rerun()
         else:
             st.error("Invalid Login")
 
@@ -57,7 +57,7 @@ choice = st.sidebar.selectbox("Menu", menu)
 if choice == "Logout":
     st.session_state.logged_in = False
     st.session_state.username = ""
-    st.rerun()
+    st.experimental_rerun()
 
 # ---------- PAGES ----------
 if choice == "Dashboard":
@@ -1315,6 +1315,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

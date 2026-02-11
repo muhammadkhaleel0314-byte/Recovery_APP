@@ -6,7 +6,7 @@ import plotly.express as px
 from fpdf import FPDF
 import sqlite3
 
-st.set_page_config(page_title="Login System", layout="centered")
+st.set_page_config(page_title="Login System",)
 
 # ---------- USERS ----------
 USERS = {
@@ -1315,6 +1315,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

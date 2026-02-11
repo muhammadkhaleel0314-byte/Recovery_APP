@@ -4,54 +4,86 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 from fpdf import FPDF
+import sqlite3
 
-# ----------------- Page config -----------------
-st.set_page_config(page_title="Recovery Portal", layout="wide")
+# ---------- DATABASE ----------
+conn = sqlite3.connect("users.db", check_same_thread=False)
+c = conn.cursor()
 
-# ----------------- Session state -----------------
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
+c.execute("""
+CREATE TABLE IF NOT EXISTS users(
+    username TEXT PRIMARY KEY,
+    password TEXT
+)
+""")
+conn.commit()
 
-USERNAME = ".Khaleel"
-PASSWORD = "12345."
 
-# ----------------- Login Screen -----------------
-if not st.session_state.logged_in:
+# ---------- FUNCTIONS ----------
+def add_user(username, password):
+    try:
+        c.execute("INSERT INTO users VALUES (?,?)", (username, password))
+        conn.commit()
+        return True
+    except:
+        return False
 
-    st.markdown(
-        """
-        <div style="
-            max-width: 360px;
-            margin: auto;
-            margin-top: 120px;
-            padding: 5px;
-            border-radius: 10px;
-            background-color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            text-align: center;
-        ">
-        <h2 style='color:
-            black;'>SIGN IN MUST</h2>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-    user_input = st.text_input("Username")
-    pass_input = st.text_input("Password", type="password")
+def login_user(username, password):
+    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+    return c.fetchone()
 
-    if st.button("Sign In"):
-        if user_input.strip().lower() == USERNAME.lower() and pass_input == PASSWORD:
-            st.session_state.logged_in = True
+
+# ---------- UI ----------
+st.title("🔐 Multi User Login System")
+
+menu = ["Login", "Signup"]
+choice = st.sidebar.selectbox("Menu", menu)
+
+
+# ---------- LOGIN ----------
+if choice == "Login":
+    st.subheader("Login Section")
+
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        result = login_user(username, password)
+
+        if result:
+            st.success(f"Welcome {username} ✅")
+            st.session_state["user"] = username
+
         else:
-            st.error("Invalid username or password")
+            st.error("Invalid credentials ❌")
 
-    st.stop()   # Stop execution until login successful
 
-# ----------------- After Login -----------------
-st.success("Login successful!")
 
-# 👇 Yahan tumhara recovery app code paste karo
+# ---------- SIGNUP ----------
+if choice == "Signup":
+    st.subheader("Create New Account")
+
+    new_user = st.text_input("Username")
+    new_pass = st.text_input("Password", type="password")
+
+    if st.button("Signup"):
+        if add_user(new_user, new_pass):
+            st.success("Account created successfully ✅")
+        else:
+            st.warning("User already exists ⚠️")
+
+
+# ---------- DASHBOARD ----------
+if "user" in st.session_state:
+    st.sidebar.success(f"Logged in as {st.session_state['user']}")
+
+    if st.sidebar.button("Logout"):
+        del st.session_state["user"]
+        st.rerun()
+
+    st.header("📊 Dashboard")
+    st.write("Yahan app ka main content ayega.")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1299,6 +1331,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

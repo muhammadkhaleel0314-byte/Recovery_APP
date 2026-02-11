@@ -1146,8 +1146,10 @@ st.title("Recovery Date Range Summary")
 LOCAL_FILE = "data/recovery.xlsx"
 os.makedirs("data", exist_ok=True)
 
-# ---------------- File Upload ----------------
-uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+# ---------------- Sidebar ----------------
+st.sidebar.header("📁 Upload & Options")
+
+uploaded = st.sidebar.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
 # --- If uploaded, save locally and store in session_state ---
 if uploaded:
@@ -1158,26 +1160,24 @@ if uploaded:
 
     st.session_state["df"] = df
     df.to_excel(LOCAL_FILE, index=False)
-    st.success("File uploaded and saved locally!")
+    st.sidebar.success("File uploaded and saved locally!")
 
 # --- If no upload, check session_state or local file ---
 elif "df" in st.session_state:
     df = st.session_state["df"]
-    st.info("Using previously uploaded file from session.")
+    st.sidebar.info("Using previously uploaded file from session.")
 elif os.path.exists(LOCAL_FILE):
     df = pd.read_excel(LOCAL_FILE)
     st.session_state["df"] = df
-    st.info("Loaded previously uploaded file from local storage.")
+    st.sidebar.info("Loaded previously uploaded file from local storage.")
 else:
     st.info("Please upload recovery file.")
     st.stop()
 
-# ---------------- Column Selection ----------------
-st.subheader("Available Columns")
-st.write(list(df.columns))
-
-date_col = st.selectbox("Select Date Column", df.columns)
-branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
+# ---------------- Column Selection in Sidebar ----------------
+st.sidebar.subheader("Select Columns")
+date_col = st.sidebar.selectbox("Date Column", df.columns)
+branch_col = st.sidebar.selectbox("Branch Column (branch_id)", df.columns)
 area_col = None
 if 'area_id' in df.columns:
     area_col = 'area_id'
@@ -1243,9 +1243,7 @@ if area_col:
 
 # ---------------- Grand Total Row ----------------
 numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
-# Sum numeric counts
 grand_total_counts = result_df[numeric_cols].sum()
-# Calculate percentages for Grand Total
 grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
 
 grand_values = {}
@@ -1257,7 +1255,6 @@ for col in result_df.columns:
     elif col in numeric_cols:
         grand_values[col] = grand_total_counts[col]
     elif col in ["1-10 %","11-20 %","21-31 %"]:
-        # Map numeric col to percentage col
         pct_map = {"1-10 %":"Recovery 1-10","11-20 %":"Recovery 11-20","21-31 %":"Recovery 21-31"}
         grand_values[col] = grand_total_percent[pct_map[col]]
     else:
@@ -1265,7 +1262,7 @@ for col in result_df.columns:
 
 result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
-# ---------------- Show Table ----------------
+# ---------------- Main Page ----------------
 st.subheader("Branch Wise Recovery Summary")
 st.dataframe(result_df)
 
@@ -1282,10 +1279,7 @@ st.download_button(
 buffer = BytesIO()
 doc = SimpleDocTemplate(buffer, pagesize=A4)
 
-# Table data
 table_data = [result_df.columns.tolist()] + result_df.values.tolist()
-
-# Create Table with style
 table = Table(table_data)
 style = TableStyle([
     ('GRID', (0,0), (-1,-1), 1, colors.black),
@@ -1307,6 +1301,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -83,7 +83,6 @@ import pandas as pd
 from io import BytesIO
 
 # ---------- Fixed Signin Menu ----------
-st.sidebar.markdown("### 🔐 Sign In")
 
 # ---------- MDP Report Expander (Below Signin) ----------
 with st.sidebar.expander("📊 MDP Report"):
@@ -1308,6 +1307,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

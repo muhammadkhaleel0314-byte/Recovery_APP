@@ -10,12 +10,12 @@ st.set_page_config(page_title="Login System", layout="centered")
 
 # ---------- USERS ----------
 USERS = {
-    "Khaleel123": "12345",
-    "ali": "111",
+    "Khaleel": "12345",
+    "Baqir@0315": "Baqir315",
     "ahmed": "222"
 }
 
-ADMIN_USER = "Khaleel123"
+ADMIN_USER = "Khaleel"
 
 # ---------- SESSION ----------
 if "logged_in" not in st.session_state:
@@ -1315,6 +1315,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

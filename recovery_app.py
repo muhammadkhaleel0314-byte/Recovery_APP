@@ -401,101 +401,7 @@ if uploaded_file:
             file_name=f"Branch_{branch}.pdf",
             mime="application/pdf"
         )
-st.subheader("📥 Upload Due List and Recovery File for Overdue Detection")
 
-dolist_file = st.file_uploader("📄 Due List Upload", type=["xlsx"], key="dolist")
-recovery_file2 = st.file_uploader("📄 Recovery File Upload", type=["xlsx"], key="recovery2")
-
-if dolist_file and recovery_file2:
-    dolist_df = pd.read_excel(dolist_file)
-    recovery_df2 = pd.read_excel(recovery_file2)
-
-    dolist_df['Sanction No'] = dolist_df['Sanction No'].astype(str).str.strip()
-    recovery_df2['Sanction No'] = recovery_df2['Sanction No'].astype(str).str.strip()
-
-    overdue_df = dolist_df[~dolist_df['Sanction No'].isin(recovery_df2['Sanction No'])]
-    st.subheader("❗ Overdue List")
-    st.write(f"🔢 Total Overdue: {len(overdue_df)}")
-    st.dataframe(overdue_df)
-
-# Final Overdue via Terabyte
-st.subheader("📥 Upload Terabyte File (Final Overdue)")
-
-terabyte_file = st.file_uploader("📄 Terabyte File Upload", type=["xlsx"], key="terabyte")
-
-if terabyte_file and 'overdue_df' in locals() and not overdue_df.empty:
-    terabyte_df = pd.read_excel(terabyte_file)
-    terabyte_df['Sanction No'] = terabyte_df['Sanction No'].astype(str).str.strip()
-    overdue_df['Sanction No'] = overdue_df['Sanction No'].astype(str).str.strip()
-
-    final_overdue_df = overdue_df[~overdue_df['Sanction No'].isin(terabyte_df['Sanction No'])]
-
-    st.subheader("🚨 Final Overdue Cases")
-    st.write(f"🔢 Total Final Overdue: {len(final_overdue_df)}")
-    st.dataframe(final_overdue_df)
-
-    # Full PDF: Branch-wise + Date-wise
-    full_pdf = FPDF()
-    full_pdf.set_auto_page_break(auto=True, margin=15)
-
-    if 'branch_id' not in final_overdue_df.columns:
-        final_overdue_df['branch_id'] = 'Unknown'
-
-    for branch in final_overdue_df['branch_id'].unique():
-        data = final_overdue_df[final_overdue_df['branch_id'] == branch]
-        full_pdf.add_page()
-        full_pdf.set_font("Arial", 'B', 12)
-        full_pdf.cell(200, 10, txt=f"Branch: {branch}", ln=True, align='C')
-
-        full_pdf.set_font("Arial", size=10)
-        full_pdf.cell(10, 10, "Sr#", 1)
-        full_pdf.cell(70, 10, "Name", 1)
-        full_pdf.cell(60, 10, "Sanction No", 1)
-        full_pdf.ln()
-
-        for i, (_, row) in enumerate(data.iterrows(), start=1):
-            full_pdf.cell(10, 10, str(i), 1)
-            full_pdf.cell(70, 10, str(row.get('Name', '')), 1)
-            full_pdf.cell(60, 10, str(row.get('Sanction No', '')), 1)
-            full_pdf.ln()
-
-    full_pdf_output = full_pdf.output(dest='S').encode('latin1')
-    st.download_button("📥 Download Final Overdue PDF (Branch-wise)", full_pdf_output, "final_overdue.pdf", "application/pdf")
-# 🔽 Separate Branch-wise PDF Downloads
-    st.subheader("📂 Download Final Overdue Branch-wise PDFs")
-
-    branch_pdfs = {}
-
-    for branch in final_overdue_df['branch_id'].unique():
-        branch_data = final_overdue_df[final_overdue_df['branch_id'] == branch]
-
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", 'B', 12)
-        pdf.cell(200, 10, txt=f"Branch: {branch}", ln=True, align='C')
-
-        pdf.set_font("Arial", size=10)
-        pdf.cell(10, 10, "Sr#", 1)
-        pdf.cell(70, 10, "Name", 1)
-        pdf.cell(60, 10, "Sanction No", 1)
-        pdf.ln()
-
-        for i, (_, row) in enumerate(branch_data.iterrows(), start=1):
-            pdf.cell(10, 10, str(i), 1)
-            pdf.cell(70, 10, str(row.get('Name', '')), 1)
-            pdf.cell(60, 10, str(row.get('Sanction No', '')), 1)
-            pdf.ln()
-
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
-        branch_pdfs[branch] = pdf_bytes
-
-    for branch, pdf_data in branch_pdfs.items():
-        st.download_button(
-            label=f"📥 Download PDF for Branch: {branch}",
-            data=pdf_data,
-            file_name=f"final_overdue_branch_{branch}.pdf",
-            mime="application/pdf"
-        )
 import streamlit as st
 import pandas as pd
 import os
@@ -1308,6 +1214,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -9,4 +9,3 @@ reportlab
 matplotlib
 pandas
 xlsxwriter
-reportlab

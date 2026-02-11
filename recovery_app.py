@@ -1140,13 +1140,8 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 import os
 
-st.title("Recovery Date Range Summary")
-
-# ---------------- Local storage folder ----------------
-LOCAL_FILE = "data/recovery.xlsx"
-os.makedirs("data", exist_ok=True)
-
 # ---------------- Sidebar ----------------
+st.title("Recovery Date Range Summary")
 st.sidebar.header("📁 Upload & Options")
 
 uploaded = st.sidebar.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
@@ -1301,6 +1296,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

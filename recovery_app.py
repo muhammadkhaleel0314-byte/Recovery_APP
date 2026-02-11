@@ -8,8 +8,8 @@ import sqlite3
 import os
 
 import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib.pagesizes
-import A4
+
+import A4 from reportlab.lib.pagesizes
 
 st.set_page_config(page_title="Login System",)
 
@@ -1250,6 +1250,7 @@ if uploaded_file:
             file_name=f"{selected_branch}_Loan_Disbursement.pdf",
             mime="application/pdf"
         )
+
 
 
 

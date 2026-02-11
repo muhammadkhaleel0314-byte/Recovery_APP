@@ -6,6 +6,9 @@ import plotly.express as px
 from fpdf import FPDF
 import sqlite3
 
+# ---------- SETTINGS ----------
+ADMIN_USERNAME = "admin"   # ← apna username yahan set karo
+
 # ---------- DATABASE ----------
 conn = sqlite3.connect("users.db", check_same_thread=False)
 c = conn.cursor()
@@ -34,16 +37,10 @@ def login_user(username, password):
     return c.fetchone()
 
 
-# ---------- UI ----------
-st.title("🔐 Multi User Login System")
+# ---------- LOGIN SCREEN ----------
+if "user" not in st.session_state:
 
-menu = ["Login", "Signup"]
-choice = st.sidebar.selectbox("Menu", menu)
-
-
-# ---------- LOGIN ----------
-if choice == "Login":
-    st.subheader("Login Section")
+    st.title("🔐 Login System")
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
@@ -52,38 +49,40 @@ if choice == "Login":
         result = login_user(username, password)
 
         if result:
-            st.success(f"Welcome {username} ✅")
             st.session_state["user"] = username
-
+            st.rerun()
         else:
             st.error("Invalid credentials ❌")
 
 
-
-# ---------- SIGNUP ----------
-if choice == "Signup":
-    st.subheader("Create New Account")
-
-    new_user = st.text_input("Username")
-    new_pass = st.text_input("Password", type="password")
-
-    if st.button("Signup"):
-        if add_user(new_user, new_pass):
-            st.success("Account created successfully ✅")
-        else:
-            st.warning("User already exists ⚠️")
-
-
 # ---------- DASHBOARD ----------
-if "user" in st.session_state:
+else:
     st.sidebar.success(f"Logged in as {st.session_state['user']}")
 
+    # Logout
     if st.sidebar.button("Logout"):
         del st.session_state["user"]
         st.rerun()
 
-    st.header("📊 Dashboard")
-    st.write("Yahan app ka main content ayega.")
+    st.title("📊 Dashboard")
+    st.write("Yahan main dashboard content ayega")
+
+    # ---------- ADMIN ONLY SIGNUP ----------
+    if st.session_state["user"] == ADMIN_USERNAME:
+
+        st.sidebar.markdown("---")
+        if st.sidebar.button("Create User"):
+
+            st.subheader("Create New User")
+
+            new_user = st.text_input("New Username")
+            new_pass = st.text_input("New Password", type="password")
+
+            if st.button("Create Account"):
+                if add_user(new_user, new_pass):
+                    st.success("User created successfully ✅")
+                else:
+                    st.warning("User already exists ⚠️")
 st.markdown("""
     <h1 style='text-align: center; color: White;'>📊 Welcome to Recovery Portal Created By:M.Khaleel</h1>
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
@@ -1331,6 +1330,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

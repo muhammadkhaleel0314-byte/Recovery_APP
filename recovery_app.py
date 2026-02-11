@@ -6,7 +6,7 @@ import plotly.express as px
 from fpdf import FPDF
 import sqlite3
 import os
-from reportlab.platypus
+
 import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib.pagesizes
 import A4
@@ -1250,6 +1250,7 @@ if uploaded_file:
             file_name=f"{selected_branch}_Loan_Disbursement.pdf",
             mime="application/pdf"
         )
+
 
 
 

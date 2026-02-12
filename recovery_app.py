@@ -134,9 +134,9 @@ with st.sidebar.expander("📊 MDP Report"):
                 'Active': '',
                 'Due': due_count,
                 'Amount': amount_sum,
-                'G/BY': g_by_count,
+                'Given/BY': g_by_count,
                 'G/P %': g_p,
-                'P/B %': p_b,
+                'MDP/B %': p_b,
                 'N/A': n_a_count,
                 'N/P %': n_p
             })
@@ -1214,6 +1214,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -203,186 +203,162 @@ from datetime import date
 
 st.title("Professional Stock Tracker")
 
-# ---------------- Files ----------------
-DATA_DIR = "data"
-BRANCH_FILE = f"{DATA_DIR}/branches.csv"
-ITEM_FILE = f"{DATA_DIR}/items.csv"
-STOCK_FILE = f"{DATA_DIR}/stock.csv"
-os.makedirs(DATA_DIR, exist_ok=True)
+# ---------------- Server-side storage ----------------
+BRANCH_FILE = "data/branches.csv"
+ITEM_FILE = "data/items.csv"
+PROJECT_FILE = "data/projects.csv"
+STOCK_FILE = "data/stock.csv"
+os.makedirs("data", exist_ok=True)
 
-# ---------------- Load Branches ----------------
+# ---------------- Load / Init Branches ----------------
 if os.path.exists(BRANCH_FILE):
     branches_df = pd.read_csv(BRANCH_FILE)
 else:
     branches_df = pd.DataFrame(columns=["Branch"])
     branches_df.to_csv(BRANCH_FILE, index=False)
 
-# ---------------- Load Items ----------------
+# ---------------- Load / Init Items ----------------
 if os.path.exists(ITEM_FILE):
     items_df = pd.read_csv(ITEM_FILE)
 else:
     items_df = pd.DataFrame(columns=["Item"])
     items_df.to_csv(ITEM_FILE, index=False)
 
-# ---------------- Load Stock ----------------
+# ---------------- Load / Init Projects ----------------
+if os.path.exists(PROJECT_FILE):
+    projects_df = pd.read_csv(PROJECT_FILE)
+else:
+    projects_df = pd.DataFrame(columns=["Project"])
+    projects_df.to_csv(PROJECT_FILE, index=False)
+
+# ---------------- Load / Init Stock ----------------
 if os.path.exists(STOCK_FILE):
     stock_df = pd.read_csv(STOCK_FILE)
 else:
     stock_df = pd.DataFrame(columns=[
-        "Date","Branch","Item","Start","End","Qty",
-        "Issued To","Issued Qty","Remaining","Project"
+        "Date","Branch","Area","Project","Item","Start","End","Qty","Issued To","Issued Qty","Remaining"
     ])
     stock_df.to_csv(STOCK_FILE, index=False)
 
-# =====================================================
-# Branch Management
-# =====================================================
+# ---------------- Branch Management ----------------
 st.subheader("Branch Management")
 col1, col2 = st.columns(2)
-
 with col1:
     new_branch = st.text_input("Add Branch")
     if st.button("Add Branch"):
         if new_branch and new_branch not in branches_df["Branch"].tolist():
-            branches_df.loc[len(branches_df)] = [new_branch]
+            branches_df = pd.concat([branches_df, pd.DataFrame([[new_branch]], columns=["Branch"])], ignore_index=True)
             branches_df.to_csv(BRANCH_FILE, index=False)
-            st.success("Branch added")
-
+            st.success(f"Branch '{new_branch}' added!")
 with col2:
     remove_branch = st.selectbox("Remove Branch", ["Select"] + branches_df["Branch"].tolist())
-    if st.button("Delete Branch"):
+    if st.button("Remove Branch"):
         if remove_branch != "Select":
             branches_df = branches_df[branches_df["Branch"] != remove_branch]
             branches_df.to_csv(BRANCH_FILE, index=False)
-            st.success("Branch removed")
+            st.success(f"Branch '{remove_branch}' removed!")
 
-# =====================================================
-# Item Management
-# =====================================================
+# ---------------- Item Management ----------------
 st.subheader("Item Management")
 col3, col4 = st.columns(2)
-
 with col3:
     new_item = st.text_input("Add Item")
     if st.button("Add Item"):
         if new_item and new_item not in items_df["Item"].tolist():
-            items_df.loc[len(items_df)] = [new_item]
+            items_df = pd.concat([items_df, pd.DataFrame([[new_item]], columns=["Item"])], ignore_index=True)
             items_df.to_csv(ITEM_FILE, index=False)
-            st.success("Item added")
-
+            st.success(f"Item '{new_item}' added!")
 with col4:
     remove_item = st.selectbox("Remove Item", ["Select"] + items_df["Item"].tolist())
-    if st.button("Delete Item"):
+    if st.button("Remove Item"):
         if remove_item != "Select":
             items_df = items_df[items_df["Item"] != remove_item]
             items_df.to_csv(ITEM_FILE, index=False)
-            st.success("Item removed")
+            st.success(f"Item '{remove_item}' removed!")
+
+# ---------------- Project Management ----------------
+st.subheader("Project Management")
+col5, col6 = st.columns(2)
+with col5:
+    new_project = st.text_input("Add Project")
+    if st.button("Add Project"):
+        if new_project and new_project not in projects_df["Project"].tolist():
+            projects_df = pd.concat([projects_df, pd.DataFrame([[new_project]], columns=["Project"])], ignore_index=True)
+            projects_df.to_csv(PROJECT_FILE, index=False)
+            st.success(f"Project '{new_project}' added!")
+with col6:
+    remove_project = st.selectbox("Remove Project", ["Select"] + projects_df["Project"].tolist())
+    if st.button("Remove Project"):
+        if remove_project != "Select":
+            projects_df = projects_df[projects_df["Project"] != remove_project]
+            projects_df.to_csv(PROJECT_FILE, index=False)
+            st.success(f"Project '{remove_project}' removed!")
 
 st.markdown("---")
 
-# =====================================================
-# Stock Receive
-# =====================================================
+# ---------------- Stock Receive ----------------
 st.subheader("Stock Receive")
-
-area_receive = st.text_input("Area Receive")
-item_receive = st.selectbox("Item Name", ["Select"] + items_df["Item"].tolist())
-start_receive = st.number_input("Start No", 0, step=1)
-end_receive = st.number_input("End No", 0, step=1)
-per_unit = st.number_input("Numbers per Qty (25 / 50 etc)", 1, value=1)
+branch_receive = st.selectbox("Branch Receive", ["Select"] + branches_df["Branch"].tolist(), key="branch_receive")
+area_receive = st.text_input("Area Name")
+project_receive = st.selectbox("Project Name", ["Select"] + projects_df["Project"].tolist())
+item_receive = st.selectbox("Item Name", ["Select"] + items_df["Item"].tolist(), key="item_receive")
+start_receive = st.number_input("Start No", min_value=0, step=1)
+end_receive = st.number_input("End No", min_value=0, step=1)
 
 if st.button("Receive Stock"):
-    if area_receive and item_receive != "Select" and start_receive <= end_receive:
-
-        total_numbers = end_receive - start_receive + 1
-        qty = total_numbers / per_unit
+    if branch_receive != "Select" and item_receive != "Select" and start_receive <= end_receive:
+        qty = end_receive - start_receive + 1
         today = date.today().strftime("%Y-%m-%d")
-
-        stock_df.loc[len(stock_df)] = [
-            today, area_receive, item_receive,
-            start_receive, end_receive,
-            qty, "", 0, qty, ""
-        ]
-
+        stock_df = pd.concat([stock_df, pd.DataFrame([[
+            today, branch_receive, area_receive, project_receive, item_receive, start_receive, end_receive, qty, "", 0, qty
+        ]], columns=stock_df.columns)], ignore_index=True)
         stock_df.to_csv(STOCK_FILE, index=False)
-        st.success(f"Received {qty} Qty")
-
+        st.success(f"Stock received: {qty} of {item_receive} for {branch_receive} ({area_receive})")
     else:
-        st.error("Check inputs")
+        st.error("Check Branch, Area, Project, Item, and Start/End numbers")
 
-st.write("Recent Received")
-st.dataframe(stock_df.tail(10))
-
-# =====================================================
-# Stock Issue
-# =====================================================
+# ---------------- Stock Issue ----------------
 st.subheader("Stock Issue")
-
-branch_from = st.selectbox("From Branch", ["Select"] + branches_df["Branch"].tolist())
-item_name = st.selectbox("Item", ["Select"] + items_df["Item"].tolist())
-issued_to = st.multiselect("Issued To", branches_df["Branch"].tolist())
-issued_qty = st.number_input("Issued Qty", 0, step=1)
-project_name = st.text_input("Project Name")
+branch_from = st.selectbox("Branch (From)", ["Select"] + branches_df["Branch"].tolist(), key="issue_branch")
+area_from = st.text_input("Area Name (From)")
+project_from = st.selectbox("Project Name (From)", ["Select"] + projects_df["Project"].tolist(), key="issue_project")
+item_name = st.selectbox("Item Name", ["Select"] + items_df["Item"].tolist(), key="issue_item")
+issued_to = st.multiselect("Issued To (Branches)", branches_df["Branch"].tolist())
+issued_qty = st.number_input("Issued Qty", min_value=0, step=1, key="issued_qty")
 
 if st.button("Issue Stock"):
-
-    if branch_from!="Select" and item_name!="Select" and issued_to and issued_qty>0:
-
+    if branch_from != "Select" and item_name != "Select" and issued_to and issued_qty > 0:
         available = stock_df[
-            (stock_df["Branch"]==branch_from) &
-            (stock_df["Item"]==item_name) &
+            (stock_df["Branch"]==branch_from) & 
+            (stock_df["Item"]==item_name) & 
+            (stock_df["Project"]==project_from) & 
+            (stock_df["Area"]==area_from) &
             (stock_df["Remaining"]>0)
         ]
-
         total_available = available["Remaining"].sum()
-
         if issued_qty > total_available:
-            st.error(f"Available only {total_available}")
+            st.error(f"Not enough stock. Available: {total_available}")
         else:
-            remain_issue = issued_qty
-
-            for idx,row in available.iterrows():
-
-                if remain_issue<=0:
+            remaining_to_issue = issued_qty
+            for idx, row in available.iterrows():
+                if remaining_to_issue <= 0:
                     break
-
-                use = min(row["Remaining"], remain_issue)
-                stock_df.at[idx,"Remaining"] -= use
-
-                for b in issued_to:
-                    stock_df.loc[len(stock_df)] = [
-                        date.today().strftime("%Y-%m-%d"),
-                        branch_from,
-                        item_name,
-                        row["Start"],
-                        row["End"],
-                        row["Qty"],
-                        b,
-                        use,
-                        stock_df.at[idx,"Remaining"],
-                        project_name
-                    ]
-
-                remain_issue -= use
-
-            stock_df.to_csv(STOCK_FILE,index=False)
-            st.success("Issued Successfully")
-
+                issue_now = min(row["Remaining"], remaining_to_issue)
+                stock_df.at[idx, "Remaining"] -= issue_now
+                for to_branch in issued_to:
+                    stock_df = pd.concat([stock_df, pd.DataFrame([[
+                        date.today().strftime("%Y-%m-%d"), branch_from, area_from, project_from, item_name,
+                        row["Start"], row["End"], row["Qty"], to_branch, issue_now, stock_df.at[idx, "Remaining"]
+                    ]], columns=stock_df.columns)], ignore_index=True)
+                remaining_to_issue -= issue_now
+            stock_df.to_csv(STOCK_FILE, index=False)
+            st.success("Stock issued successfully!")
     else:
-        st.error("Fill all fields")
+        st.error("Check all inputs")
 
-# =====================================================
-# Search Project
-# =====================================================
-st.subheader("Search Project")
-
-search = st.text_input("Enter Project Name")
-
-if search:
-    df = stock_df[stock_df["Project"].str.contains(search, case=False, na=False)]
-    st.dataframe(df)
-else:
-    st.dataframe(stock_df.sort_values(["Date","Branch","Item"]))
+# ---------------- Show Stock ----------------
+st.subheader("Stock Table")
+st.dataframe(stock_df.sort_values(["Date","Branch","Area","Project","Item"]))
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -1467,6 +1443,7 @@ st.download_button(
     file_name="branch_stock.csv",
     mime="text/csv"
 )
+
 
 
 

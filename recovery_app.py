@@ -201,11 +201,11 @@ import pandas as pd
 import os
 from datetime import date
 
-st.title("Professional Branch Stock Tracker")
+st.title("Professional Branch Stock Tracker with Issued Branches")
 
 # ---------------- Server-side storage ----------------
+STOCK_FILE = "data/stock_issued.csv"
 BRANCH_FILE = "data/branches.csv"
-STOCK_FILE = "data/stock.csv"
 os.makedirs("data", exist_ok=True)
 
 # ---------------- Load branches ----------------
@@ -219,12 +219,13 @@ else:
 if os.path.exists(STOCK_FILE):
     stock_df = pd.read_csv(STOCK_FILE)
 else:
-    stock_df = pd.DataFrame(columns=["Date","Branch","Item","Starting Stock","Consumed","Remaining"])
+    stock_df = pd.DataFrame(columns=[
+        "Date","Branch From","Item","Start","End","Issued To","Issued Qty","Remaining"
+    ])
     stock_df.to_csv(STOCK_FILE, index=False)
 
 # ---------------- Branch Management ----------------
 st.subheader("Branch Management")
-
 col1, col2 = st.columns(2)
 with col1:
     new_branch = st.text_input("Add Branch")
@@ -242,49 +243,39 @@ with col2:
         if remove_branch != "Select":
             branches_df = branches_df[branches_df["Branch"] != remove_branch]
             branches_df.to_csv(BRANCH_FILE, index=False)
-            # Remove related stock entries
-            stock_df = stock_df[stock_df["Branch"] != remove_branch]
+            stock_df = stock_df[stock_df["Branch From"] != remove_branch]
             stock_df.to_csv(STOCK_FILE, index=False)
             st.success(f"Branch '{remove_branch}' removed!")
 
 st.markdown("---")
 
 # ---------------- Stock Entry ----------------
-st.subheader("Stock Entry")
+st.subheader("Stock Entry (Item Range + Issue)")
 
-branch_options = branches_df["Branch"].tolist()
-selected_branch = st.selectbox("Select Branch", ["Select"] + branch_options)
+branch_from = st.selectbox("Branch (From)", ["Select"] + branches_df["Branch"].tolist())
 item_name = st.text_input("Item Name")
-starting_stock = st.number_input("Starting Stock", min_value=0, step=1)
-consumed = st.number_input("Consumed", min_value=0, step=1)
+start_no = st.number_input("Start No", min_value=0, step=1)
+end_no = st.number_input("End No", min_value=0, step=1)
+issued_to = st.multiselect("Issued To (Branches)", branches_df["Branch"].tolist())
+issued_qty = st.number_input("Issued Qty", min_value=0, step=1)
 
-if st.button("Add / Update Stock"):
-    if selected_branch != "Select" and item_name:
+if st.button("Add / Issue Stock"):
+    if branch_from != "Select" and item_name and start_no <= end_no and issued_to and issued_qty > 0:
         today = date.today().strftime("%Y-%m-%d")
-        remaining = starting_stock - consumed
-        # Check if already exists for today
-        existing = stock_df[(stock_df["Date"]==today) & 
-                            (stock_df["Branch"]==selected_branch) & 
-                            (stock_df["Item"]==item_name)]
-        if not existing.empty:
-            idx = existing.index[0]
-            stock_df.loc[idx, "Starting Stock"] = starting_stock
-            stock_df.loc[idx, "Consumed"] = consumed
-            stock_df.loc[idx, "Remaining"] = remaining
-            st.success("Stock updated for today.")
-        else:
-            stock_df = pd.concat([stock_df, pd.DataFrame([[today, selected_branch, item_name, starting_stock, consumed, remaining]], 
-                                                          columns=stock_df.columns)], ignore_index=True)
-            st.success("Stock added for today.")
+        remaining = (end_no - start_no + 1) - issued_qty
+        for to_branch in issued_to:
+            stock_df = pd.concat([stock_df, pd.DataFrame([[
+                today, branch_from, item_name, start_no, end_no, to_branch, issued_qty, remaining
+            ]], columns=stock_df.columns)], ignore_index=True)
         stock_df.to_csv(STOCK_FILE, index=False)
+        st.success("Stock issued successfully!")
     else:
-        st.error("Select branch and enter item name!")
+        st.error("Check all inputs (branch, item, start<=end, issued branches, issued qty)")
 
 # ---------------- Show Stock Table ----------------
 st.subheader("Stock Table (Date-wise)")
-
 if not stock_df.empty:
-    st.dataframe(stock_df.sort_values(["Date","Branch"]))
+    st.dataframe(stock_df.sort_values(["Date","Branch From"]))
 else:
     st.info("No stock data yet.")
 
@@ -293,7 +284,7 @@ csv_data = stock_df.to_csv(index=False).encode("utf-8")
 st.download_button(
     label="⬇ Download Stock CSV",
     data=csv_data,
-    file_name="branch_stock.csv",
+    file_name="stock_issued.csv",
     mime="text/csv"
 )
 import streamlit as st
@@ -1380,6 +1371,7 @@ st.download_button(
     file_name="branch_stock.csv",
     mime="text/csv"
 )
+
 
 
 

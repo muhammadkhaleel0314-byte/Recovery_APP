@@ -199,61 +199,94 @@ with st.sidebar.expander("📊 MDP Report"):
 import streamlit as st
 import pandas as pd
 import os
+from datetime import date
 
-st.title("Branch-wise Stock Management")
+st.title("Professional Branch Stock Tracker")
 
 # ---------------- Server-side storage ----------------
-STOCK_FILE = "data/branch_stock.csv"
+BRANCH_FILE = "data/branches.csv"
+STOCK_FILE = "data/stock.csv"
 os.makedirs("data", exist_ok=True)
 
-# ---------------- Load existing stock ----------------
+# ---------------- Load branches ----------------
+if os.path.exists(BRANCH_FILE):
+    branches_df = pd.read_csv(BRANCH_FILE)
+else:
+    branches_df = pd.DataFrame(columns=["Branch"])
+    branches_df.to_csv(BRANCH_FILE, index=False)
+
+# ---------------- Load stock ----------------
 if os.path.exists(STOCK_FILE):
     stock_df = pd.read_csv(STOCK_FILE)
 else:
-    stock_df = pd.DataFrame(columns=["Branch", "Item", "Quantity", "Price"])
+    stock_df = pd.DataFrame(columns=["Date","Branch","Item","Starting Stock","Consumed","Remaining"])
     stock_df.to_csv(STOCK_FILE, index=False)
 
-# ---------------- Manual Entry ----------------
-st.subheader("Add / Update Stock")
+# ---------------- Branch Management ----------------
+st.subheader("Branch Management")
 
-branches = stock_df["Branch"].unique().tolist()
-items = stock_df["Item"].unique().tolist()
+col1, col2 = st.columns(2)
+with col1:
+    new_branch = st.text_input("Add Branch")
+    if st.button("Add Branch"):
+        if new_branch and new_branch not in branches_df["Branch"].tolist():
+            branches_df = pd.concat([branches_df, pd.DataFrame([[new_branch]], columns=["Branch"])], ignore_index=True)
+            branches_df.to_csv(BRANCH_FILE, index=False)
+            st.success(f"Branch '{new_branch}' added!")
+        else:
+            st.error("Branch already exists or invalid name!")
 
-branch = st.text_input("Branch Name")
-item = st.text_input("Inventory Item")
-qty = st.number_input("Quantity", min_value=0, step=1)
-price = st.number_input("Price per unit", min_value=0.0, step=0.1)
+with col2:
+    remove_branch = st.selectbox("Remove Branch", ["Select"] + branches_df["Branch"].tolist())
+    if st.button("Remove Branch"):
+        if remove_branch != "Select":
+            branches_df = branches_df[branches_df["Branch"] != remove_branch]
+            branches_df.to_csv(BRANCH_FILE, index=False)
+            # Remove related stock entries
+            stock_df = stock_df[stock_df["Branch"] != remove_branch]
+            stock_df.to_csv(STOCK_FILE, index=False)
+            st.success(f"Branch '{remove_branch}' removed!")
+
+st.markdown("---")
+
+# ---------------- Stock Entry ----------------
+st.subheader("Stock Entry")
+
+branch_options = branches_df["Branch"].tolist()
+selected_branch = st.selectbox("Select Branch", ["Select"] + branch_options)
+item_name = st.text_input("Item Name")
+starting_stock = st.number_input("Starting Stock", min_value=0, step=1)
+consumed = st.number_input("Consumed", min_value=0, step=1)
 
 if st.button("Add / Update Stock"):
-    if branch and item:
-        # Check if row exists
-        existing = stock_df[(stock_df["Branch"]==branch) & (stock_df["Item"]==item)]
+    if selected_branch != "Select" and item_name:
+        today = date.today().strftime("%Y-%m-%d")
+        remaining = starting_stock - consumed
+        # Check if already exists for today
+        existing = stock_df[(stock_df["Date"]==today) & 
+                            (stock_df["Branch"]==selected_branch) & 
+                            (stock_df["Item"]==item_name)]
         if not existing.empty:
-            # Update existing
-            stock_df.loc[existing.index, "Quantity"] = qty
-            stock_df.loc[existing.index, "Price"] = price
-            st.success(f"Updated {item} in {branch}")
+            idx = existing.index[0]
+            stock_df.loc[idx, "Starting Stock"] = starting_stock
+            stock_df.loc[idx, "Consumed"] = consumed
+            stock_df.loc[idx, "Remaining"] = remaining
+            st.success("Stock updated for today.")
         else:
-            # Add new row
-            stock_df = pd.concat([stock_df, pd.DataFrame([[branch, item, qty, price]], 
-                            columns=stock_df.columns)], ignore_index=True)
-            st.success(f"Added {item} in {branch}")
+            stock_df = pd.concat([stock_df, pd.DataFrame([[today, selected_branch, item_name, starting_stock, consumed, remaining]], 
+                                                          columns=stock_df.columns)], ignore_index=True)
+            st.success("Stock added for today.")
         stock_df.to_csv(STOCK_FILE, index=False)
     else:
-        st.error("Branch and Item are required!")
+        st.error("Select branch and enter item name!")
 
-# ---------------- Show Current Stock ----------------
-st.subheader("Current Branch Stock")
+# ---------------- Show Stock Table ----------------
+st.subheader("Stock Table (Date-wise)")
+
 if not stock_df.empty:
-    # Optional: branch filter
-    selected_branch = st.selectbox("Filter by Branch", ["All"] + list(stock_df["Branch"].unique()))
-    if selected_branch != "All":
-        display_df = stock_df[stock_df["Branch"]==selected_branch]
-    else:
-        display_df = stock_df
-    st.dataframe(display_df)
+    st.dataframe(stock_df.sort_values(["Date","Branch"]))
 else:
-    st.info("No stock available yet.")
+    st.info("No stock data yet.")
 
 # ---------------- CSV Download ----------------
 csv_data = stock_df.to_csv(index=False).encode("utf-8")
@@ -263,7 +296,6 @@ st.download_button(
     file_name="branch_stock.csv",
     mime="text/csv"
 )
-
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -1348,6 +1380,7 @@ st.download_button(
     file_name="branch_stock.csv",
     mime="text/csv"
 )
+
 
 
 

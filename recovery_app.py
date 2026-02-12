@@ -298,10 +298,10 @@ st.markdown("---")
 
 # ---------------- Stock Receive ----------------
 st.subheader("Stock Receive")
-branch_receive = st.selectbox("Branch Receive", ["Select"] + branches_df["Branch"].tolist(), key="branch_receive")
+branch_receive = st.selectbox("Branch Receive", ["Select"] + branches_df["Branch"].tolist())
 area_receive = st.text_input("Area Name")
 project_receive = st.selectbox("Project Name", ["Select"] + projects_df["Project"].tolist())
-item_receive = st.selectbox("Item Name", ["Select"] + items_df["Item"].tolist(), key="item_receive")
+item_receive = st.selectbox("Item Name", ["Select"] + items_df["Item"].tolist())
 start_receive = st.number_input("Start No", min_value=0, step=1)
 end_receive = st.number_input("End No", min_value=0, step=1)
 
@@ -309,9 +309,20 @@ if st.button("Receive Stock"):
     if branch_receive != "Select" and item_receive != "Select" and start_receive <= end_receive:
         qty = end_receive - start_receive + 1
         today = date.today().strftime("%Y-%m-%d")
-        stock_df = pd.concat([stock_df, pd.DataFrame([[
-            today, branch_receive, area_receive, project_receive, item_receive, start_receive, end_receive, qty, "", 0, qty
-        ]], columns=stock_df.columns)], ignore_index=True)
+        new_row = pd.DataFrame([{
+            "Date": today,
+            "Branch": branch_receive,
+            "Area": area_receive,
+            "Project": project_receive,
+            "Item": item_receive,
+            "Start": start_receive,
+            "End": end_receive,
+            "Qty": qty,
+            "Issued To": "",
+            "Issued Qty": 0,
+            "Remaining": qty
+        }])
+        stock_df = pd.concat([stock_df, new_row], ignore_index=True)
         stock_df.to_csv(STOCK_FILE, index=False)
         st.success(f"Stock received: {qty} of {item_receive} for {branch_receive} ({area_receive})")
     else:
@@ -320,21 +331,17 @@ if st.button("Receive Stock"):
 # ---------------- Stock Issue ----------------
 st.subheader("Stock Issue")
 branch_from = st.selectbox("Branch (From)", ["Select"] + branches_df["Branch"].tolist(), key="issue_branch")
-area_from = st.text_input("Area Name (From)")
-project_from = st.selectbox("Project Name (From)", ["Select"] + projects_df["Project"].tolist(), key="issue_project")
+area_from = st.text_input("Area (From)")
+project_from = st.selectbox("Project (From)", ["Select"] + projects_df["Project"].tolist(), key="issue_project")
 item_name = st.selectbox("Item Name", ["Select"] + items_df["Item"].tolist(), key="issue_item")
 issued_to = st.multiselect("Issued To (Branches)", branches_df["Branch"].tolist())
 issued_qty = st.number_input("Issued Qty", min_value=0, step=1, key="issued_qty")
 
 if st.button("Issue Stock"):
     if branch_from != "Select" and item_name != "Select" and issued_to and issued_qty > 0:
-        available = stock_df[
-            (stock_df["Branch"]==branch_from) & 
-            (stock_df["Item"]==item_name) & 
-            (stock_df["Project"]==project_from) & 
-            (stock_df["Area"]==area_from) &
-            (stock_df["Remaining"]>0)
-        ]
+        available = stock_df[(stock_df["Branch"]==branch_from) &
+                             (stock_df["Item"]==item_name) &
+                             (stock_df["Remaining"]>0)]
         total_available = available["Remaining"].sum()
         if issued_qty > total_available:
             st.error(f"Not enough stock. Available: {total_available}")
@@ -346,10 +353,19 @@ if st.button("Issue Stock"):
                 issue_now = min(row["Remaining"], remaining_to_issue)
                 stock_df.at[idx, "Remaining"] -= issue_now
                 for to_branch in issued_to:
-                    stock_df = pd.concat([stock_df, pd.DataFrame([[
-                        date.today().strftime("%Y-%m-%d"), branch_from, area_from, project_from, item_name,
-                        row["Start"], row["End"], row["Qty"], to_branch, issue_now, stock_df.at[idx, "Remaining"]
-                    ]], columns=stock_df.columns)], ignore_index=True)
+                    stock_df = pd.concat([stock_df, pd.DataFrame([{
+                        "Date": date.today().strftime("%Y-%m-%d"),
+                        "Branch": branch_from,
+                        "Area": area_from,
+                        "Project": project_from,
+                        "Item": item_name,
+                        "Start": row["Start"],
+                        "End": row["End"],
+                        "Qty": row["Qty"],
+                        "Issued To": to_branch,
+                        "Issued Qty": issue_now,
+                        "Remaining": stock_df.at[idx, "Remaining"]
+                    }])], ignore_index=True)
                 remaining_to_issue -= issue_now
             stock_df.to_csv(STOCK_FILE, index=False)
             st.success("Stock issued successfully!")
@@ -358,7 +374,7 @@ if st.button("Issue Stock"):
 
 # ---------------- Show Stock ----------------
 st.subheader("Stock Table")
-st.dataframe(stock_df.sort_values(["Date","Branch","Area","Project","Item"]))
+st.dataframe(stock_df.sort_values(["Date","Branch","Project","Item"]))
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -1443,6 +1459,7 @@ st.download_button(
     file_name="branch_stock.csv",
     mime="text/csv"
 )
+
 
 
 

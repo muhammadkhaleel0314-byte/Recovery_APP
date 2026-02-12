@@ -1214,6 +1214,73 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+import streamlit as st
+import pandas as pd
+import os
+
+st.title("Branch-wise Stock Management")
+
+# ---------------- Server-side storage ----------------
+STOCK_FILE = "data/branch_stock.csv"
+os.makedirs("data", exist_ok=True)
+
+# ---------------- Load existing stock ----------------
+if os.path.exists(STOCK_FILE):
+    stock_df = pd.read_csv(STOCK_FILE)
+else:
+    stock_df = pd.DataFrame(columns=["Branch", "Item", "Quantity", "Price"])
+    stock_df.to_csv(STOCK_FILE, index=False)
+
+# ---------------- Manual Entry ----------------
+st.subheader("Add / Update Stock")
+
+branches = stock_df["Branch"].unique().tolist()
+items = stock_df["Item"].unique().tolist()
+
+branch = st.text_input("Branch Name")
+item = st.text_input("Inventory Item")
+qty = st.number_input("Quantity", min_value=0, step=1)
+price = st.number_input("Price per unit", min_value=0.0, step=0.1)
+
+if st.button("Add / Update Stock"):
+    if branch and item:
+        # Check if row exists
+        existing = stock_df[(stock_df["Branch"]==branch) & (stock_df["Item"]==item)]
+        if not existing.empty:
+            # Update existing
+            stock_df.loc[existing.index, "Quantity"] = qty
+            stock_df.loc[existing.index, "Price"] = price
+            st.success(f"Updated {item} in {branch}")
+        else:
+            # Add new row
+            stock_df = pd.concat([stock_df, pd.DataFrame([[branch, item, qty, price]], 
+                            columns=stock_df.columns)], ignore_index=True)
+            st.success(f"Added {item} in {branch}")
+        stock_df.to_csv(STOCK_FILE, index=False)
+    else:
+        st.error("Branch and Item are required!")
+
+# ---------------- Show Current Stock ----------------
+st.subheader("Current Branch Stock")
+if not stock_df.empty:
+    # Optional: branch filter
+    selected_branch = st.selectbox("Filter by Branch", ["All"] + list(stock_df["Branch"].unique()))
+    if selected_branch != "All":
+        display_df = stock_df[stock_df["Branch"]==selected_branch]
+    else:
+        display_df = stock_df
+    st.dataframe(display_df)
+else:
+    st.info("No stock available yet.")
+
+# ---------------- CSV Download ----------------
+csv_data = stock_df.to_csv(index=False).encode("utf-8")
+st.download_button(
+    label="⬇ Download Stock CSV",
+    data=csv_data,
+    file_name="branch_stock.csv",
+    mime="text/csv"
+)
 
 
 

@@ -151,7 +151,7 @@ with st.sidebar.expander("📊 MDP Report"):
             'Due': report_df['Due'].sum(),
             'Amount': report_df['Amount'].sum(),
             'Given/BY': report_df['Given/BY'].sum(),
-            'G/P %': round((report_df['G/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
+            'G/P %': round((report_df['Given/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
             'MDP/Box %': round((report_df['Given/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
             'N/A': report_df['N/A'].sum(),
             'N/P %': round((report_df['N/A'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0
@@ -1214,6 +1214,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

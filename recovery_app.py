@@ -73,6 +73,18 @@ st.markdown("""
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
+st.markdown("""
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="https://credit.akhuwat.org.pk" target="_blank" 
+           style="background:#006400; color:white; padding:14px 32px; 
+                  text-decoration:none; border-radius:10px; font-weight:bold; 
+                  font-size:18px; display:inline-block; box-shadow:0 4px 8px rgba(0,0,0,0.2);">
+            Akhuwat Credit Portal → Login Karo
+        </a>
+    </div>
+""", unsafe_allow_html=True)
+
+st.info("Official Akhuwat portal – dues, recovery aur installments check karne ke liye (sirf registered users)")
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1214,3 +1226,4 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+

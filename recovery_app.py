@@ -78,7 +78,7 @@ import pandas as pd
 from io import BytesIO
 
 # ---------------- PAGE CONFIG ---------------- #
-st.set_page_config(page_title="Sustainability Report", layout="wide")
+
 st.markdown("<h1 style='color:#003366;'>Sustainability Report - مکمل ٹول</h1>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
@@ -1338,6 +1338,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -77,7 +77,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Sustainability Report", layout="wide")
 st.subheader("Sustainability Report - مکمل ٹول")
 
 # ---------------- SIDEBAR ---------------- #
@@ -1334,6 +1333,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

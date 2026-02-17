@@ -77,7 +77,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(page_title="Recovery Dashboard", layout="wide")
 
 st.title("Recovery Dashboard")
 
@@ -1329,6 +1328,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

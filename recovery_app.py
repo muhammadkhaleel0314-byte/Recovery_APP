@@ -77,66 +77,80 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.title("Sustainability Report - مکمل ٹول")
+st.set_page_config(page_title="Sustainability Report", layout="wide")
+st.subheader("Sustainability Report - مکمل ٹول")
 
 # ---------------- SIDEBAR ---------------- #
 st.sidebar.header("Options")
-
 project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
 expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
 # ---------------- LOAD PROJECT DATA ---------------- #
-df_projects = pd.DataFrame()
+df = pd.DataFrame()
 if project_file is not None:
-    df_projects = pd.read_excel(project_file)
+    df = pd.read_excel(project_file)
 
-# Expenses ko merge karo agar upload ho
-if expense_file is not None and not df_projects.empty:
-    df_expenses = pd.read_excel(expense_file)
-    # Sum of Amount per Branch Code
-    exp_sum = df_expenses.groupby("Branch Code")["Amount"].sum().reset_index()
-    df_projects = df_projects.merge(exp_sum, on="Branch Code", how="left")
-    df_projects["Amount_y"] = df_projects["Amount_y"].fillna(0)
-    df_projects.rename(columns={"Amount_y": "Expenses"}, inplace=True)
-else:
-    if not df_projects.empty:
-        df_projects["Expenses"] = 0
+if not df.empty:
+    # Add Expenses column
+    if expense_file is not None:
+        df_exp = pd.read_excel(expense_file)
+        exp_sum = df_exp.groupby("Branch Code")["Amount"].sum().reset_index()
+        df = df.merge(exp_sum, on="Branch Code", how="left")
+        df["Amount_y"] = df["Amount_y"].fillna(0)
+        df.rename(columns={"Amount_y": "Expenses"}, inplace=True)
+    else:
+        df["Expenses"] = 0
 
-# ---------------- CALCULATIONS ---------------- #
-if not df_projects.empty:
-    # Project Disburse
-    df_projects["Project Disburse"] = df_projects["Amount"].copy()
-    # Income calculations
-    df_projects["6% Income"] = (df_projects["Project Disburse"] * 0.06).round(2)
-    df_projects["ACAG Disburse"] = df_projects["Amount"].where(df_projects["Sanction No"].str.contains("D030", na=False), 0)
-    df_projects["1% Income"] = (df_projects["ACAG Disburse"] * 0.01).round(2)
-    df_projects["PMLCHS Disburse"] = df_projects["Amount"].where(df_projects["Sanction No"].str.contains("D003", na=False), 0)
-    df_projects["2% Income"] = (df_projects["PMLCHS Disburse"] * 0.02).round(2)
-    df_projects["PMY Disburse"] = df_projects["Amount"].where(df_projects["Sanction No"].str.contains("D027|D028", regex=True, na=False), 0)
-    df_projects["3% Income"] = (df_projects["PMY Disburse"] * 0.03).round(2)
-    df_projects["Total Income"] = (df_projects["6% Income"] + df_projects["1% Income"] +
-                                   df_projects["2% Income"] + df_projects["3% Income"]).round(2)
-    df_projects["Difference"] = (df_projects["Total Income"] - df_projects["Expenses"]).round(2)
+    # ---------------- CALCULATIONS ---------------- #
+    df["Project Disburse"] = df["Amount"].copy()
+    df["6% Income"] = (df["Project Disburse"] * 0.06).round(2)
+    df["ACAG Disburse"] = df["Amount"].where(df["Sanction No"].str.contains("D030", na=False), 0)
+    df["1% Income"] = (df["ACAG Disburse"] * 0.01).round(2)
+    df["PMLCHS Disburse"] = df["Amount"].where(df["Sanction No"].str.contains("D003", na=False), 0)
+    df["2% Income"] = (df["PMLCHS Disburse"] * 0.02).round(2)
+    df["PMY Disburse"] = df["Amount"].where(df["Sanction No"].str.contains("D027|D028", regex=True, na=False), 0)
+    df["3% Income"] = (df["PMY Disburse"] * 0.03).round(2)
+    df["Total Income"] = (df["6% Income"] + df["1% Income"] + df["2% Income"] + df["3% Income"]).round(2)
+    df["Difference"] = (df["Total Income"] - df["Expenses"]).round(2)
 
 # ---------------- AREA FILTER ---------------- #
-area_column = "Area"
-if not df_projects.empty and area_column in df_projects.columns:
-    areas = ["All Areas"] + sorted(df_projects[area_column].dropna().unique())
+if not df.empty and "Area" in df.columns:
+    areas = ["All Areas"] + sorted(df["Area"].dropna().unique())
     selected_area = st.sidebar.selectbox("Select Area", areas)
-
     if selected_area != "All Areas":
-        df_display = df_projects[df_projects[area_column] == selected_area]
+        df_display = df[df["Area"] == selected_area]
     else:
-        df_display = df_projects.copy()
+        df_display = df.copy()
 else:
-    df_display = df_projects.copy()
+    df_display = df.copy()
 
-# ---------------- DISPLAY TABLE ---------------- #
+# ---------------- DISPLAY TABLE IN HTML STYLE ---------------- #
+def render_table(df):
+    if df.empty:
+        st.info("Upload Project Excel to view table.")
+        return
+    html = "<table style='width:100%; border-collapse: collapse; text-align:center;'>"
+    # Header
+    html += "<tr style='background:#eee;'>"
+    for col in ["Area","Branch Name","Branch Code","Project Disburse","6% Income","ACAG Disburse",
+                "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
+                "Expenses","Difference"]:
+        html += f"<th style='border:1px solid #ccc; padding:5px;'>{col}</th>"
+    html += "</tr>"
+
+    # Rows
+    for _, row in df.iterrows():
+        html += "<tr>"
+        for col in ["Area","Branch Name","Branch Code","Project Disburse","6% Income","ACAG Disburse",
+                    "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
+                    "Expenses","Difference"]:
+            html += f"<td style='border:1px solid #ccc; padding:5px;'>{row.get(col, '')}</td>"
+        html += "</tr>"
+    html += "</table>"
+    st.markdown(html, unsafe_allow_html=True)
+
 st.subheader("Data Table")
-if not df_display.empty:
-    st.dataframe(df_display, use_container_width=True)
-else:
-    st.info("Upload Project Excel file to view data.")
+render_table(df_display)
 
 # ---------------- DOWNLOAD BUTTON ---------------- #
 def to_excel(df):
@@ -1295,6 +1309,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

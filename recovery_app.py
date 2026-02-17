@@ -77,7 +77,6 @@ import streamlit as st
 import pandas as pd
 import io
 
-st.set_page_config(page_title="Sustainability Report", layout="wide")
 
 st.title("Sustainability Report")
 
@@ -1281,6 +1280,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

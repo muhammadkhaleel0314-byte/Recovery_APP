@@ -77,6 +77,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
+st.set_page_config(page_title="Sustainability Report", layout="wide")
 st.subheader("Sustainability Report - مکمل ٹول")
 
 # ---------------- SIDEBAR ---------------- #
@@ -85,32 +86,55 @@ project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
 expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
 # ---------------- LOAD PROJECT DATA ---------------- #
-df = pd.DataFrame()
+df_raw = pd.DataFrame()
 if project_file is not None:
-    df = pd.read_excel(project_file)
+    df_raw = pd.read_excel(project_file)
 
-if not df.empty:
-    # Add Expenses column
+if not df_raw.empty:
+    # Add Expenses
     if expense_file is not None:
         df_exp = pd.read_excel(expense_file)
         exp_sum = df_exp.groupby("Branch Code")["Amount"].sum().reset_index()
-        df = df.merge(exp_sum, on="Branch Code", how="left")
-        df["Amount_y"] = df["Amount_y"].fillna(0)
-        df.rename(columns={"Amount_y": "Expenses"}, inplace=True)
+        df_raw = df_raw.merge(exp_sum, on="Branch Code", how="left")
+        df_raw["Amount_y"] = df_raw["Amount_y"].fillna(0)
+        df_raw.rename(columns={"Amount_y": "Expenses"}, inplace=True)
     else:
-        df["Expenses"] = 0
+        df_raw["Expenses"] = 0
 
-    # ---------------- CALCULATIONS ---------------- #
-    df["Project Disburse"] = df["Amount"].copy()
-    df["6% Income"] = (df["Project Disburse"] * 0.06).round(2)
-    df["ACAG Disburse"] = df["Amount"].where(df["Sanction No"].str.contains("D030", na=False), 0)
-    df["1% Income"] = (df["ACAG Disburse"] * 0.01).round(2)
-    df["PMLCHS Disburse"] = df["Amount"].where(df["Sanction No"].str.contains("D003", na=False), 0)
-    df["2% Income"] = (df["PMLCHS Disburse"] * 0.02).round(2)
-    df["PMY Disburse"] = df["Amount"].where(df["Sanction No"].str.contains("D027|D028", regex=True, na=False), 0)
-    df["3% Income"] = (df["PMY Disburse"] * 0.03).round(2)
-    df["Total Income"] = (df["6% Income"] + df["1% Income"] + df["2% Income"] + df["3% Income"]).round(2)
-    df["Difference"] = (df["Total Income"] - df["Expenses"]).round(2)
+    # ---------------- AGGREGATE PER BRANCH ---------------- #
+    branch_keys = ["Area", "Branch Name", "Branch Code"]
+    agg_list = []
+
+    for _, g in df_raw.groupby(branch_keys):
+        area, branch, code = g.name
+        project_total = g[~g["Sanction No"].str.contains("D030|D003|D027|D028", na=False)]["Amount"].sum()
+        acag_total = g[g["Sanction No"].str.contains("D030", na=False)]["Amount"].sum()
+        pmlchs_total = g[g["Sanction No"].str.contains("D003", na=False)]["Amount"].sum()
+        pmy_total = g[g["Sanction No"].str.contains("D027|D028", na=False)]["Amount"].sum()
+        expenses_total = g["Expenses"].sum()
+
+        row = {
+            "Area": area,
+            "Branch": branch,
+            "Branch Code": code,
+            "Project Disburse": project_total,
+            "6% Income": round(project_total * 0.06, 2),
+            "ACAG Disburse": acag_total,
+            "1% Income": round(acag_total * 0.01, 2),
+            "PMLCHS Disburse": pmlchs_total,
+            "2% Income": round(pmlchs_total * 0.02, 2),
+            "PMY Disburse": pmy_total,
+            "3% Income": round(pmy_total * 0.03, 2),
+        }
+        row["Total Income"] = round(row["6% Income"] + row["1% Income"] + row["2% Income"] + row["3% Income"], 2)
+        row["Expenses"] = expenses_total
+        row["Difference"] = round(row["Total Income"] - row["Expenses"], 2)
+
+        agg_list.append(row)
+
+    df = pd.DataFrame(agg_list)
+else:
+    df = pd.DataFrame()
 
 # ---------------- AREA FILTER ---------------- #
 if not df.empty and "Area" in df.columns:
@@ -123,24 +147,22 @@ if not df.empty and "Area" in df.columns:
 else:
     df_display = df.copy()
 
-# ---------------- DISPLAY TABLE IN HTML STYLE ---------------- #
+# ---------------- DISPLAY TABLE ---------------- #
 def render_table(df):
     if df.empty:
         st.info("Upload Project Excel to view table.")
         return
     html = "<table style='width:100%; border-collapse: collapse; text-align:center;'>"
-    # Header
     html += "<tr style='background:#eee;'>"
-    for col in ["Area","Branch Name","Branch Code","Project Disburse","6% Income","ACAG Disburse",
+    for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
                 "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
                 "Expenses","Difference"]:
         html += f"<th style='border:1px solid #ccc; padding:5px;'>{col}</th>"
     html += "</tr>"
 
-    # Rows
     for _, row in df.iterrows():
         html += "<tr>"
-        for col in ["Area","Branch Name","Branch Code","Project Disburse","6% Income","ACAG Disburse",
+        for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
                     "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
                     "Expenses","Difference"]:
             html += f"<td style='border:1px solid #ccc; padding:5px;'>{row.get(col, '')}</td>"
@@ -1308,6 +1330,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

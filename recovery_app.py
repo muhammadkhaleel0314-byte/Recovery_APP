@@ -102,7 +102,64 @@ body{font-family:Arial; background:#f4f6f8; margin:0; padding:20px;}
     /* ... باقی کلاسز یہاں لکھو جیسے تمہارے کوڈ میں ہیں ... */
 </style>
 """, unsafe_allow_html=True)
-.sidebar{width:300px; background:#003366; color:#fff; padding:15px;}
+st.markdown("""
+<style>
+    body {
+        font-family: Arial;
+        background: #f4f6f8;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        display: flex;
+        gap: 20px;
+    }
+    .sidebar {
+        width: 300px;
+        background: #003366;
+        color: #fff;
+        padding: 15px;
+    }
+    .sidebar h3 {
+        margin-top: 0;
+    }
+    .sidebar select,
+    .sidebar button,
+    .sidebar input {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 8px;
+    }
+    .content {
+        flex: 1;
+        background: #fff;
+        padding: 15px;
+        overflow: auto;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 6px;
+        text-align: center;
+    }
+    th {
+        background: #eee;
+    }
+    input {
+        width: 100%;
+        border: none;
+        text-align: center;
+    }
+    button {
+        cursor: pointer;
+        padding: 5px 8px;
+        margin-bottom: 10px;
+    }
+</style>
+""", unsafe_allow_html=True)
 .sidebar h3{margin-top:0;}
 .sidebar select, .sidebar button, .sidebar input{width:100%; margin-bottom:10px; padding:8px;}
 .content{flex:1; background:#fff; padding:15px; overflow:auto;}
@@ -1544,6 +1601,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

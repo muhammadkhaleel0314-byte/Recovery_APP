@@ -77,7 +77,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-
 st.subheader("Sustainability Report - مکمل ٹول")
 
 # ---------------- SIDEBAR ---------------- #
@@ -85,19 +84,18 @@ st.sidebar.header("Options")
 project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
 expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
-# ---------------- LOAD PROJECT DATA ---------------- #
 df_raw = pd.DataFrame()
 if project_file is not None:
     df_raw = pd.read_excel(project_file)
 
 if not df_raw.empty:
-    # Add Expenses
+    # Expenses
     if expense_file is not None:
         df_exp = pd.read_excel(expense_file)
-        exp_sum = df_exp.groupby("Branch Code")["Amount"].sum().reset_index()
-        df_raw = df_raw.merge(exp_sum, on="Branch Code", how="left")
-        df_raw["Amount_y"] = df_raw["Amount_y"].fillna(0)
-        df_raw.rename(columns={"Amount_y": "Expenses"}, inplace=True)
+        exp_sum = df_exp.groupby("Branch Code", as_index=False)["Amount"].sum()
+        df_raw = df_raw.merge(exp_sum, on="Branch Code", how="left", suffixes=("", "_Expenses"))
+        df_raw["Amount_Expenses"] = df_raw["Amount_Expenses"].fillna(0)
+        df_raw.rename(columns={"Amount_Expenses": "Expenses"}, inplace=True)
     else:
         df_raw["Expenses"] = 0
 
@@ -105,12 +103,17 @@ if not df_raw.empty:
     branch_keys = ["Area", "Branch Name", "Branch Code"]
     agg_list = []
 
-    for _, g in df_raw.groupby(branch_keys):
-        area, branch, code = g.name
+    grouped = df_raw.groupby(branch_keys, as_index=False)
+
+    for _, g in grouped:
+        area = g["Area"].iloc[0]
+        branch = g["Branch Name"].iloc[0]
+        code = g["Branch Code"].iloc[0]
+
         project_total = g[~g["Sanction No"].str.contains("D030|D003|D027|D028", na=False)]["Amount"].sum()
         acag_total = g[g["Sanction No"].str.contains("D030", na=False)]["Amount"].sum()
         pmlchs_total = g[g["Sanction No"].str.contains("D003", na=False)]["Amount"].sum()
-        pmy_total = g[g["Sanction No"].str.contains("D027|D028", na=False)]["Amount"].sum()
+        pmy_total = g[g["Sanction No"].str.contains("D027|D028", regex=True, na=False)]["Amount"].sum()
         expenses_total = g["Expenses"].sum()
 
         row = {
@@ -1330,6 +1333,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

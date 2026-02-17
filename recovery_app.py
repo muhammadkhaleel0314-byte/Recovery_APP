@@ -77,116 +77,126 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
+# ---------------- PAGE CONFIG ---------------- #
+st.set_page_config(page_title="Sustainability Report", layout="wide")
+st.markdown("<h1 style='color:#003366;'>Sustainability Report - مکمل ٹول</h1>", unsafe_allow_html=True)
 
-st.title("Recovery Dashboard")
+# ---------------- SIDEBAR ---------------- #
+st.sidebar.header("Options")
+project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
+expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
-# =========================
-# Upload Files
-# =========================
-proj_file = st.sidebar.file_uploader("Upload Projects Excel", type=["xlsx"])
-exp_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
+# ---------------- LOAD PROJECTS ---------------- #
+df_raw = pd.DataFrame()
+if project_file is not None:
+    df_raw = pd.read_excel(project_file)
 
-if proj_file:
-
-    df = pd.read_excel(proj_file)
-    df.columns = df.columns.str.strip()
-
-    # Required columns check
-    required = ["Area","Branch Name","Branch Code","Sanction Type","Disburse Amount"]
-    for col in required:
-        if col not in df.columns:
-            st.error(f"Missing column: {col}")
-            st.stop()
-
-    # =========================
-    # Expenses merge
-    # =========================
-    if exp_file:
-        df_exp = pd.read_excel(exp_file)
-        df_exp.columns = df_exp.columns.str.strip()
-
-        if "Branch Code" not in df_exp.columns or "Amount" not in df_exp.columns:
-            st.error("Expense file must contain: Branch Code + Amount")
-            st.stop()
-
+# ---------------- LOAD EXPENSES ---------------- #
+if not df_raw.empty:
+    if expense_file is not None:
+        df_exp = pd.read_excel(expense_file)
+        # branch wise expenses sum
         exp_sum = df_exp.groupby("Branch Code", as_index=False)["Amount"].sum()
-
-        df = df.merge(exp_sum, on="Branch Code", how="left")
-        df["Amount"] = df["Amount"].fillna(0)
-        df["Expenses"] = df["Amount"]
+        df_raw = df_raw.merge(exp_sum, on="Branch Code", how="left", suffixes=("", "_Expenses"))
+        df_raw["Amount_Expenses"] = df_raw["Amount_Expenses"].fillna(0)
+        df_raw["Expenses"] = df_raw["Amount_Expenses"]
     else:
-        df["Expenses"] = 0
+        df_raw["Expenses"] = 0
 
-    # =========================
-    # Area Filter
-    # =========================
-    areas = ["All"] + sorted(df["Area"].dropna().unique().tolist())
+# ---------------- AGGREGATE PER BRANCH ---------------- #
+if not df_raw.empty:
+    branch_keys = ["Area", "Branch Name", "Branch Code"]
+    agg_list = []
+
+    grouped = df_raw.groupby(branch_keys, as_index=False)
+
+    for _, g in grouped:
+        area = g["Area"].iloc[0]
+        branch = g["Branch Name"].iloc[0]
+        code = g["Branch Code"].iloc[0]
+
+        project_total = g[~g["Sanction No"].str.contains("D030|D003|D027|D028", na=False)]["Amount"].sum()
+        acag_total = g[g["Sanction No"].str.contains("D030", na=False)]["Amount"].sum()
+        pmlchs_total = g[g["Sanction No"].str.contains("D003", na=False)]["Amount"].sum()
+        pmy_total = g[g["Sanction No"].str.contains("D027|D028", regex=True, na=False)]["Amount"].sum()
+        expenses_total = g["Expenses"].dropna().iloc[0] if not g["Expenses"].dropna().empty else 0
+
+        row = {
+            "Area": area,
+            "Branch": branch,
+            "Branch Code": code,
+            "Project Disburse": project_total,
+            "6% Income": round(project_total * 0.06, 2),
+            "ACAG Disburse": acag_total,
+            "1% Income": round(acag_total * 0.01, 2),
+            "PMLCHS Disburse": pmlchs_total,
+            "2% Income": round(pmlchs_total * 0.02, 2),
+            "PMY Disburse": pmy_total,
+            "3% Income": round(pmy_total * 0.03, 2),
+        }
+        row["Total Income"] = round(row["6% Income"] + row["1% Income"] + row["2% Income"] + row["3% Income"], 2)
+        row["Expenses"] = expenses_total
+        row["Difference"] = round(row["Total Income"] - row["Expenses"], 2)
+
+        agg_list.append(row)
+
+    df = pd.DataFrame(agg_list)
+else:
+    df = pd.DataFrame()
+
+# ---------------- AREA FILTER ---------------- #
+if not df.empty and "Area" in df.columns:
+    areas = ["All Areas"] + sorted(df["Area"].dropna().unique())
     selected_area = st.sidebar.selectbox("Select Area", areas)
+    if selected_area != "All Areas":
+        df_display = df[df["Area"] == selected_area]
+    else:
+        df_display = df.copy()
+else:
+    df_display = df.copy()
 
-    if selected_area != "All":
-        df = df[df["Area"] == selected_area]
+# ---------------- DISPLAY TABLE ---------------- #
+def render_table(df):
+    if df.empty:
+        st.info("Upload Project Excel to view table.")
+        return
+    html = "<table style='width:100%; border-collapse: collapse; text-align:center;'>"
+    html += "<tr style='background:#eee;'>"
+    for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
+                "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
+                "Expenses","Difference"]:
+        html += f"<th style='border:1px solid #ccc; padding:5px;'>{col}</th>"
+    html += "</tr>"
 
-    # =========================
-    # Grouping Logic
-    # =========================
-    rows = []
+    for _, row in df.iterrows():
+        html += "<tr>"
+        for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
+                    "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
+                    "Expenses","Difference"]:
+            html += f"<td style='border:1px solid #ccc; padding:5px;'>{row.get(col, '')}</td>"
+        html += "</tr>"
+    html += "</table>"
+    st.markdown(html, unsafe_allow_html=True)
 
-    grouped = df.groupby(["Area","Branch Name","Branch Code"])
+st.subheader("Data Table")
+render_table(df_display)
 
-    for (area, branch, code), g in grouped:
-
-        acag = g.loc[g["Sanction Type"]=="ACAG","Disburse Amount"].sum()
-        pmlchs = g.loc[g["Sanction Type"]=="PMLCHS","Disburse Amount"].sum()
-        pmy = g.loc[g["Sanction Type"]=="PMY","Disburse Amount"].sum()
-        proj = g.loc[g["Sanction Type"]=="PROJECT","Disburse Amount"].sum()
-
-        inc_acag = acag * 0.06
-        inc_pmlchs = pmlchs * 0.01
-        inc_pmy = pmy * 0.02
-        inc_proj = proj * 0.03
-
-        total_income = inc_acag + inc_pmlchs + inc_pmy + inc_proj
-
-        # ✅ FIXED EXPENSE LOGIC
-        expenses = g["Expenses"].max()
-
-        diff = total_income - expenses
-
-        rows.append([
-            area,branch,code,
-            acag,pmlchs,pmy,proj,
-            inc_acag,inc_pmlchs,inc_pmy,inc_proj,
-            total_income,expenses,diff
-        ])
-
-    final = pd.DataFrame(rows, columns=[
-        "Area","Branch","Code",
-        "ACAG","PMLCHS","PMY","PROJECT",
-        "Inc ACAG","Inc PMLCHS","Inc PMY","Inc PROJECT",
-        "Total Income","Expenses","Difference"
-    ])
-
-    # =========================
-    # Display Table
-    # =========================
-    st.dataframe(final, use_container_width=True)
-
-    # =========================
-    # Download Button
-    # =========================
+# ---------------- DOWNLOAD BUTTON ---------------- #
+def to_excel(df):
     output = BytesIO()
-    final.to_excel(output, index=False)
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name="Filtered Report")
     output.seek(0)
+    return output
 
-    st.download_button(
-        "Download Excel",
-        output,
-        file_name="Recovery_Report.xlsx",
+if not df_display.empty:
+    excel_data = to_excel(df_display)
+    st.sidebar.download_button(
+        label=f"⬇️ Download {selected_area} Excel",
+        data=excel_data,
+        file_name=f"Sustainability_{selected_area}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
-else:
-    st.info("Upload project file to start.")
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1328,6 +1338,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

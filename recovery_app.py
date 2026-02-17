@@ -83,57 +83,65 @@ st.subheader("Sustainability Report - مکمل ٹول")
 
 sustainability_html = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>Sustainability Report</title>
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
-.container{display:flex;gap:20px}
-.sidebar{width:300px;background:#003366;color:#fff;padding:15px;border-radius:8px}
-.sidebar input,.sidebar select,.sidebar button{width:100%;padding:8px;margin-bottom:10px}
-.content{flex:1;background:#fff;padding:20px;border-radius:8px}
-table{width:100%;border-collapse:collapse;margin-top:20px}
-th,td{border:1px solid #ccc;padding:6px;text-align:center}
-input{width:100%;border:none;text-align:center}
-input[readonly]{background:#eee}
-button{cursor:pointer;padding:8px;background:#28a745;color:white;border:none;border-radius:4px}
+body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
+.container { display: flex; gap: 20px; }
+.sidebar { width: 300px; background: #003366; color: #fff; padding: 15px; border-radius: 8px; }
+.sidebar h3 { margin-top: 0; }
+.sidebar label { display: block; margin: 10px 0 5px; }
+.sidebar input[type="file"], .sidebar select, .sidebar button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+.sidebar button { background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.sidebar button:hover { background: #0052a3; }
+.content { flex: 1; background: #fff; padding: 20px; border-radius: 8px; overflow: auto; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+th { background: #eee; font-weight: bold; }
+input { width: 100%; border: none; text-align: center; padding: 5px; box-sizing: border-box; }
+input[readonly] { background: #f0f0f0; }
+button { cursor: pointer; padding: 8px 16px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 4px; }
+button:hover { background: #218838; }
 </style>
 </head>
-
 <body>
-<div class="container">
 
+<div class="container">
 <div class="sidebar">
 <h3>Options</h3>
 
-<label>Upload Projects</label>
-<input type="file" id="fileUploadProjects">
-<button onclick="uploadExcel()">Upload</button>
+<label>Upload Project Excel</label>
+<input type="file" id="fileUploadProjects" accept=".xlsx,.xls">
+<button onclick="uploadExcel()">Upload Projects</button>
 
-<label>Upload Expenses</label>
-<input type="file" id="fileUploadExpenses">
-<button onclick="uploadExcelExpenses()">Upload</button>
+<label>Upload Expenses Excel</label>
+<input type="file" id="fileUploadExpenses" accept=".xlsx,.xls">
+<button onclick="uploadExcelExpenses()">Upload Expenses</button>
 
 <select id="areaSelect">
 <option value="">All Areas</option>
 </select>
 
-<button onclick="downloadFilteredExcel()">Download Excel</button>
+<button onclick="downloadFilteredExcel()">Download Filtered Excel</button>
 </div>
 
 <div class="content">
 <h2>Sustainability Report</h2>
-<button onclick="addRow()">Add Row</button>
+<button onclick="addRow()">Add New Entry</button>
+<button onclick="saveData()">Save Table</button>
+<br><br>
 
 <table id="susTable">
 <thead>
 <tr>
-<th>Area</th><th>Branch</th><th>Code</th>
-<th>Project</th><th>6%</th>
-<th>ACAG</th><th>1%</th>
-<th>PMLCHS</th><th>2%</th>
-<th>PMY</th><th>3%</th>
-<th>Total</th><th>Expenses</th><th>Diff</th>
+<th>Area</th><th>Branch</th><th>Branch Code</th>
+<th>Project Disburse</th><th>6% Income</th>
+<th>ACAG Disburse</th><th>1% Income</th>
+<th>PMLCHS Disburse</th><th>2% Income</th>
+<th>PMY Disburse</th><th>3% Income</th>
+<th>Total Income</th><th>Expenses</th><th>Difference</th>
 </tr>
 </thead>
 
@@ -162,7 +170,6 @@ button{cursor:pointer;padding:8px;background:#28a745;color:white;border:none;bor
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
-
 function calc(el){
 let r=el.parentElement.parentElement
 let p=+r.cells[3].children[0].value||0
@@ -238,90 +245,9 @@ sel.add(op)
 })
 }
 
-function uploadExcel(){
-let f=document.getElementById("fileUploadProjects").files[0]
-if(!f)return alert("Select file")
-
-let r=new FileReader()
-r.onload=e=>{
-let wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"})
-let data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
-processExcelData(data)
-}
-r.readAsArrayBuffer(f)
-}
-
-function processExcelData(sheet){
-let tb=document.querySelector("#susTable tbody")
-tb.innerHTML=""
-let map={}
-
-sheet.forEach(row=>{
-let area=row["Area"]||""
-let branch=row["Branch Name"]||""
-let code=row["Branch Code"]||""
-let amt=+row["Amount"]||0
-let s=row["Sanction No"]||""
-
-let k=area+"|"+branch+"|"+code
-if(!map[k])map[k]={p:0,a:0,l:0,m:0}
-
-if(s.includes("D030"))map[k].a+=amt
-else if(s.includes("D003"))map[k].l+=amt
-else if(s.includes("D027")||s.includes("D028"))map[k].m+=amt
-else map[k].p+=amt
-})
-
-Object.keys(map).forEach(k=>{
-let [area,b,c]=k.split("|")
-let d=map[k]
-let tr=document.createElement("tr")
-let vals=[area,b,c,d.p,0,d.a,0,d.l,0,d.m,0,0,0,0]
-
-vals.forEach((v,i)=>{
-let td=document.createElement("td")
-let inp=document.createElement("input")
-inp.value=v
-if([4,6,8,10,11,13].includes(i))inp.readOnly=true
-td.appendChild(inp)
-tr.appendChild(td)
-})
-tb.appendChild(tr)
-calc(tr.cells[3].children[0])
-})
-saveData()
-}
-
-function uploadExcelExpenses(){
-let f=document.getElementById("fileUploadExpenses").files[0]
-if(!f)return alert("Select file")
-
-let r=new FileReader()
-r.onload=e=>{
-let wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"})
-let data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
-let map={}
-data.forEach(r=>{
-let c=r["Branch Code"]||""
-map[c]=(map[c]||0)+(+r["Amount"]||0)
-})
-
-document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
-let c=tr.cells[2].children[0].value
-if(map[c]){
-tr.cells[12].children[0].value=map[c]
-calc(tr.cells[3].children[0])
-}
-})
-saveData()
-}
-r.readAsArrayBuffer(f)
-}
-
 function downloadFilteredExcel(){
 let area=document.getElementById("areaSelect").value
 let rows=[]
-
 document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
 let a=tr.cells[0].children[0].value.trim()
 if(area==""||a==area){
@@ -330,12 +256,9 @@ tr.querySelectorAll("input").forEach(i=>r.push(i.value))
 rows.push(r)
 }
 })
-
 let payload=encodeURIComponent(JSON.stringify(rows))
 let a=encodeURIComponent(area||"All Areas")
-
-window.parent.location.search=
-"?download=1&area="+a+"&rows="+payload
+window.parent.location.search="?download=1&area="+a+"&rows="+payload
 }
 </script>
 </body>
@@ -344,31 +267,29 @@ window.parent.location.search=
 
 components.html(sustainability_html,height=1000,scrolling=True)
 
-# ---------- DOWNLOAD ----------
-params=st.query_params
+# -------- DOWNLOAD HANDLER --------
+params = st.experimental_get_query_params()
 
 if "download" in params:
-    area=params.get("area","All Areas")
-    rows_param=params.get("rows")
 
-    rows=json.loads(rows_param) if rows_param else []
+    area = params.get("area", ["All Areas"])[0]
+    rows_param = params.get("rows", [None])[0]
+    rows = json.loads(rows_param) if rows_param else []
 
     if rows:
-        cols=["Area","Branch","Code","Project","6%","ACAG","1%","PMLCHS","2%","PMY","3%","Total","Expenses","Diff"]
-        df=pd.DataFrame(rows,columns=cols)
+        columns = ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse","1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income","Expenses","Difference"]
+        df = pd.DataFrame(rows, columns=columns)
 
-        buffer=BytesIO()
-        with pd.ExcelWriter(buffer,engine="openpyxl") as writer:
-            df.to_excel(writer,index=False)
+        buffer = BytesIO()
+        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False)
 
         st.download_button(
-            "⬇️ Download Excel",
+            "⬇ Download Excel",
             buffer.getvalue(),
             file_name=f"Sustainability_{area}.xlsx"
         )
         st.success("Download ready ✔")
-    else:
-        st.warning("No data")
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1510,6 +1431,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

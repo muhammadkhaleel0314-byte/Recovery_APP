@@ -412,7 +412,11 @@ function processExpensesData(sheet) {
 """
 
 # یہاں HTML کو Streamlit میں لوڈ کرو (height بڑھا دیا ہے تاکہ پورا دکھے)
-components.html(sustainability_html, height=1800, scrolling=True, unsafe_allow_javascript=True)
+components.html(
+    sustainability_html,
+    height=1800,
+    scrolling=True
+)
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1554,6 +1558,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

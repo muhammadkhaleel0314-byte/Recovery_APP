@@ -74,222 +74,72 @@ st.markdown("""
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
-from io import BytesIO
-import json
+import io
 
-st.subheader("Sustainability Report - مکمل ٹول")
+st.set_page_config(page_title="Sustainability Report", layout="wide")
 
-sustainability_html = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Sustainability Report</title>
-<style>
-body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-.container { display: flex; gap: 20px; }
-.sidebar { width: 300px; background: #003366; color: #fff; padding: 15px; border-radius: 8px; }
-.sidebar h3 { margin-top: 0; }
-.sidebar label { display: block; margin: 10px 0 5px; }
-.sidebar input[type="file"], .sidebar select, .sidebar button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
-.sidebar button { background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
-.sidebar button:hover { background: #0052a3; }
-.content { flex: 1; background: #fff; padding: 20px; border-radius: 8px; overflow: auto; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-th { background: #eee; font-weight: bold; }
-input { width: 100%; border: none; text-align: center; padding: 5px; box-sizing: border-box; }
-input[readonly] { background: #f0f0f0; }
-button { cursor: pointer; padding: 8px 16px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 4px; }
-button:hover { background: #218838; }
-</style>
-</head>
-<body>
+st.title("Sustainability Report")
 
-<div class="container">
-<div class="sidebar">
-<h3>Options</h3>
+# ---------------- SIDEBAR ---------------- #
+st.sidebar.header("Options")
 
-<label>Upload Project Excel</label>
-<input type="file" id="fileUploadProjects" accept=".xlsx,.xls">
-<button onclick="uploadExcel()">Upload Projects</button>
+project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
+expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
-<label>Upload Expenses Excel</label>
-<input type="file" id="fileUploadExpenses" accept=".xlsx,.xls">
-<button onclick="uploadExcelExpenses()">Upload Expenses</button>
 
-<select id="areaSelect">
-<option value="">All Areas</option>
-</select>
+# ---------------- LOAD PROJECT DATA ---------------- #
+df = pd.DataFrame()
 
-<button onclick="downloadFilteredExcel()">Download Filtered Excel</button>
-</div>
+if project_file is not None:
+    try:
+        df = pd.read_excel(project_file)
+    except Exception as e:
+        st.error(f"File error: {e}")
 
-<div class="content">
-<h2>Sustainability Report</h2>
-<button onclick="addRow()">Add New Entry</button>
-<button onclick="saveData()">Save Table</button>
-<br><br>
 
-<table id="susTable">
-<thead>
-<tr>
-<th>Area</th><th>Branch</th><th>Branch Code</th>
-<th>Project Disburse</th><th>6% Income</th>
-<th>ACAG Disburse</th><th>1% Income</th>
-<th>PMLCHS Disburse</th><th>2% Income</th>
-<th>PMY Disburse</th><th>3% Income</th>
-<th>Total Income</th><th>Expenses</th><th>Difference</th>
-</tr>
-</thead>
+# ---------------- FILTER ---------------- #
+filtered_df = df.copy()
 
-<tbody>
-<tr>
-<td><input oninput="updateDropdown()"></td>
-<td><input></td>
-<td><input></td>
-<td><input oninput="calc(this)"></td>
-<td><input readonly></td>
-<td><input oninput="calc(this)"></td>
-<td><input readonly></td>
-<td><input oninput="calc(this)"></td>
-<td><input readonly></td>
-<td><input oninput="calc(this)"></td>
-<td><input readonly></td>
-<td><input readonly></td>
-<td><input oninput="calc(this)"></td>
-<td><input readonly></td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+if not df.empty:
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    if "Area" in df.columns:
+        area_list = ["All Areas"] + sorted(df["Area"].dropna().astype(str).unique())
+        selected_area = st.sidebar.selectbox("Select Area", area_list)
 
-<script>
-function calc(el){
-let r=el.parentElement.parentElement
-let p=+r.cells[3].children[0].value||0
-let a=+r.cells[5].children[0].value||0
-let l=+r.cells[7].children[0].value||0
-let m=+r.cells[9].children[0].value||0
-let e=+r.cells[12].children[0].value||0
+        if selected_area != "All Areas":
+            filtered_df = df[df["Area"].astype(str) == selected_area]
 
-r.cells[4].children[0].value=(p*0.06).toFixed(2)
-r.cells[6].children[0].value=(a*0.01).toFixed(2)
-r.cells[8].children[0].value=(l*0.02).toFixed(2)
-r.cells[10].children[0].value=(m*0.03).toFixed(2)
+    else:
+        st.warning("Column 'Area' not found in file")
 
-let total=(p*0.06)+(a*0.01)+(l*0.02)+(m*0.03)
-r.cells[11].children[0].value=total.toFixed(2)
-r.cells[13].children[0].value=(total-e).toFixed(2)
 
-saveData()
-}
+# ---------------- TABLE ---------------- #
+st.subheader("Data Table")
 
-function saveData(){
-let rows=[]
-document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
-let row=[]
-tr.querySelectorAll("input").forEach(i=>row.push(i.value))
-rows.push(row)
-})
-localStorage.setItem("sus",JSON.stringify(rows))
-updateDropdown()
-}
+if not filtered_df.empty:
+    st.dataframe(filtered_df, use_container_width=True)
+else:
+    st.info("Upload Project Excel file")
 
-function loadData(){
-let d=localStorage.getItem("sus")
-if(!d)return
-let rows=JSON.parse(d)
-let tb=document.querySelector("#susTable tbody")
-tb.innerHTML=""
-rows.forEach(r=>{
-let tr=document.createElement("tr")
-r.forEach(v=>{
-let td=document.createElement("td")
-let i=document.createElement("input")
-i.value=v
-td.appendChild(i)
-tr.appendChild(td)
-})
-tb.appendChild(tr)
-})
-updateDropdown()
-}
-loadData()
 
-function addRow(){
-let tb=document.querySelector("#susTable tbody")
-let newRow=tb.rows[0].cloneNode(true)
-newRow.querySelectorAll("input").forEach(i=>i.value="")
-tb.appendChild(newRow)
-}
+# ---------------- DOWNLOAD BUTTON ---------------- #
+def convert_excel(dataframe):
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        dataframe.to_excel(writer, index=False, sheet_name="Report")
+    return output.getvalue()
 
-function updateDropdown(){
-let sel=document.getElementById("areaSelect")
-let set=new Set()
-document.querySelectorAll("#susTable tbody tr").forEach(r=>{
-let v=r.cells[0].children[0].value.trim()
-if(v)set.add(v)
-})
-sel.querySelectorAll("option:not(:first)").forEach(o=>o.remove())
-set.forEach(a=>{
-let op=document.createElement("option")
-op.value=a
-op.text=a
-sel.add(op)
-})
-}
 
-function downloadFilteredExcel(){
-let area=document.getElementById("areaSelect").value
-let rows=[]
-document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
-let a=tr.cells[0].children[0].value.trim()
-if(area==""||a==area){
-let r=[]
-tr.querySelectorAll("input").forEach(i=>r.push(i.value))
-rows.push(r)
-}
-})
-let payload=encodeURIComponent(JSON.stringify(rows))
-let a=encodeURIComponent(area||"All Areas")
-window.parent.location.search="?download=1&area="+a+"&rows="+payload
-}
-</script>
-</body>
-</html>
-"""
+if not filtered_df.empty:
+    excel_file = convert_excel(filtered_df)
 
-components.html(sustainability_html,height=1000,scrolling=True)
-
-# -------- DOWNLOAD HANDLER --------
-params = st.experimental_get_query_params()
-
-if "download" in params:
-
-    area = params.get("area", ["All Areas"])[0]
-    rows_param = params.get("rows", [None])[0]
-    rows = json.loads(rows_param) if rows_param else []
-
-    if rows:
-        columns = ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse","1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income","Expenses","Difference"]
-        df = pd.DataFrame(rows, columns=columns)
-
-        buffer = BytesIO()
-        with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False)
-
-        st.download_button(
-            "⬇ Download Excel",
-            buffer.getvalue(),
-            file_name=f"Sustainability_{area}.xlsx"
-        )
-        st.success("Download ready ✔")
+    st.sidebar.download_button(
+        label="Download Filtered Excel",
+        data=excel_file,
+        file_name="filtered_report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1431,6 +1281,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -78,10 +78,9 @@ import streamlit.components.v1 as components
 import pandas as pd
 from io import BytesIO
 
-# اگر تمہارے کوڈ میں پہلے سے یہ سیکشن ہے تو replace کرو، ورنہ یہاں پیسٹ کرو
 st.subheader("Sustainability Report - مکمل ٹول")
 
-# پورا HTML + CSS + JS (تمہارا اصل کوڈ، download بٹن sidebar میں ایڈ کیا)
+# پورا HTML + CSS + JS (download بٹن sidebar میں ہے)
 sustainability_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -169,7 +168,7 @@ sustainability_html = """
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// تمہارا پورا JS logic یہاں ہے (calc, saveData, loadData, addRow, updateDropdown, uploadExcel, processExcelData, uploadExcelExpenses, processExpensesData)
+// JS فنکشنز (تمہارا اصل logic بالکل وہی ہے)
 function calc(el) {
   let row = el.parentElement.parentElement;
   let p = Number(row.cells[3].children[0].value) || 0;
@@ -358,10 +357,10 @@ function downloadFilteredExcel() {
 </html>
 """
 
-# Embed HTML (height کم رکھی ہے تاکہ نیچے نہ جائے)
+# Embed HTML
 components.html(sustainability_html, height=1000, scrolling=True)
 
-# Streamlit میں JS سے data لے کر download بٹن
+# Streamlit میں JS سے data لے کر Excel download
 st.markdown("### Download Status (sidebar سے بٹن استعمال کرو)")
 query_params = st.experimental_get_query_params()
 
@@ -1530,6 +1529,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

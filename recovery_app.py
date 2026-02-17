@@ -73,13 +73,13 @@ st.markdown("""
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
-# اگر پہلے سے import نہیں ہے تو یہ لائن ضرور لکھو
 import streamlit.components.v1 as components
+import pandas as pd
+from io import BytesIO
 
-# یہ تمہارے welcome یا Dashboard سیکشن کے نیچے پیسٹ کرو
-st.subheader("Sustainability Report - مکمل اندرونی ٹول")
+st.subheader("Sustainability Report - مکمل ٹول")
 
-# پورا HTML + CSS + JS (ایرر فری، درست فارمیٹ میں)
+# پورا HTML + CSS + JS (ایرر فری)
 sustainability_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -112,14 +112,15 @@ sustainability_html = """
         margin: 10px 0 5px;
     }
     .sidebar input[type="file"],
-    .sidebar select,
-    .sidebar button {
+    .sidebar select {
         width: 100%;
         padding: 8px;
         margin-bottom: 10px;
         box-sizing: border-box;
     }
     .sidebar button {
+        width: 100%;
+        padding: 10px;
         background: #0066cc;
         color: white;
         border: none;
@@ -241,7 +242,7 @@ sustainability_html = """
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// تمام JS فنکشنز (تمہارے کوڈ سے درست کیے گئے)
+// JS فنکشنز
 function calc(el) {
   let row = el.parentElement.parentElement;
   let p = Number(row.cells[3].children[0].value) || 0;
@@ -372,9 +373,6 @@ function processExcelData(sheet) {
   saveData();
 }
 
-// باقی فنکشنز (uploadExcelExpenses, processExpensesData) بھی یہاں شامل کرو
-// اگر تم چاہو تو یہ بھی پیسٹ کرو
-
 function uploadExcelExpenses() {
   let file = document.getElementById("fileUploadExpenses").files[0];
   if (!file) { alert("Select Excel file"); return; }
@@ -411,12 +409,43 @@ function processExpensesData(sheet) {
 </html>
 """
 
-# یہاں HTML کو Streamlit میں لوڈ کرو (height بڑھا دیا ہے تاکہ پورا دکھے)
-components.html(
-    sustainability_html,
-    height=1800,
-    scrolling=True
-)
+# Embed the HTML
+components.html(sustainability_html, height=1000, scrolling=True)
+
+# Download Excel Button (Streamlit سے)
+st.markdown("### Download Report")
+if st.button("Download Sustainability Table as Excel"):
+    # یہاں تمہارا real data ڈالو، اگر pandas میں ہے تو df = st.session_state.sus_df
+    # فی الحال sample data ہے، تم بدل سکتے ہو
+    data = {
+        "Area": ["Mardan", "Peshawar", "Swabi"],
+        "Branch": ["Branch 1", "Branch 2", "Branch 3"],
+        "Branch Code": ["B001", "B002", "B003"],
+        "Project Disburse": [500000, 750000, 300000],
+        "6% Income": [30000, 45000, 18000],
+        "ACAG Disburse": [200000, 300000, 100000],
+        "1% Income": [2000, 3000, 1000],
+        "PMLCHS Disburse": [150000, 200000, 80000],
+        "2% Income": [3000, 4000, 1600],
+        "PMY Disburse": [100000, 150000, 50000],
+        "3% Income": [3000, 4500, 1500],
+        "Total Income": [38000, 56500, 22100],
+        "Expenses": [10000, 15000, 5000],
+        "Difference": [28000, 41500, 17100]
+    }
+    df = pd.DataFrame(data)
+
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name="Sustainability")
+    output.seek(0)
+
+    st.download_button(
+        label="⬇️ Click to Download Excel File",
+        data=output,
+        file_name="Sustainability_Report.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1558,6 +1587,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

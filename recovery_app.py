@@ -80,7 +80,28 @@ st.markdown("""
 <title>Sustainability Report</title>
 <style>
 body{font-family:Arial; background:#f4f6f8; margin:0; padding:20px;}
-.container{display:flex; gap:20px;}
+.st.markdown("""
+<style>
+    .container {
+        display: flex;
+        gap: 20px;          /* یہاں درست ہے - خالی جگہ اور semicolon */
+    }
+    /* باقی تمام CSS بھی اسی طرح درست کرو */
+    body {
+        font-family: Arial;
+        background: #f4f6f8;
+        margin: 0;
+        padding: 20px;
+    }
+    .sidebar {
+        width: 300px;
+        background: #003366;
+        color: #fff;
+        padding: 15px;
+    }
+    /* ... باقی کلاسز یہاں لکھو جیسے تمہارے کوڈ میں ہیں ... */
+</style>
+""", unsafe_allow_html=True)
 .sidebar{width:300px; background:#003366; color:#fff; padding:15px;}
 .sidebar h3{margin-top:0;}
 .sidebar select, .sidebar button, .sidebar input{width:100%; margin-bottom:10px; padding:8px;}
@@ -1523,6 +1544,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

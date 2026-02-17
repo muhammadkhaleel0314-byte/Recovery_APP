@@ -74,319 +74,87 @@ st.markdown("""
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 from io import BytesIO
 
-# Sustainability embed کے نیچے یہ بلاک رکھو (پرانے download والے کوڈ کو replace کرو)
-st.subheader("Sustainability Report - مکمل ٹول")
+st.set_page_config(page_title="Sustainability Report", layout="wide")
+st.title("Sustainability Report - مکمل ٹول")
 
-# پورا HTML + CSS + JS (تمہارا اصل کوڈ، download بٹن ہٹا دیا)
-sustainability_html = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Sustainability Report</title>
-<style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-    .container { display: flex; gap: 20px; }
-    .sidebar { width: 300px; background: #003366; color: #fff; padding: 15px; border-radius: 8px; }
-    .sidebar h3 { margin-top: 0; }
-    .sidebar label { display: block; margin: 10px 0 5px; }
-    .sidebar input[type="file"], .sidebar select { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
-    .sidebar button { width: 100%; padding: 10px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; }
-    .sidebar button:hover { background: #0052a3; }
-    .content { flex: 1; background: #fff; padding: 20px; border-radius: 8px; overflow: auto; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; font-weight: bold; }
-    input { width: 100%; border: none; text-align: center; padding: 5px; box-sizing: border-box; }
-    input[readonly] { background: #f0f0f0; }
-    button { cursor: pointer; padding: 8px 16px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 4px; }
-    button:hover { background: #218838; }
-</style>
-</head>
-<body>
-<div class="container">
-  <div class="sidebar">
-    <h3>Options</h3>
+# ---------------- SIDEBAR ---------------- #
+st.sidebar.header("Options")
 
-    <label>Upload Project Excel</label>
-    <input type="file" id="fileUploadProjects" accept=".xlsx,.xls">
-    <button onclick="uploadExcel()">Upload Projects</button>
+project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
+expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
-    <label>Upload Expenses Excel</label>
-    <input type="file" id="fileUploadExpenses" accept=".xlsx,.xls">
-    <button onclick="uploadExcelExpenses()">Upload Expenses</button>
+# ---------------- LOAD PROJECT DATA ---------------- #
+df_projects = pd.DataFrame()
+if project_file is not None:
+    df_projects = pd.read_excel(project_file)
 
-    <select id="areaSelect">
-      <option value="">All Areas</option>
-    </select>
-  </div>
-
-  <div class="content">
-    <h2>Sustainability Report</h2>
-    <button onclick="addRow()">Add New Entry</button>
-    <button onclick="saveData()">Save Table</button>
-    <br><br>
-
-    <table id="susTable">
-      <thead>
-        <tr>
-          <th>Area</th><th>Branch</th><th>Branch Code</th>
-          <th>Project Disburse</th><th>6% Income</th>
-          <th>ACAG Disburse</th><th>1% Income</th>
-          <th>PMLCHS Disburse</th><th>2% Income</th>
-          <th>PMY Disburse</th><th>3% Income</th>
-          <th>Total Income</th><th>Expenses</th><th>Difference</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input oninput="updateDropdown()"></td>
-          <td><input></td>
-          <td><input></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-// تمہارا پورا JS logic یہاں ہے (calc, saveData, loadData, addRow, updateDropdown, uploadExcel, processExcelData, uploadExcelExpenses, processExpensesData)
-function calc(el) {
-  let row = el.parentElement.parentElement;
-  let p = Number(row.cells[3].children[0].value) || 0;
-  let a = Number(row.cells[5].children[0].value) || 0;
-  let l = Number(row.cells[7].children[0].value) || 0;
-  let m = Number(row.cells[9].children[0].value) || 0;
-  let exp = Number(row.cells[12].children[0].value) || 0;
-
-  row.cells[4].children[0].value = (p * 0.06).toFixed(2);
-  row.cells[6].children[0].value = (a * 0.01).toFixed(2);
-  row.cells[8].children[0].value = (l * 0.02).toFixed(2);
-  row.cells[10].children[0].value = (m * 0.03).toFixed(2);
-
-  let total = (p * 0.06) + (a * 0.01) + (l * 0.02) + (m * 0.03);
-  row.cells[11].children[0].value = total.toFixed(2);
-  row.cells[13].children[0].value = (total - exp).toFixed(2);
-
-  saveData();
-}
-
-function saveData() {
-  let rows = [];
-  document.querySelectorAll("#susTable tbody tr").forEach(tr => {
-    let rowData = [];
-    tr.querySelectorAll("input").forEach(input => rowData.push(input.value));
-    rows.push(rowData);
-  });
-  localStorage.setItem("sustainability", JSON.stringify(rows));
-  updateDropdown();
-}
-
-function loadData() {
-  let data = localStorage.getItem("sustainability");
-  if (data) {
-    let rows = JSON.parse(data);
-    let tbody = document.querySelector("#susTable tbody");
-    tbody.innerHTML = "";
-    rows.forEach(r => {
-      let tr = document.createElement("tr");
-      r.forEach(v => {
-        let td = document.createElement("td");
-        let input = document.createElement("input");
-        input.value = v;
-        td.appendChild(input);
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-  }
-  updateDropdown();
-}
-loadData();
-
-function addRow() {
-  let table = document.getElementById("susTable").getElementsByTagName("tbody")[0];
-  let newRow = table.rows[0].cloneNode(true);
-  newRow.querySelectorAll("input").forEach(i => i.value = "");
-  table.appendChild(newRow);
-}
-
-function updateDropdown() {
-  let select = document.getElementById("areaSelect");
-  let areas = new Set();
-  document.querySelectorAll("#susTable tbody tr").forEach(r => {
-    let val = r.cells[0].children[0].value.trim();
-    if (val) areas.add(val);
-  });
-  select.querySelectorAll("option:not(:first-child)").forEach(o => o.remove());
-  areas.forEach(a => {
-    let opt = document.createElement("option");
-    opt.value = a;
-    opt.text = a;
-    select.add(opt);
-  });
-}
-
-function uploadExcel() {
-  let file = document.getElementById("fileUploadProjects").files[0];
-  if (!file) { alert("Select Excel file"); return; }
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let data = new Uint8Array(e.target.result);
-    let workbook = XLSX.read(data, {type: "array"});
-    let sheetName = workbook.SheetNames[0];
-    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-    processExcelData(sheet);
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function processExcelData(sheet) {
-  let tbody = document.querySelector("#susTable tbody");
-  tbody.innerHTML = "";
-
-  let branchMap = {};
-  sheet.forEach(row => {
-    let area = row["Area"] || "";
-    let branch = row["Branch Name"] || "";
-    let code = row["Branch Code"] || "";
-    let amount = Number(row["Amount"]) || 0;
-    let sanc = row["Sanction No"] || "";
-
-    let key = area + "|" + branch + "|" + code;
-    if (!branchMap[key]) branchMap[key] = {project: 0, acag: 0, pmlchs: 0, pmy: 0};
-
-    if (sanc.includes("D030")) branchMap[key].acag += amount;
-    else if (sanc.includes("D003")) branchMap[key].pmlchs += amount;
-    else if (sanc.includes("D027") || sanc.includes("D028")) branchMap[key].pmy += amount;
-    else branchMap[key].project += amount;
-  });
-
-  Object.keys(branchMap).forEach(k => {
-    let [area, branch, code] = k.split("|");
-    let data = branchMap[k];
-    let tr = document.createElement("tr");
-    let values = [area, branch, code, data.project, 0, data.acag, 0, data.pmlchs, 0, data.pmy, 0, 0, 0, 0];
-    values.forEach((v, idx) => {
-      let td = document.createElement("td");
-      let input = document.createElement("input");
-      input.value = v;
-      if ([4,6,8,10,11,13].includes(idx)) input.readOnly = true;
-      td.appendChild(input);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-    calc(tr.cells[3].children[0]);
-  });
-  saveData();
-}
-
-function uploadExcelExpenses() {
-  let file = document.getElementById("fileUploadExpenses").files[0];
-  if (!file) { alert("Select Excel file"); return; }
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let data = new Uint8Array(e.target.result);
-    let workbook = XLSX.read(data, {type: "array"});
-    let sheetName = workbook.SheetNames[0];
-    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-    processExpensesData(sheet);
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function processExpensesData(sheet) {
-  let expMap = {};
-  sheet.forEach(row => {
-    let code = row["Branch Code"] || "";
-    let amount = Number(row["Amount"]) || 0;
-    expMap[code] = (expMap[code] || 0) + amount;
-  });
-
-  document.querySelectorAll("#susTable tbody tr").forEach(tr => {
-    let code = tr.cells[2].children[0].value;
-    if (expMap[code]) {
-      tr.cells[12].children[0].value = expMap[code];
-      calc(tr.cells[3].children[0]);
-    }
-  });
-  saveData();
-}
-</script>
-</body>
-</html>
-"""
-
-# Embed HTML
-components.html(sustainability_html, height=1000, scrolling=True)
-
-# Download Excel (فیلٹر کے ساتھ)
-st.markdown("### Download Report (جو Area select کیا ہے، وہی کا Excel)")
-
-# اگر تم نے Projects Excel اپلوڈ کیا ہے تو اسے استعمال کرو
-if 'projects_df' in st.session_state:
-    df = st.session_state.projects_df.copy()
+# Expenses ko merge karo agar upload ho
+if expense_file is not None and not df_projects.empty:
+    df_expenses = pd.read_excel(expense_file)
+    # Sum of Amount per Branch Code
+    exp_sum = df_expenses.groupby("Branch Code")["Amount"].sum().reset_index()
+    df_projects = df_projects.merge(exp_sum, on="Branch Code", how="left")
+    df_projects["Amount_y"] = df_projects["Amount_y"].fillna(0)
+    df_projects.rename(columns={"Amount_y": "Expenses"}, inplace=True)
 else:
-    df = pd.DataFrame()  # اگر کوئی data نہیں تو خالی
+    if not df_projects.empty:
+        df_projects["Expenses"] = 0
 
-if not df.empty:
-    # Area کالم چیک کرو (تمہاری شیٹ میں کالم کا نام چیک کرو)
-    area_column = "Area"  # اگر تمہاری شیٹ میں کالم کا نام مختلف ہے تو یہاں بدل دو (مثلاً "area_id" یا "Area Name")
-    if area_column in df.columns:
-        areas = ["All Areas"] + sorted(df[area_column].dropna().unique().tolist())
-        selected_area = st.selectbox("Select Area for Download", areas)
+# ---------------- CALCULATIONS ---------------- #
+if not df_projects.empty:
+    # Project Disburse
+    df_projects["Project Disburse"] = df_projects["Amount"].copy()
+    # Income calculations
+    df_projects["6% Income"] = (df_projects["Project Disburse"] * 0.06).round(2)
+    df_projects["ACAG Disburse"] = df_projects["Amount"].where(df_projects["Sanction No"].str.contains("D030", na=False), 0)
+    df_projects["1% Income"] = (df_projects["ACAG Disburse"] * 0.01).round(2)
+    df_projects["PMLCHS Disburse"] = df_projects["Amount"].where(df_projects["Sanction No"].str.contains("D003", na=False), 0)
+    df_projects["2% Income"] = (df_projects["PMLCHS Disburse"] * 0.02).round(2)
+    df_projects["PMY Disburse"] = df_projects["Amount"].where(df_projects["Sanction No"].str.contains("D027|D028", regex=True, na=False), 0)
+    df_projects["3% Income"] = (df_projects["PMY Disburse"] * 0.03).round(2)
+    df_projects["Total Income"] = (df_projects["6% Income"] + df_projects["1% Income"] +
+                                   df_projects["2% Income"] + df_projects["3% Income"]).round(2)
+    df_projects["Difference"] = (df_projects["Total Income"] - df_projects["Expenses"]).round(2)
 
-        # فیلٹر
-        df_filtered = df.copy()
-        if selected_area != "All Areas":
-            df_filtered = df_filtered[df_filtered[area_column] == selected_area]
+# ---------------- AREA FILTER ---------------- #
+area_column = "Area"
+if not df_projects.empty and area_column in df_projects.columns:
+    areas = ["All Areas"] + sorted(df_projects[area_column].dropna().unique())
+    selected_area = st.sidebar.selectbox("Select Area", areas)
 
-        # Download بٹن
-        if st.button("Download Selected Area کا Excel"):
-            output = BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df_filtered.to_excel(writer, index=False, sheet_name="Filtered Report")
-            output.seek(0)
-
-            file_name = "Sustainability_All.xlsx" if selected_area == "All Areas" else f"Sustainability_{selected_area}.xlsx"
-            st.download_button(
-                label="⬇️ Click to Download " + selected_area + " Excel",
-                data=output,
-                file_name=file_name,
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-            st.success(f"{len(df_filtered)} rows ready! کلک کرکے ڈاؤن لوڈ کرو")
+    if selected_area != "All Areas":
+        df_display = df_projects[df_projects[area_column] == selected_area]
     else:
-        st.warning("تمہاری شیٹ میں 'Area' کالم نہیں ہے۔ پوری شیٹ download ہو گی۔")
-        if st.button("Download Full Report as Excel"):
-            output = BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name="Sustainability")
-            output.seek(0)
-            st.download_button(
-                label="⬇️ Download Full Excel",
-                data=output,
-                file_name="Sustainability_Full.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        df_display = df_projects.copy()
 else:
-    st.info("پہلے Projects Excel اپلوڈ کرو (Upload Projects بٹن سے)۔")
+    df_display = df_projects.copy()
+
+# ---------------- DISPLAY TABLE ---------------- #
+st.subheader("Data Table")
+if not df_display.empty:
+    st.dataframe(df_display, use_container_width=True)
+else:
+    st.info("Upload Project Excel file to view data.")
+
+# ---------------- DOWNLOAD BUTTON ---------------- #
+def to_excel(df):
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name="Filtered Report")
+    output.seek(0)
+    return output
+
+if not df_display.empty:
+    excel_data = to_excel(df_display)
+    st.sidebar.download_button(
+        label=f"⬇️ Download {selected_area} Excel",
+        data=excel_data,
+        file_name=f"Sustainability_{selected_area}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1528,6 +1296,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

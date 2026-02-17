@@ -77,318 +77,298 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 from io import BytesIO
+import json
 
-# اگر تمہارے کوڈ میں پہلے سے یہ سیکشن ہے تو replace کرو، ورنہ یہاں پیسٹ کرو
 st.subheader("Sustainability Report - مکمل ٹول")
 
-# پورا HTML + CSS + JS (تمہارا اصل کوڈ، download بٹن sidebar میں ایڈ کیا)
 sustainability_html = """
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Sustainability Report</title>
 <style>
-    body { font-family: Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 20px; }
-    .container { display: flex; gap: 20px; }
-    .sidebar { width: 300px; background: #003366; color: #fff; padding: 15px; border-radius: 8px; }
-    .sidebar h3 { margin-top: 0; }
-    .sidebar label { display: block; margin: 10px 0 5px; }
-    .sidebar input[type="file"], .sidebar select, .sidebar button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
-    .sidebar button { background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    .sidebar button:hover { background: #0052a3; }
-    .content { flex: 1; background: #fff; padding: 20px; border-radius: 8px; overflow: auto; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #eee; font-weight: bold; }
-    input { width: 100%; border: none; text-align: center; padding: 5px; box-sizing: border-box; }
-    input[readonly] { background: #f0f0f0; }
-    button { cursor: pointer; padding: 8px 16px; margin: 5px; background: #28a745; color: white; border: none; border-radius: 4px; }
-    button:hover { background: #218838; }
+body{font-family:Arial;background:#f4f6f8;padding:20px}
+.container{display:flex;gap:20px}
+.sidebar{width:300px;background:#003366;color:#fff;padding:15px;border-radius:8px}
+.sidebar input,.sidebar select,.sidebar button{width:100%;padding:8px;margin-bottom:10px}
+.content{flex:1;background:#fff;padding:20px;border-radius:8px}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
+input{width:100%;border:none;text-align:center}
+input[readonly]{background:#eee}
+button{cursor:pointer;padding:8px;background:#28a745;color:white;border:none;border-radius:4px}
 </style>
 </head>
+
 <body>
 <div class="container">
-  <div class="sidebar">
-    <h3>Options</h3>
 
-    <label>Upload Project Excel</label>
-    <input type="file" id="fileUploadProjects" accept=".xlsx,.xls">
-    <button onclick="uploadExcel()">Upload Projects</button>
+<div class="sidebar">
+<h3>Options</h3>
 
-    <label>Upload Expenses Excel</label>
-    <input type="file" id="fileUploadExpenses" accept=".xlsx,.xls">
-    <button onclick="uploadExcelExpenses()">Upload Expenses</button>
+<label>Upload Projects</label>
+<input type="file" id="fileUploadProjects">
+<button onclick="uploadExcel()">Upload</button>
 
-    <select id="areaSelect">
-      <option value="">All Areas</option>
-    </select>
+<label>Upload Expenses</label>
+<input type="file" id="fileUploadExpenses">
+<button onclick="uploadExcelExpenses()">Upload</button>
 
-    <!-- Download بٹن sidebar میں -->
-    <button onclick="downloadFilteredExcel()">Download Filtered Excel</button>
-  </div>
+<select id="areaSelect">
+<option value="">All Areas</option>
+</select>
 
-  <div class="content">
-    <h2>Sustainability Report</h2>
-    <button onclick="addRow()">Add New Entry</button>
-    <button onclick="saveData()">Save Table</button>
-    <br><br>
+<button onclick="downloadFilteredExcel()">Download Excel</button>
+</div>
 
-    <table id="susTable">
-      <thead>
-        <tr>
-          <th>Area</th><th>Branch</th><th>Branch Code</th>
-          <th>Project Disburse</th><th>6% Income</th>
-          <th>ACAG Disburse</th><th>1% Income</th>
-          <th>PMLCHS Disburse</th><th>2% Income</th>
-          <th>PMY Disburse</th><th>3% Income</th>
-          <th>Total Income</th><th>Expenses</th><th>Difference</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input oninput="updateDropdown()"></td>
-          <td><input></td>
-          <td><input></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-          <td><input readonly></td>
-          <td><input oninput="calc(this)"></td>
-          <td><input readonly></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+<div class="content">
+<h2>Sustainability Report</h2>
+<button onclick="addRow()">Add Row</button>
+
+<table id="susTable">
+<thead>
+<tr>
+<th>Area</th><th>Branch</th><th>Code</th>
+<th>Project</th><th>6%</th>
+<th>ACAG</th><th>1%</th>
+<th>PMLCHS</th><th>2%</th>
+<th>PMY</th><th>3%</th>
+<th>Total</th><th>Expenses</th><th>Diff</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><input oninput="updateDropdown()"></td>
+<td><input></td>
+<td><input></td>
+<td><input oninput="calc(this)"></td>
+<td><input readonly></td>
+<td><input oninput="calc(this)"></td>
+<td><input readonly></td>
+<td><input oninput="calc(this)"></td>
+<td><input readonly></td>
+<td><input oninput="calc(this)"></td>
+<td><input readonly></td>
+<td><input readonly></td>
+<td><input oninput="calc(this)"></td>
+<td><input readonly></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
-// تمہارا پورا JS logic یہاں ہے (calc, saveData, loadData, addRow, updateDropdown, uploadExcel, processExcelData, uploadExcelExpenses, processExpensesData)
-function calc(el) {
-  let row = el.parentElement.parentElement;
-  let p = Number(row.cells[3].children[0].value) || 0;
-  let a = Number(row.cells[5].children[0].value) || 0;
-  let l = Number(row.cells[7].children[0].value) || 0;
-  let m = Number(row.cells[9].children[0].value) || 0;
-  let exp = Number(row.cells[12].children[0].value) || 0;
 
-  row.cells[4].children[0].value = (p * 0.06).toFixed(2);
-  row.cells[6].children[0].value = (a * 0.01).toFixed(2);
-  row.cells[8].children[0].value = (l * 0.02).toFixed(2);
-  row.cells[10].children[0].value = (m * 0.03).toFixed(2);
+function calc(el){
+let r=el.parentElement.parentElement
+let p=+r.cells[3].children[0].value||0
+let a=+r.cells[5].children[0].value||0
+let l=+r.cells[7].children[0].value||0
+let m=+r.cells[9].children[0].value||0
+let e=+r.cells[12].children[0].value||0
 
-  let total = (p * 0.06) + (a * 0.01) + (l * 0.02) + (m * 0.03);
-  row.cells[11].children[0].value = total.toFixed(2);
-  row.cells[13].children[0].value = (total - exp).toFixed(2);
+r.cells[4].children[0].value=(p*0.06).toFixed(2)
+r.cells[6].children[0].value=(a*0.01).toFixed(2)
+r.cells[8].children[0].value=(l*0.02).toFixed(2)
+r.cells[10].children[0].value=(m*0.03).toFixed(2)
 
-  saveData();
+let total=(p*0.06)+(a*0.01)+(l*0.02)+(m*0.03)
+r.cells[11].children[0].value=total.toFixed(2)
+r.cells[13].children[0].value=(total-e).toFixed(2)
+
+saveData()
 }
 
-function saveData() {
-  let rows = [];
-  document.querySelectorAll("#susTable tbody tr").forEach(tr => {
-    let rowData = [];
-    tr.querySelectorAll("input").forEach(input => rowData.push(input.value));
-    rows.push(rowData);
-  });
-  localStorage.setItem("sustainability", JSON.stringify(rows));
-  updateDropdown();
+function saveData(){
+let rows=[]
+document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
+let row=[]
+tr.querySelectorAll("input").forEach(i=>row.push(i.value))
+rows.push(row)
+})
+localStorage.setItem("sus",JSON.stringify(rows))
+updateDropdown()
 }
 
-function loadData() {
-  let data = localStorage.getItem("sustainability");
-  if (data) {
-    let rows = JSON.parse(data);
-    let tbody = document.querySelector("#susTable tbody");
-    tbody.innerHTML = "";
-    rows.forEach(r => {
-      let tr = document.createElement("tr");
-      r.forEach(v => {
-        let td = document.createElement("td");
-        let input = document.createElement("input");
-        input.value = v;
-        td.appendChild(input);
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-  }
-  updateDropdown();
+function loadData(){
+let d=localStorage.getItem("sus")
+if(!d)return
+let rows=JSON.parse(d)
+let tb=document.querySelector("#susTable tbody")
+tb.innerHTML=""
+rows.forEach(r=>{
+let tr=document.createElement("tr")
+r.forEach(v=>{
+let td=document.createElement("td")
+let i=document.createElement("input")
+i.value=v
+td.appendChild(i)
+tr.appendChild(td)
+})
+tb.appendChild(tr)
+})
+updateDropdown()
 }
-loadData();
+loadData()
 
-function addRow() {
-  let table = document.getElementById("susTable").getElementsByTagName("tbody")[0];
-  let newRow = table.rows[0].cloneNode(true);
-  newRow.querySelectorAll("input").forEach(i => i.value = "");
-  table.appendChild(newRow);
-}
-
-function updateDropdown() {
-  let select = document.getElementById("areaSelect");
-  let areas = new Set();
-  document.querySelectorAll("#susTable tbody tr").forEach(r => {
-    let val = r.cells[0].children[0].value.trim();
-    if (val) areas.add(val);
-  });
-  select.querySelectorAll("option:not(:first-child)").forEach(o => o.remove());
-  areas.forEach(a => {
-    let opt = document.createElement("option");
-    opt.value = a;
-    opt.text = a;
-    select.add(opt);
-  });
+function addRow(){
+let tb=document.querySelector("#susTable tbody")
+let newRow=tb.rows[0].cloneNode(true)
+newRow.querySelectorAll("input").forEach(i=>i.value="")
+tb.appendChild(newRow)
 }
 
-function uploadExcel() {
-  let file = document.getElementById("fileUploadProjects").files[0];
-  if (!file) { alert("Select Excel file"); return; }
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let data = new Uint8Array(e.target.result);
-    let workbook = XLSX.read(data, {type: "array"});
-    let sheetName = workbook.SheetNames[0];
-    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-    processExcelData(sheet);
-  };
-  reader.readAsArrayBuffer(file);
+function updateDropdown(){
+let sel=document.getElementById("areaSelect")
+let set=new Set()
+document.querySelectorAll("#susTable tbody tr").forEach(r=>{
+let v=r.cells[0].children[0].value.trim()
+if(v)set.add(v)
+})
+sel.querySelectorAll("option:not(:first)").forEach(o=>o.remove())
+set.forEach(a=>{
+let op=document.createElement("option")
+op.value=a
+op.text=a
+sel.add(op)
+})
 }
 
-function processExcelData(sheet) {
-  let tbody = document.querySelector("#susTable tbody");
-  tbody.innerHTML = "";
+function uploadExcel(){
+let f=document.getElementById("fileUploadProjects").files[0]
+if(!f)return alert("Select file")
 
-  let branchMap = {};
-  sheet.forEach(row => {
-    let area = row["Area"] || "";
-    let branch = row["Branch Name"] || "";
-    let code = row["Branch Code"] || "";
-    let amount = Number(row["Amount"]) || 0;
-    let sanc = row["Sanction No"] || "";
-
-    let key = area + "|" + branch + "|" + code;
-    if (!branchMap[key]) branchMap[key] = {project: 0, acag: 0, pmlchs: 0, pmy: 0};
-
-    if (sanc.includes("D030")) branchMap[key].acag += amount;
-    else if (sanc.includes("D003")) branchMap[key].pmlchs += amount;
-    else if (sanc.includes("D027") || sanc.includes("D028")) branchMap[key].pmy += amount;
-    else branchMap[key].project += amount;
-  });
-
-  Object.keys(branchMap).forEach(k => {
-    let [area, branch, code] = k.split("|");
-    let data = branchMap[k];
-    let tr = document.createElement("tr");
-    let values = [area, branch, code, data.project, 0, data.acag, 0, data.pmlchs, 0, data.pmy, 0, 0, 0, 0];
-    values.forEach((v, idx) => {
-      let td = document.createElement("td");
-      let input = document.createElement("input");
-      input.value = v;
-      if ([4,6,8,10,11,13].includes(idx)) input.readOnly = true;
-      td.appendChild(input);
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-    calc(tr.cells[3].children[0]);
-  });
-  saveData();
+let r=new FileReader()
+r.onload=e=>{
+let wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"})
+let data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+processExcelData(data)
+}
+r.readAsArrayBuffer(f)
 }
 
-function uploadExcelExpenses() {
-  let file = document.getElementById("fileUploadExpenses").files[0];
-  if (!file) { alert("Select Excel file"); return; }
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let data = new Uint8Array(e.target.result);
-    let workbook = XLSX.read(data, {type: "array"});
-    let sheetName = workbook.SheetNames[0];
-    let sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-    processExpensesData(sheet);
-  };
-  reader.readAsArrayBuffer(file);
+function processExcelData(sheet){
+let tb=document.querySelector("#susTable tbody")
+tb.innerHTML=""
+let map={}
+
+sheet.forEach(row=>{
+let area=row["Area"]||""
+let branch=row["Branch Name"]||""
+let code=row["Branch Code"]||""
+let amt=+row["Amount"]||0
+let s=row["Sanction No"]||""
+
+let k=area+"|"+branch+"|"+code
+if(!map[k])map[k]={p:0,a:0,l:0,m:0}
+
+if(s.includes("D030"))map[k].a+=amt
+else if(s.includes("D003"))map[k].l+=amt
+else if(s.includes("D027")||s.includes("D028"))map[k].m+=amt
+else map[k].p+=amt
+})
+
+Object.keys(map).forEach(k=>{
+let [area,b,c]=k.split("|")
+let d=map[k]
+let tr=document.createElement("tr")
+let vals=[area,b,c,d.p,0,d.a,0,d.l,0,d.m,0,0,0,0]
+
+vals.forEach((v,i)=>{
+let td=document.createElement("td")
+let inp=document.createElement("input")
+inp.value=v
+if([4,6,8,10,11,13].includes(i))inp.readOnly=true
+td.appendChild(inp)
+tr.appendChild(td)
+})
+tb.appendChild(tr)
+calc(tr.cells[3].children[0])
+})
+saveData()
 }
 
-function processExpensesData(sheet) {
-  let expMap = {};
-  sheet.forEach(row => {
-    let code = row["Branch Code"] || "";
-    let amount = Number(row["Amount"]) || 0;
-    expMap[code] = (expMap[code] || 0) + amount;
-  });
+function uploadExcelExpenses(){
+let f=document.getElementById("fileUploadExpenses").files[0]
+if(!f)return alert("Select file")
 
-  document.querySelectorAll("#susTable tbody tr").forEach(tr => {
-    let code = tr.cells[2].children[0].value;
-    if (expMap[code]) {
-      tr.cells[12].children[0].value = expMap[code];
-      calc(tr.cells[3].children[0]);
-    }
-  });
-  saveData();
+let r=new FileReader()
+r.onload=e=>{
+let wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"})
+let data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+let map={}
+data.forEach(r=>{
+let c=r["Branch Code"]||""
+map[c]=(map[c]||0)+(+r["Amount"]||0)
+})
+
+document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
+let c=tr.cells[2].children[0].value
+if(map[c]){
+tr.cells[12].children[0].value=map[c]
+calc(tr.cells[3].children[0])
+}
+})
+saveData()
+}
+r.readAsArrayBuffer(f)
 }
 
-// Download فنکشن (sidebar میں بٹن کے لیے)
-function downloadFilteredExcel() {
-  let selectedArea = document.getElementById("areaSelect").value;
-  let filteredRows = [];
+function downloadFilteredExcel(){
+let area=document.getElementById("areaSelect").value
+let rows=[]
 
-  document.querySelectorAll("#susTable tbody tr").forEach(tr => {
-    let area = tr.cells[0].children[0].value.trim();
-    if (selectedArea === "" || area === selectedArea) {
-      let row = [];
-      tr.querySelectorAll("input").forEach(input => row.push(input.value));
-      filteredRows.push(row);
-    }
-  });
+document.querySelectorAll("#susTable tbody tr").forEach(tr=>{
+let a=tr.cells[0].children[0].value.trim()
+if(area==""||a==area){
+let r=[]
+tr.querySelectorAll("input").forEach(i=>r.push(i.value))
+rows.push(r)
+}
+})
 
-  // Streamlit کو data بھیجیں
-  window.parent.postMessage({
-    type: "download_sustainability",
-    area: selectedArea || "All Areas",
-    rows: filteredRows
-  }, "*");
+let payload=encodeURIComponent(JSON.stringify(rows))
+let a=encodeURIComponent(area||"All Areas")
+
+window.parent.location.search=
+"?download=1&area="+a+"&rows="+payload
 }
 </script>
 </body>
 </html>
 """
 
-# Embed HTML (height کم رکھی ہے تاکہ نیچے نہ جائے)
-components.html(sustainability_html, height=1000, scrolling=True)
+components.html(sustainability_html,height=1000,scrolling=True)
 
-# Streamlit میں JS سے data لے کر download بٹن
-st.markdown("### Download Status (sidebar سے بٹن استعمال کرو)")
-query_params = st.experimental_get_query_params()
+# ---------- DOWNLOAD ----------
+params=st.query_params
 
-if "download_sustainability" in query_params:
-    area = query_params.get("area", ["All Areas"])[0]
-    rows = query_params.get("rows", [])
+if "download" in params:
+    area=params.get("area","All Areas")
+    rows_param=params.get("rows")
+
+    rows=json.loads(rows_param) if rows_param else []
 
     if rows:
-        columns = ["Area", "Branch", "Branch Code", "Project Disburse", "6% Income", "ACAG Disburse", "1% Income", "PMLCHS Disburse", "2% Income", "PMY Disburse", "3% Income", "Total Income", "Expenses", "Difference"]
-        df = pd.DataFrame(rows, columns=columns)
+        cols=["Area","Branch","Code","Project","6%","ACAG","1%","PMLCHS","2%","PMY","3%","Total","Expenses","Diff"]
+        df=pd.DataFrame(rows,columns=cols)
 
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name="Filtered Report")
-        output.seek(0)
+        buffer=BytesIO()
+        with pd.ExcelWriter(buffer,engine="openpyxl") as writer:
+            df.to_excel(writer,index=False)
 
         st.download_button(
-            label=f"⬇️ Download {area} کا Excel (اب کلک کرو)",
-            data=output,
-            file_name=f"Sustainability_{area.replace(' ', '_')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "⬇️ Download Excel",
+            buffer.getvalue(),
+            file_name=f"Sustainability_{area}.xlsx"
         )
-        st.success(f"{len(df)} rows ready for {area} - کلک کرکے ڈاؤن لوڈ کرو")
+        st.success("Download ready ✔")
     else:
-        st.warning("No data received. Area select کرکے sidebar میں Download بٹن دباؤ۔")
-
-st.info("Sidebar میں 'Download Filtered Excel' بٹن پر کلک کرو۔ اگر data نہ ملے تو Area select کرکے دوبارہ کوشش کرو۔")
+        st.warning("No data")
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1530,6 +1510,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

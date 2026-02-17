@@ -78,9 +78,10 @@ import streamlit.components.v1 as components
 import pandas as pd
 from io import BytesIO
 
+# Sustainability embed کے نیچے یہ بلاک رکھو (پرانے download والے کوڈ کو replace کرو)
 st.subheader("Sustainability Report - مکمل ٹول")
 
-# پورا HTML + CSS + JS (download بٹن sidebar میں ہے)
+# پورا HTML + CSS + JS (تمہارا اصل کوڈ، download بٹن ہٹا دیا)
 sustainability_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -93,8 +94,8 @@ sustainability_html = """
     .sidebar { width: 300px; background: #003366; color: #fff; padding: 15px; border-radius: 8px; }
     .sidebar h3 { margin-top: 0; }
     .sidebar label { display: block; margin: 10px 0 5px; }
-    .sidebar input[type="file"], .sidebar select, .sidebar button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
-    .sidebar button { background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .sidebar input[type="file"], .sidebar select { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+    .sidebar button { width: 100%; padding: 10px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 5px; }
     .sidebar button:hover { background: #0052a3; }
     .content { flex: 1; background: #fff; padding: 20px; border-radius: 8px; overflow: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -122,9 +123,6 @@ sustainability_html = """
     <select id="areaSelect">
       <option value="">All Areas</option>
     </select>
-
-    <!-- Download بٹن sidebar میں -->
-    <button onclick="downloadFilteredExcel()">Download Filtered Excel</button>
   </div>
 
   <div class="content">
@@ -168,7 +166,7 @@ sustainability_html = """
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// JS فنکشنز (تمہارا اصل logic بالکل وہی ہے)
+// تمہارا پورا JS logic یہاں ہے (calc, saveData, loadData, addRow, updateDropdown, uploadExcel, processExcelData, uploadExcelExpenses, processExpensesData)
 function calc(el) {
   let row = el.parentElement.parentElement;
   let p = Number(row.cells[3].children[0].value) || 0;
@@ -330,28 +328,6 @@ function processExpensesData(sheet) {
   });
   saveData();
 }
-
-// Download فنکشن (sidebar میں بٹن کے لیے)
-function downloadFilteredExcel() {
-  let selectedArea = document.getElementById("areaSelect").value;
-  let filteredRows = [];
-
-  document.querySelectorAll("#susTable tbody tr").forEach(tr => {
-    let area = tr.cells[0].children[0].value.trim();
-    if (selectedArea === "" || area === selectedArea) {
-      let row = [];
-      tr.querySelectorAll("input").forEach(input => row.push(input.value));
-      filteredRows.push(row);
-    }
-  });
-
-  // Streamlit کو data بھیجیں
-  window.parent.postMessage({
-    type: "download_sustainability",
-    area: selectedArea || "All Areas",
-    rows: filteredRows
-  }, "*");
-}
 </script>
 </body>
 </html>
@@ -360,34 +336,57 @@ function downloadFilteredExcel() {
 # Embed HTML
 components.html(sustainability_html, height=1000, scrolling=True)
 
-# Streamlit میں JS سے data لے کر Excel download
-st.markdown("### Download Status (sidebar سے بٹن استعمال کرو)")
-query_params = st.experimental_get_query_params()
+# Download Excel (فیلٹر کے ساتھ)
+st.markdown("### Download Report (جو Area select کیا ہے، وہی کا Excel)")
 
-if "download_sustainability" in query_params:
-    area = query_params.get("area", ["All Areas"])[0]
-    rows = query_params.get("rows", [])
+# اگر تم نے Projects Excel اپلوڈ کیا ہے تو اسے استعمال کرو
+if 'projects_df' in st.session_state:
+    df = st.session_state.projects_df.copy()
+else:
+    df = pd.DataFrame()  # اگر کوئی data نہیں تو خالی
 
-    if rows:
-        columns = ["Area", "Branch", "Branch Code", "Project Disburse", "6% Income", "ACAG Disburse", "1% Income", "PMLCHS Disburse", "2% Income", "PMY Disburse", "3% Income", "Total Income", "Expenses", "Difference"]
-        df = pd.DataFrame(rows, columns=columns)
+if not df.empty:
+    # Area کالم چیک کرو (تمہاری شیٹ میں کالم کا نام چیک کرو)
+    area_column = "Area"  # اگر تمہاری شیٹ میں کالم کا نام مختلف ہے تو یہاں بدل دو (مثلاً "area_id" یا "Area Name")
+    if area_column in df.columns:
+        areas = ["All Areas"] + sorted(df[area_column].dropna().unique().tolist())
+        selected_area = st.selectbox("Select Area for Download", areas)
 
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name="Filtered Report")
-        output.seek(0)
+        # فیلٹر
+        df_filtered = df.copy()
+        if selected_area != "All Areas":
+            df_filtered = df_filtered[df_filtered[area_column] == selected_area]
 
-        st.download_button(
-            label=f"⬇️ Download {area} کا Excel (اب کلک کرو)",
-            data=output,
-            file_name=f"Sustainability_{area.replace(' ', '_')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-        st.success(f"{len(df)} rows ready for {area} - کلک کرکے ڈاؤن لوڈ کرو")
+        # Download بٹن
+        if st.button("Download Selected Area کا Excel"):
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df_filtered.to_excel(writer, index=False, sheet_name="Filtered Report")
+            output.seek(0)
+
+            file_name = "Sustainability_All.xlsx" if selected_area == "All Areas" else f"Sustainability_{selected_area}.xlsx"
+            st.download_button(
+                label="⬇️ Click to Download " + selected_area + " Excel",
+                data=output,
+                file_name=file_name,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+            st.success(f"{len(df_filtered)} rows ready! کلک کرکے ڈاؤن لوڈ کرو")
     else:
-        st.warning("No data received. Area select کرکے sidebar میں Download بٹن دباؤ۔")
-
-st.info("Sidebar میں 'Download Filtered Excel' بٹن پر کلک کرو۔ اگر data نہ ملے تو Area select کرکے دوبارہ کوشش کرو۔")
+        st.warning("تمہاری شیٹ میں 'Area' کالم نہیں ہے۔ پوری شیٹ download ہو گی۔")
+        if st.button("Download Full Report as Excel"):
+            output = BytesIO()
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name="Sustainability")
+            output.seek(0)
+            st.download_button(
+                label="⬇️ Download Full Excel",
+                data=output,
+                file_name="Sustainability_Full.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+else:
+    st.info("پہلے Projects Excel اپلوڈ کرو (Upload Projects بٹن سے)۔")
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1529,6 +1528,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

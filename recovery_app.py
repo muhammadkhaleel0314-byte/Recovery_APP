@@ -358,7 +358,7 @@ function downloadFilteredExcel() {
 </html>
 """
 
-# Embed HTML (height کم رکھی ہے)
+# Embed HTML (height کم رکھی ہے تاکہ نیچے نہ جائے)
 components.html(sustainability_html, height=1000, scrolling=True)
 
 # Streamlit میں JS سے data لے کر download بٹن
@@ -1530,6 +1530,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

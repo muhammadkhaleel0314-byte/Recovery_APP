@@ -77,12 +77,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# ---------- Fixed Signin Menu ----------
-
-# ---------- MDP Report Expander (Below Signin) ----------
-with st.sidebar.expander("📊 MDP Report"):
-    st.write("Upload sheets and generate MDP report here")
-
 # ---------------- PAGE CONFIG ---------------- #
 
 st.markdown("<h1 style='color:#003366;'>Sustainability Report - مکمل ٹول</h1>", unsafe_allow_html=True)
@@ -1344,6 +1338,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

@@ -291,8 +291,7 @@ def read_file(file):
 
 # ---------- MDP Report Expander ----------
 with st.sidebar.expander("📊 MDP Report"):
-    st.write("Upload sheets and generate MDP report here")
-
+    
     # --- File Upload ---
     active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="mdp_active_upload")
     mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_mdp_upload")
@@ -1483,6 +1482,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

@@ -137,7 +137,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(layout="wide")
 
 # --------------------------
 # Sustainability Sidebar Section
@@ -1455,6 +1454,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

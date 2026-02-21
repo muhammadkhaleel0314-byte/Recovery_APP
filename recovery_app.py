@@ -76,7 +76,6 @@ st.markdown("""
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(layout="wide")
 
 # =========================
 # Merge Function
@@ -1453,6 +1452,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

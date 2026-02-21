@@ -137,11 +137,15 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
+
 # ---------------- PAGE CONFIG ---------------- #
 
 st.markdown("<h1 style='color:#003366;'>Sustainability Report - مکمل ٹول</h1>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
+# ---------- Fixed Signin Menu ----------
+
+# ---------- Option Expander (Below Signin) ----------
 st.sidebar.header("Options")
 project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
 expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
@@ -1452,6 +1456,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

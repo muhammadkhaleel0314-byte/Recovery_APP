@@ -151,7 +151,7 @@ expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
 # ---------------- LOAD PROJECTS ---------------- #
 df_raw = pd.DataFrame()
-if projects_file is not None:
+if project_file is not None:
     df_raw = pd.read_excel(project_file)
 
 # ---------------- LOAD EXPENSES ---------------- #
@@ -1455,6 +1455,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

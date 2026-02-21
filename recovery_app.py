@@ -257,129 +257,89 @@ if not df_display.empty:
         file_name=f"Sustainability_{selected_area}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-# -------------------
-# MDP Section with G/P and Grand Total
-# -------------------
-
 import streamlit as st
 import pandas as pd
 
-from io import BytesIO
+st.set_page_config(layout="wide")
 
-# ---------- Fixed Signin Menu ----------
+st.title("MDP Calculator - Active Loan Based")
 
-# ---------- MDP Report Expander (Below Signin) ----------
-with st.sidebar.expander("📊 MDP Report"):
-    st.write("Upload sheets and generate MDP report here")
+# =========================
+# Main CSV Upload
+# =========================
+main_file = st.file_uploader(
+    "Upload Main CSV",
+    type="csv"
+)
 
-    # --- File Upload ---
-    active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="mdp_active_upload")
-    mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_mdp_upload")
+# =========================
+# Progress CSV Upload
+# =========================
+progress_file = st.file_uploader(
+    "Upload Progress CSV",
+    type="csv"
+)
 
-    # --- Placeholders ---
-    table_placeholder = st.empty()
-    overall_download_placeholder = st.empty()
-    area_dropdown_placeholder = st.empty()
-    area_download_placeholder = st.empty()
+# =========================
+# When main file uploaded
+# =========================
+if main_file:
 
-    # --- Show info if files not uploaded ---
-    if not active_file or not mdp_file:
-        table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")
+    df = pd.read_csv(main_file)
+    df.columns = df.columns.str.strip()
 
-    # --- Main Logic (same as your existing code) ---
-    if active_file and mdp_file:
-        try:
-            active_df = pd.read_csv(active_file) if active_file.name.endswith(".csv") else pd.read_excel(active_file)
-            mdp_df = pd.read_csv(mdp_file) if mdp_file.name.endswith(".csv") else pd.read_excel(mdp_file)
-        except Exception as e:
-            table_placeholder.error(f"Error reading files: {e}")
-            st.stop()
+    st.success("Main file uploaded")
 
-        # --- Clean columns ---
-        active_df.columns = active_df.columns.str.strip()
-        mdp_df.columns = mdp_df.columns.str.strip()
+    # =========================
+    # If progress file uploaded
+    # =========================
+    if progress_file:
 
-        # --- Pivot Calculation ---
-        report_data = []
+        prog_df = pd.read_csv(progress_file)
+        prog_df.columns = prog_df.columns.str.strip()
 
-        for (area, branch), group in mdp_df.groupby(['area_id','branch_id']):
-            due_count = len(active_df[active_df['branch_id']==branch])
-            amount_sum = group['Due Amount'].sum()
-            active_sanctions = active_df[active_df['branch_id']==branch]['Sanction No'].tolist()
-            g_by_count = sum([1 for x in active_sanctions if x in group['sanction_no'].values])
-            n_a_count = due_count - g_by_count
-            p_b = round((g_by_count/due_count)*100,2) if due_count!=0 else 0
-            n_p = round((n_a_count/due_count)*100,2) if due_count!=0 else 0
-            g_p = p_b  # G/P = same as % of counted borrowers
+        if "Branch Code" in prog_df.columns and "Active Loans" in prog_df.columns:
 
-            report_data.append({
-                'Area': area,
-                'Branch': branch,
-                'Active': '',
-                'Due': due_count,
-                'Amount': amount_sum,
-                'Given/BY': g_by_count,
-                'G/P %': g_p,
-                'MDP/Box %': p_b,
-                'N/A': n_a_count,
-                'N/P %': n_p
-            })
+            # Mapping dictionary
+            active_map = dict(zip(prog_df["Branch Code"], prog_df["Active Loans"]))
 
-        report_df = pd.DataFrame(report_data)
+            # Match Branch Code
+            if "Branch Code" in df.columns:
 
-        # --- Add Grand Total Row ---
-        grand_total = {
-            'Area': 'Grand Total',
-            'Branch': '',
-            'Active': '',
-            'Due': report_df['Due'].sum(),
-            'Amount': report_df['Amount'].sum(),
-            'Given/BY': report_df['Given/BY'].sum(),
-            'G/P %': round((report_df['Given/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
-            'MDP/Box %': round((report_df['Given/BY'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0,
-            'N/A': report_df['N/A'].sum(),
-            'N/P %': round((report_df['N/A'].sum()/report_df['Due'].sum())*100,2) if report_df['Due'].sum()!=0 else 0
-        }
+                df["Active Loans"] = df["Branch Code"].map(active_map).fillna(0)
 
-        report_df = pd.concat([report_df, pd.DataFrame([grand_total])], ignore_index=True)
+                # =========================
+                # MDP Calculation
+                # =========================
+                df["MDP/Box"] = df["Active Loans"] * 0.02
 
-        # --- Display Table ---
-        table_placeholder.dataframe(report_df)
+                st.success("MDP calculated from Active Loans")
 
-        # --- Excel Helper ---
-        def to_excel(df):
-            output = BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='MDP_Report')
-            return output.getvalue()
+            else:
+                st.error("Main file me Branch Code column nahi mila")
 
-        # --- Overall Download ---
-        excel_data = to_excel(report_df)
-        overall_download_placeholder.download_button(
-            label="📥 Download Overall Report",
-            data=excel_data,
-            file_name="MDP_Report_Overall.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            key="mdp_overall_download"
-        )
+        else:
+            st.error("Progress file me 'Branch Code' aur 'Active Loans' columns honay chahiye")
 
-        # --- Area-wise Dropdown & Download ---
-        areas = report_df['Area'].unique().tolist()
-        areas = [x for x in areas if x!='Grand Total']
-        areas.sort()
-        areas.insert(0,"All Areas")
+    # =========================
+    # Show Table
+    # =========================
+    st.dataframe(df, use_container_width=True)
 
-        selected_area = area_dropdown_placeholder.selectbox("Select Area", areas, key="mdp_area_dropdown")
-        df_to_download = report_df if selected_area=="All Areas" else report_df[report_df['Area']==selected_area]
-        excel_data_area = to_excel(df_to_download)
+    # =========================
+    # Download Button
+    # =========================
+    csv = df.to_csv(index=False).encode("utf-8")
 
-        area_download_placeholder.download_button(
-            label=f"📥 Download {selected_area} Report",
-            data=excel_data_area,
-            file_name=f"MDP_Report_{selected_area}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            key="mdp_area_download"
-        )
+    st.download_button(
+        label="Download Result CSV",
+        data=csv,
+        file_name="MDP_Result.csv",
+        mime="text/csv"
+    )
+
+else:
+    st.info("Upload main CSV file to start")
 
 import streamlit as st
 import pandas as pd
@@ -1452,6 +1412,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

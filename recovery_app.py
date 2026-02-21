@@ -260,8 +260,8 @@ if not df_display.empty:
 import streamlit as st
 import pandas as pd
 
-
-st.title("MDP Calculator - Active Loan Based")
+st.set_page_config(layout="wide")
+st.title("MDP Calculator - Active Loans Based")
 
 # =========================
 # Main CSV Upload
@@ -272,10 +272,10 @@ main_file = st.file_uploader(
 )
 
 # =========================
-# Progress CSV Upload
+# Progress CSV Upload (Active Loans)
 # =========================
 progress_file = st.file_uploader(
-    "Upload Progress CSV",
+    "Upload Progress CSV (Active Loans)",
     type="csv"
 )
 
@@ -283,42 +283,35 @@ progress_file = st.file_uploader(
 # When main file uploaded
 # =========================
 if main_file:
-
     df = pd.read_csv(main_file)
     df.columns = df.columns.str.strip()
-
     st.success("Main file uploaded")
 
     # =========================
-    # If progress file uploaded
+    # Apply Active Loan Logic if progress file uploaded
     # =========================
     if progress_file:
-
         prog_df = pd.read_csv(progress_file)
         prog_df.columns = prog_df.columns.str.strip()
 
         if "Branch Code" in prog_df.columns and "Active Loans" in prog_df.columns:
 
-            # Mapping dictionary
+            # Mapping: Branch Code -> Active Loans
             active_map = dict(zip(prog_df["Branch Code"], prog_df["Active Loans"]))
 
-            # Match Branch Code
+            # Apply mapping to main dataframe
             if "Branch Code" in df.columns:
-
                 df["Active Loans"] = df["Branch Code"].map(active_map).fillna(0)
 
-                # =========================
-                # MDP Calculation
-                # =========================
+                # MDP calculation from Active Loans
                 df["MDP/Box"] = df["Active Loans"] * 0.02
 
                 st.success("MDP calculated from Active Loans")
 
             else:
-                st.error("Main file me Branch Code column nahi mila")
-
+                st.error("Main file does not have 'Branch Code' column")
         else:
-            st.error("Progress file me 'Branch Code' aur 'Active Loans' columns honay chahiye")
+            st.error("Progress file must contain 'Branch Code' and 'Active Loans' columns")
 
     # =========================
     # Show Table
@@ -329,7 +322,6 @@ if main_file:
     # Download Button
     # =========================
     csv = df.to_csv(index=False).encode("utf-8")
-
     st.download_button(
         label="Download Result CSV",
         data=csv,
@@ -338,8 +330,7 @@ if main_file:
     )
 
 else:
-    st.info("Upload main CSV file to start")
-
+    st.info("Upload main CSV file first")
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -1411,6 +1402,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

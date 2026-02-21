@@ -141,7 +141,7 @@ from io import BytesIO
 
 # ---------------- PAGE CONFIG ---------------- #
 
-st.markdown("<h1 style='color:#003366;'>Sustainability Report - مکمل ٹول</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style=>Sustainability Report /h1>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
 
@@ -1455,6 +1455,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

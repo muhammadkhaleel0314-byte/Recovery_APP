@@ -260,7 +260,6 @@ if not df_display.empty:
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(layout="wide")
 st.title("MDP Calculator - Active Loans Based")
 
 # =========================
@@ -1402,6 +1401,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

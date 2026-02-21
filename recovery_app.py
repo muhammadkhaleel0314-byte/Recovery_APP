@@ -76,55 +76,62 @@ st.markdown("""
 import streamlit as st
 import pandas as pd
 
+st.set_page_config(layout="wide")
+
 # =========================
-# CSV Merge Function
+# Merge Function
 # =========================
 def merge_uploaded_csv(files):
-    if not files:
-        return pd.DataFrame()
-
     dfs = []
     for file in files:
-        try:
-            df = pd.read_csv(file)
-            df.columns = df.columns.str.strip()  # column spaces remove
-            dfs.append(df)
-        except Exception as e:
-            st.error(f"Error reading {file.name}: {e}")
-
-    if dfs:
-        merged = pd.concat(dfs, ignore_index=True)
-        return merged
-    else:
-        return pd.DataFrame()
+        df = pd.read_csv(file)
+        df.columns = df.columns.str.strip()
+        dfs.append(df)
+    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 
 # =========================
-# File Upload
+# Session State Save
+# =========================
+if "merged_df" not in st.session_state:
+    st.session_state.merged_df = None
+
+
+# =========================
+# Upload
 # =========================
 files = st.file_uploader(
     "Upload CSV Files",
-    type=["csv"],
+    type="csv",
     accept_multiple_files=True
 )
 
 # =========================
-# Merge + Show
+# Merge Button (manual trigger)
 # =========================
-if files:
-    merged_df = merge_uploaded_csv(files)
+if st.button("Merge Files"):
+    if files:
+        st.session_state.merged_df = merge_uploaded_csv(files)
+    else:
+        st.warning("Upload files first")
 
-    st.success(f"{len(files)} files merged | Total rows: {len(merged_df)}")
 
-    st.dataframe(merged_df)
+# =========================
+# Show + Download
+# =========================
+if st.session_state.merged_df is not None:
 
-    # Download merged file
-    csv = merged_df.to_csv(index=False).encode("utf-8")
+    df = st.session_state.merged_df
+
+    st.success(f"Total Rows: {len(df)}")
+    st.dataframe(df)
+
+    csv = df.to_csv(index=False).encode("utf-8")
 
     st.download_button(
-        label="Download Merged CSV",
+        label="Download Merged File",
         data=csv,
-        file_name="merged_data.csv",
+        file_name="merged.csv",
         mime="text/csv"
     )
 import streamlit as st
@@ -1446,6 +1453,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

@@ -141,7 +141,7 @@ from io import BytesIO
 
 # ---------------- PAGE CONFIG ---------------- #
 
-st.markdown("<h1 style=>Sustainability Report /h1>", unsafe_allow_html=True)
+st.markdown("<h1 style'color:#003366;'=>Sustainability Report ", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
 
@@ -224,7 +224,7 @@ def render_table(df):
         st.info("Upload Project Excel to view table.")
         return
     html = "<table style='width:100%; border-collapse: collapse; text-align:center;'>"
-    html += "<tr style='background:#eee;'>"
+    html += "<tr style='background:#2e7d32; color:white;'>"
     for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
                 "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
                 "Expenses","Difference"]:
@@ -1455,6 +1455,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

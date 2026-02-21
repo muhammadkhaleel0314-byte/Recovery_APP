@@ -150,7 +150,7 @@ with st.sidebar.expander("📊 Sustainability Report", expanded=True):
 
 # ---------------- LOAD PROJECTS ---------------- #
 df_raw = pd.DataFrame()
-if project_file is not None:
+if projects_file is not None:
     df_raw = pd.read_excel(project_file)
 
 # ---------------- LOAD EXPENSES ---------------- #
@@ -1454,6 +1454,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

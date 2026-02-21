@@ -133,20 +133,21 @@ if st.session_state.merged_df is not None:
         file_name="merged.csv",
         mime="text/csv"
     )
+
 import streamlit as st
 import pandas as pd
 from io import BytesIO
 
 
-# --------------------------
-# Sustainability Sidebar Section
-# --------------------------
-with st.sidebar.expander("📊 Sustainability Report", expanded=True):
-    st.write("Upload Projects/Expenses Excel here")
-    # Upload examples
-    st.file_uploader("Projects Excel", type=["xlsx","xls","csv"], key="sus_projects")
-    st.file_uploader("Expenses Excel", type=["xlsx","xls","csv"], key="sus_expenses")
-    st.button("Generate Sustainability Report", key="sus_generate")
+# ---------------- PAGE CONFIG ---------------- #
+
+st.markdown("<h1 style='color:#003366;'>Sustainability Report - مکمل ٹول</h1>", unsafe_allow_html=True)
+
+# ---------------- SIDEBAR ---------------- #
+
+st.sidebar.header("Options")
+project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"])
+expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"])
 
 # ---------------- LOAD PROJECTS ---------------- #
 df_raw = pd.DataFrame()
@@ -1454,6 +1455,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

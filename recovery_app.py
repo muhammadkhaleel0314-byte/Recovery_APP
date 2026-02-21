@@ -1338,6 +1338,60 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+import streamlit as st
+import pandas as pd
+
+# =========================
+# CSV Merge Function
+# =========================
+def merge_uploaded_csv(files):
+    if not files:
+        return pd.DataFrame()
+
+    dfs = []
+    for file in files:
+        try:
+            df = pd.read_csv(file)
+            df.columns = df.columns.str.strip()  # column spaces remove
+            dfs.append(df)
+        except Exception as e:
+            st.error(f"Error reading {file.name}: {e}")
+
+    if dfs:
+        merged = pd.concat(dfs, ignore_index=True)
+        return merged
+    else:
+        return pd.DataFrame()
+
+
+# =========================
+# File Upload
+# =========================
+files = st.file_uploader(
+    "Upload CSV Files",
+    type=["csv"],
+    accept_multiple_files=True
+)
+
+# =========================
+# Merge + Show
+# =========================
+if files:
+    merged_df = merge_uploaded_csv(files)
+
+    st.success(f"{len(files)} files merged | Total rows: {len(merged_df)}")
+
+    st.dataframe(merged_df)
+
+    # Download merged file
+    csv = merged_df.to_csv(index=False).encode("utf-8")
+
+    st.download_button(
+        label="Download Merged CSV",
+        data=csv,
+        file_name="merged_data.csv",
+        mime="text/csv"
+    )
 
 
 

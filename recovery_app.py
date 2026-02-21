@@ -259,43 +259,23 @@ if not df_display.empty:
     )
 
 # -------------------
-# MDP Section with Progress Report, G/P and Grand Total
+# MDP Section with G/P and Grand Total
 # -------------------
 
 import streamlit as st
 import pandas as pd
+
 from io import BytesIO
 
-st.set_page_config(layout="wide")
+# ---------- Fixed Signin Menu ----------
 
-# --- Helper to read any supported file ---
-def read_file(file):
-    try:
-        if file.name.endswith(".csv"):
-            return pd.read_csv(file)
-        elif file.name.endswith(".xlsx"):
-            return pd.read_excel(file, engine="openpyxl")
-        elif file.name.endswith(".xls"):
-            try:
-                import xlrd
-            except ImportError:
-                st.error("Please install xlrd to read .xls files: pip install xlrd>=2.0.1")
-                return pd.DataFrame()
-            return pd.read_excel(file, engine="xlrd")
-        else:
-            st.error("Unsupported file type")
-            return pd.DataFrame()
-    except Exception as e:
-        st.error(f"Error reading file {file.name}: {e}")
-        return pd.DataFrame()
-
-# ---------- MDP Report Expander ----------
+# ---------- MDP Report Expander (Below Signin) ----------
 with st.sidebar.expander("📊 MDP Report"):
-    
+    st.write("Upload sheets and generate MDP report here")
+
     # --- File Upload ---
     active_file = st.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="mdp_active_upload")
     mdp_file = st.file_uploader("Upload MDP Sheet", type=["xlsx","xls","csv"], key="mdp_mdp_upload")
-    progress_file = st.file_uploader("Upload Progress Report", type=["xlsx","xls","csv"], key="mdp_progress_upload")
 
     # --- Placeholders ---
     table_placeholder = st.empty()
@@ -303,51 +283,41 @@ with st.sidebar.expander("📊 MDP Report"):
     area_dropdown_placeholder = st.empty()
     area_download_placeholder = st.empty()
 
-    # --- Check uploads ---
+    # --- Show info if files not uploaded ---
     if not active_file or not mdp_file:
-        table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report.")
-    else:
-        # --- Read files safely ---
-        active_df = read_file(active_file)
-        mdp_df = read_file(mdp_file)
-        progress_df = read_file(progress_file) if progress_file else pd.DataFrame()
+        table_placeholder.info("Upload both Active and MDP sheets to generate the MDP report and download options.")
 
-        # --- Clean column names ---
-        for df in [active_df, mdp_df, progress_df]:
-            df.columns = df.columns.str.strip()
+    # --- Main Logic (same as your existing code) ---
+    if active_file and mdp_file:
+        try:
+            active_df = pd.read_csv(active_file) if active_file.name.endswith(".csv") else pd.read_excel(active_file)
+            mdp_df = pd.read_csv(mdp_file) if mdp_file.name.endswith(".csv") else pd.read_excel(mdp_file)
+        except Exception as e:
+            table_placeholder.error(f"Error reading files: {e}")
+            st.stop()
 
-        # --- Main MDP logic ---
+        # --- Clean columns ---
+        active_df.columns = active_df.columns.str.strip()
+        mdp_df.columns = mdp_df.columns.str.strip()
+
+        # --- Pivot Calculation ---
         report_data = []
 
         for (area, branch), group in mdp_df.groupby(['area_id','branch_id']):
-            # Active Loans count
-            active_count = len(active_df[active_df['branch_id']==branch])
-            # Amount sum from MDP sheet
+            due_count = len(active_df[active_df['branch_id']==branch])
             amount_sum = group['Due Amount'].sum()
-
-            # Match active sanctions in MDP
             active_sanctions = active_df[active_df['branch_id']==branch]['Sanction No'].tolist()
             g_by_count = sum([1 for x in active_sanctions if x in group['sanction_no'].values])
-
-            # N/A count
-            n_a_count = active_count - g_by_count
-
-            # Progress Report MDP/Box from Active or Progress
-            if not progress_df.empty:
-                progress_sanctions = progress_df[progress_df['branch_id']==branch]['Sanction No'].tolist()
-                mdp_box_count = sum([1 for x in progress_sanctions if x in group['sanction_no'].values])
-            else:
-                mdp_box_count = g_by_count  # default old logic
-
-            p_b = round((mdp_box_count/active_count)*100,2) if active_count!=0 else 0
-            n_p = round((n_a_count/active_count)*100,2) if active_count!=0 else 0
-            g_p = round((g_by_count/active_count)*100,2) if active_count!=0 else 0
+            n_a_count = due_count - g_by_count
+            p_b = round((g_by_count/due_count)*100,2) if due_count!=0 else 0
+            n_p = round((n_a_count/due_count)*100,2) if due_count!=0 else 0
+            g_p = p_b  # G/P = same as % of counted borrowers
 
             report_data.append({
                 'Area': area,
                 'Branch': branch,
-                'Active': active_count,
-                'Due': active_count,
+                'Active': '',
+                'Due': due_count,
                 'Amount': amount_sum,
                 'Given/BY': g_by_count,
                 'G/P %': g_p,
@@ -362,7 +332,7 @@ with st.sidebar.expander("📊 MDP Report"):
         grand_total = {
             'Area': 'Grand Total',
             'Branch': '',
-            'Active': report_df['Active'].sum(),
+            'Active': '',
             'Due': report_df['Due'].sum(),
             'Amount': report_df['Amount'].sum(),
             'Given/BY': report_df['Given/BY'].sum(),
@@ -1482,6 +1452,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

@@ -1211,57 +1211,61 @@ if uploaded_file:
 import streamlit as st
 import pandas as pd
 from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-from reportlab.lib import colors
 import os
 
-# ---------------- PAGE CONFIG ----------------
+st.set_page_config(layout="wide")
 
 st.title("Recovery Date Range Summary")
 
-# ---------------- LOCAL STORAGE ----------------
-LOCAL_FILE = "data/recovery.xlsx"
+# ---------------- Local Save Path ----------------
+LOCAL_FILE = "data/recovery_saved.xlsx"
 os.makedirs("data", exist_ok=True)
 
-# ---------------- FILE UPLOAD ----------------
-uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+# ---------------- Upload File ----------------
+uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx","csv"])
 
+# ---------------- Save Uploaded ----------------
 if uploaded is not None:
+
     if uploaded.name.endswith(".csv"):
         df = pd.read_csv(uploaded)
     else:
         df = pd.read_excel(uploaded)
 
-    st.session_state["df"] = df
+    # save session
+    st.session_state["recovery_df"] = df
+
+    # save locally
     df.to_excel(LOCAL_FILE, index=False)
 
-    st.success("File uploaded and saved!")
+    st.success("File uploaded & saved successfully")
 
-elif "df" in st.session_state:
-    df = st.session_state["df"]
+# ---------------- Restore Previous ----------------
+elif "recovery_df" in st.session_state:
+    df = st.session_state["recovery_df"]
+    st.info("Loaded from session memory")
 
 elif os.path.exists(LOCAL_FILE):
     df = pd.read_excel(LOCAL_FILE)
-    st.session_state["df"] = df
-    st.info("Loaded previously saved file.")
+    st.session_state["recovery_df"] = df
+    st.info("Loaded previously saved file")
 
 else:
-    st.warning("Upload file first.")
+    st.warning("Upload file to continue")
     st.stop()
 
-# ---------------- COLUMN SELECTION ----------------
+# ---------------- Column Selection ----------------
 st.subheader("Available Columns")
 st.write(list(df.columns))
 
 date_col = st.selectbox("Select Date Column", df.columns)
-branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
+branch_col = st.selectbox("Select Branch Column", df.columns)
 
 area_col = None
 if "area_id" in df.columns:
     area_col = "area_id"
 
-# ---------------- DATE CONVERT ----------------
+# ---------------- Date Convert ----------------
 df[date_col] = pd.to_datetime(
     df[date_col].astype(str).str.strip(),
     format="%Y-%b-%d",
@@ -1270,18 +1274,16 @@ df[date_col] = pd.to_datetime(
 
 df = df.dropna(subset=[date_col, branch_col])
 df["Day"] = df[date_col].dt.day
+df = df[df["Day"].notna()]
 
+# ---------------- Range ----------------
 df["Range"] = pd.cut(
     df["Day"],
     bins=[0,10,20,31],
     labels=["1-10","11-20","21-31"]
 )
 
-if df["Range"].isna().all():
-    st.error("Date column format incorrect.")
-    st.stop()
-
-# ---------------- PIVOT ----------------
+# ---------------- Pivot ----------------
 pivot = pd.pivot_table(
     df,
     index=[branch_col],
@@ -1296,9 +1298,9 @@ for c in ["1-10","11-20","21-31"]:
 
 pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
 
-pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
-pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
-pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
+pivot["1-10 %"] = (pivot["1-10"]/pivot["Total"]*100).round(2)
+pivot["11-20 %"] = (pivot["11-20"]/pivot["Total"]*100).round(2)
+pivot["21-31 %"] = (pivot["21-31"]/pivot["Total"]*100).round(2)
 
 pivot.rename(columns={
     "1-10":"Recovery 1-10",
@@ -1308,91 +1310,53 @@ pivot.rename(columns={
 
 result_df = pivot.reset_index()
 
-# ---------------- ADD AREA COLUMN ----------------
+# ---------------- Add Area ----------------
 if area_col:
-    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
-    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    area_df = df[[branch_col,area_col]].drop_duplicates()
+    result_df = result_df.merge(area_df,on=branch_col,how="left")
 
     cols = result_df.columns.tolist()
     branch_idx = cols.index(branch_col)
     cols.insert(branch_idx, cols.pop(cols.index(area_col)))
     result_df = result_df[cols]
 
-# ---------------- GRAND TOTAL ----------------
-numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
+# ---------------- Grand Total ----------------
+numeric = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
+totals = result_df[numeric].sum()
 
-grand_counts = result_df[numeric_cols].sum()
-grand_percent = (
-    grand_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]]
-    / grand_counts["Total"] * 100
-).round(2)
-
-grand_row = {}
-
+grand = {}
 for col in result_df.columns:
     if col == branch_col:
-        grand_row[col] = "Grand Total"
+        grand[col] = "Grand Total"
     elif col == area_col:
-        grand_row[col] = ""
-    elif col in numeric_cols:
-        grand_row[col] = grand_counts[col]
-    elif col in ["1-10 %","11-20 %","21-31 %"]:
-        mapcol = {
-            "1-10 %":"Recovery 1-10",
-            "11-20 %":"Recovery 11-20",
-            "21-31 %":"Recovery 21-31"
-        }
-        grand_row[col] = grand_percent[mapcol[col]]
+        grand[col] = ""
+    elif col in numeric:
+        grand[col] = totals[col]
     else:
-        grand_row[col] = ""
+        grand[col] = ""
 
-result_df = pd.concat([result_df, pd.DataFrame([grand_row])], ignore_index=True)
+result_df = pd.concat([result_df, pd.DataFrame([grand])], ignore_index=True)
 
-# ---------------- SHOW TABLE ----------------
+# ---------------- Display ----------------
 st.subheader("Branch Wise Recovery Summary")
 st.dataframe(result_df, use_container_width=True)
 
-# ---------------- CSV DOWNLOAD ----------------
+# ---------------- Download CSV ----------------
 csv = result_df.to_csv(index=False).encode("utf-8")
-st.download_button(
-    "⬇ Download CSV",
-    csv,
-    "recovery_summary.csv",
-    "text/csv"
-)
+st.download_button("⬇ Download CSV", csv, "recovery_summary.csv","text/csv")
 
-# ---------------- PDF DOWNLOAD ----------------
-buffer = BytesIO()
-doc = SimpleDocTemplate(buffer, pagesize=A4)
-
-table_data = [result_df.columns.tolist()] + result_df.values.tolist()
-
-table = Table(table_data)
-
-table.setStyle(TableStyle([
-    ('GRID',(0,0),(-1,-1),1,colors.black),
-    ('BACKGROUND',(0,0),(-1,0),colors.grey),
-    ('ALIGN',(0,0),(-1,-1),'CENTER'),
-    ('FONTSIZE',(0,0),(-1,-1),9)
-]))
-
-doc.build([table])
-pdf = buffer.getvalue()
-buffer.close()
+# ---------------- Download Excel ----------------
+output = BytesIO()
+with pd.ExcelWriter(output, engine="openpyxl") as writer:
+    result_df.to_excel(writer,index=False)
+output.seek(0)
 
 st.download_button(
-    "⬇ Download PDF",
-    pdf,
-    "recovery_summary.pdf",
-    "application/pdf"
+    "⬇ Download Excel",
+    output,
+    "recovery_summary.xlsx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 )
-
-# ---------------- CLEAR BUTTON ----------------
-if st.sidebar.button("Clear Saved Data"):
-    if os.path.exists(LOCAL_FILE):
-        os.remove(LOCAL_FILE)
-    st.session_state.pop("df", None)
-    st.success("Saved data cleared. Refresh page.")
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -1596,6 +1560,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

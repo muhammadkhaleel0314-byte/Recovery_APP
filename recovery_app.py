@@ -1210,92 +1210,91 @@ if uploaded_file:
         )
 import streamlit as st
 import pandas as pd
+import sqlite3
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
 import os
 
-st.title("Recovery Date Range Summary")
-
-# ---------------- Local storage folder ----------------
-LOCAL_FILE = "data/recovery.xlsx"
+DB_FILE = "data/recovery.db"
 os.makedirs("data", exist_ok=True)
 
-# ---------------- Initialize Session State ----------------
-if "recovery_df" not in st.session_state:
-    st.session_state["recovery_df"] = None
+st.title("Recovery Date Range Summary (Database Persistent)")
 
-# ---------------- File Upload ----------------
+# ---------------- SQLite Setup ---------------- #
+conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+c = conn.cursor()
+
+# Create table if not exists
+c.execute("""
+CREATE TABLE IF NOT EXISTS recovery_data (
+    branch TEXT,
+    area TEXT,
+    recovery_date TEXT,
+    amount REAL
+)
+""")
+conn.commit()
+
+# ---------------- File Upload ---------------- #
 uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+
 if uploaded:
+    # Read file
     if uploaded.name.endswith(".csv"):
         df = pd.read_csv(uploaded)
     else:
         df = pd.read_excel(uploaded)
 
-    st.session_state["recovery_df"] = df
-    df.to_excel(LOCAL_FILE, index=False)
-    st.success("File uploaded and saved locally!")
+    # Save to DB: Clear previous data
+    c.execute("DELETE FROM recovery_data")
+    conn.commit()
 
-# ---------------- Load previous file if exists ----------------
-elif st.session_state["recovery_df"] is not None:
-    df = st.session_state["recovery_df"]
-    st.info("Using previously uploaded file from session.")
-elif os.path.exists(LOCAL_FILE):
-    df = pd.read_excel(LOCAL_FILE)
-    st.session_state["recovery_df"] = df
-    st.info("Loaded previously uploaded file from local storage.")
-else:
-    st.info("Please upload recovery file.")
-    st.stop()
+    # Save each row
+    for _, row in df.iterrows():
+        branch = str(row.get("branch_id",""))
+        area = str(row.get("area_id",""))
+        date = str(row.get("date",""))
+        amount = float(row.get("amount",0))
+        c.execute("INSERT INTO recovery_data (branch, area, recovery_date, amount) VALUES (?,?,?,?)",
+                  (branch, area, date, amount))
+    conn.commit()
+    st.success("Data uploaded and saved to database!")
 
-# ---------------- Column Selection ----------------
-st.subheader("Available Columns")
-st.write(list(df.columns))
+# ---------------- Load from DB if no upload ---------------- #
+if not uploaded:
+    df = pd.read_sql("SELECT * FROM recovery_data", conn)
+    if df.empty:
+        st.info("No data in database. Upload file to populate table.")
+        st.stop()
 
-date_col = st.selectbox("Select Date Column", df.columns)
-branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
-area_col = 'area_id' if 'area_id' in df.columns else None
+# ---------------- Convert Date ---------------- #
+if "recovery_date" in df.columns:
+    df["recovery_date"] = pd.to_datetime(df["recovery_date"], errors="coerce")
+    df["Day"] = df["recovery_date"].dt.day
+    df = df.dropna(subset=["Day"])
+    df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
 
-# ---------------- Convert Date ----------------
-df[date_col] = pd.to_datetime(
-    df[date_col].astype(str).str.strip(),
-    errors="coerce"
-)
-df = df.dropna(subset=[date_col, branch_col])
-df["Day"] = df[date_col].dt.day
-df = df[df["Day"].notna()]
-
-df["Range"] = pd.cut(
-    df["Day"],
-    bins=[0,10,20,31],
-    labels=["1-10","11-20","21-31"]
-)
-if df["Range"].isna().all():
-    st.error("Date column sahi format me nahi.")
-    st.stop()
-
-# ---------------- Pivot Table ----------------
+# ---------------- Pivot Table ---------------- #
 pivot = pd.pivot_table(
     df,
-    index=[branch_col],
+    index=["branch"],
     columns="Range",
     aggfunc="size",
     fill_value=0
 )
 
-# Ensure columns exist
-for c in ["1-10","11-20","21-31"]:
-    if c not in pivot.columns:
-        pivot[c] = 0
+# Ensure all columns exist
+for c_name in ["1-10","11-20","21-31"]:
+    if c_name not in pivot.columns:
+        pivot[c_name] = 0
 
 pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
-pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
-pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
-pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
+pivot["1-10 %"] = (pivot["1-10"]/pivot["Total"]*100).round(2)
+pivot["11-20 %"] = (pivot["11-20"]/pivot["Total"]*100).round(2)
+pivot["21-31 %"] = (pivot["21-31"]/pivot["Total"]*100).round(2)
 
-# Rename for readability
 pivot.rename(columns={
     "1-10": "Recovery 1-10",
     "11-20": "Recovery 11-20",
@@ -1304,27 +1303,15 @@ pivot.rename(columns={
 
 result_df = pivot.reset_index()
 
-# ---------------- Add Area column BEFORE Branch ----------------
-if area_col:
-    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
-    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
-    # Move Area column before Branch column
-    cols = result_df.columns.tolist()
-    branch_idx = cols.index(branch_col)
-    cols.insert(branch_idx, cols.pop(cols.index(area_col)))
-    result_df = result_df[cols]
-
-# ---------------- Grand Total Row ----------------
+# ---------------- Grand Total ---------------- #
 numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
 grand_total_counts = result_df[numeric_cols].sum()
-grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
+grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]]/grand_total_counts["Total"]*100).round(2)
 
 grand_values = {}
 for col in result_df.columns:
-    if col == branch_col:
+    if col=="branch":
         grand_values[col] = "Grand Total"
-    elif col == area_col:
-        grand_values[col] = ""
     elif col in numeric_cols:
         grand_values[col] = grand_total_counts[col]
     elif col in ["1-10 %","11-20 %","21-31 %"]:
@@ -1335,20 +1322,20 @@ for col in result_df.columns:
 
 result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
-# ---------------- Show Table ----------------
+# ---------------- Display ---------------- #
 st.subheader("Branch Wise Recovery Summary")
 st.dataframe(result_df)
 
-# ---------------- CSV Download ----------------
+# ---------------- CSV Download ---------------- #
 csv = result_df.to_csv(index=False).encode("utf-8")
 st.download_button(
-    label="⬇ Download CSV",
+    "⬇ Download CSV",
     data=csv,
     file_name="recovery_summary.csv",
     mime="text/csv"
 )
 
-# ---------------- PDF Download ----------------
+# ---------------- PDF Download ---------------- #
 buffer = BytesIO()
 doc = SimpleDocTemplate(buffer, pagesize=A4)
 table_data = [result_df.columns.tolist()] + result_df.values.tolist()
@@ -1367,7 +1354,7 @@ pdf_bytes = buffer.getvalue()
 buffer.close()
 
 st.download_button(
-    label="⬇ Download PDF",
+    "⬇ Download PDF",
     data=pdf_bytes,
     file_name="recovery_summary.pdf",
     mime="application/pdf"
@@ -1575,6 +1562,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

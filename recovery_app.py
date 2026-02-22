@@ -1573,6 +1573,203 @@ if st.sidebar.button("⬇ Download Excel"):
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+import streamlit as st
+import pandas as pd
+import sqlite3
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+import os
+
+DB_FILE = "data/recovery.db"
+os.makedirs("data", exist_ok=True)
+
+st.title("Recovery Date Range Summary (Database Persistent)")
+
+# ---------------- SQLite Connection ---------------- #
+conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+
+# Create table if not exists
+c = conn.cursor()
+c.execute("""
+CREATE TABLE IF NOT EXISTS recovery_data (
+    branch TEXT,
+    area TEXT,
+    recovery_date TEXT,
+    amount REAL
+)
+""")
+conn.commit()
+
+# ---------------- Always load latest data from database first ---------------- #
+df = pd.read_sql("SELECT * FROM recovery_data", conn)
+
+# ---------------- File Upload Section ---------------- #
+uploaded = st.file_uploader("Upload Recovery Excel / CSV (updates the database)", type=["xlsx", "csv"])
+
+if uploaded:
+    try:
+        if uploaded.name.endswith(".csv"):
+            new_df = pd.read_csv(uploaded)
+        else:
+            new_df = pd.read_excel(uploaded)
+
+        # Clear old data (overwrite mode) - comment out if you want to append instead
+        c.execute("DELETE FROM recovery_data")
+        conn.commit()
+
+        # Insert new data
+        for _, row in new_df.iterrows():
+            branch = str(row.get("branch_id", row.get("Branch", "")))
+            area   = str(row.get("area_id", row.get("Area", "")))
+            date   = str(row.get("date", row.get("Date", "")))
+            amount = float(row.get("amount", row.get("Amount", 0)) or 0)
+
+            c.execute("""
+                INSERT INTO recovery_data (branch, area, recovery_date, amount)
+                VALUES (?, ?, ?, ?)
+            """, (branch, area, date, amount))
+
+        conn.commit()
+        st.success("Data successfully uploaded and database updated!")
+
+        # Reload fresh data for display
+        df = pd.read_sql("SELECT * FROM recovery_data", conn)
+
+    except Exception as e:
+        st.error(f"Error processing file: {str(e)}")
+
+# ---------------- If no data at all ---------------- #
+if df.empty:
+    st.info("No data available in the database yet. Please upload an Excel or CSV file to start.")
+    st.stop()
+
+# ---------------- Column Selection ---------------- #
+st.subheader("Column Selection")
+all_cols = df.columns.tolist()
+
+date_col   = st.selectbox("Select Date Column",   all_cols, index=all_cols.index("recovery_date") if "recovery_date" in all_cols else 0)
+branch_col = st.selectbox("Select Branch Column", all_cols, index=all_cols.index("branch") if "branch" in all_cols else 0)
+
+area_col = None
+if "area" in df.columns:
+    area_col = "area"
+
+# ---------------- Date Processing ---------------- #
+df[date_col] = pd.to_datetime(df[date_col].astype(str), errors="coerce")
+df = df.dropna(subset=[date_col, branch_col])
+df["Day"] = df[date_col].dt.day
+df = df[df["Day"].notna()]
+df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"], include_lowest=True)
+
+# ---------------- Pivot Table ---------------- #
+if branch_col not in df.columns or df["Range"].isna().all():
+    st.error("Selected branch or date column is invalid for pivoting.")
+    st.stop()
+
+pivot = pd.pivot_table(
+    df,
+    index=[branch_col],
+    columns="Range",
+    aggfunc="size",
+    fill_value=0
+)
+
+# Ensure all range columns exist
+for c_name in ["1-10", "11-20", "21-31"]:
+    if c_name not in pivot.columns:
+        pivot[c_name] = 0
+
+pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
+pivot["1-10 %"]  = (pivot["1-10"]  / pivot["Total"] * 100).round(2)
+pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
+pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
+
+pivot.rename(columns={
+    "1-10":   "Recovery 1-10",
+    "11-20":  "Recovery 11-20",
+    "21-31":  "Recovery 21-31"
+}, inplace=True)
+
+result_df = pivot.reset_index()
+
+# ---------------- Merge Area if available ---------------- #
+if area_col:
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    # Reorder columns: put Area before Branch
+    cols = result_df.columns.tolist()
+    area_idx = cols.index(area_col)
+    branch_idx = cols.index(branch_col)
+    cols.insert(branch_idx, cols.pop(area_idx))
+    result_df = result_df[cols]
+
+# ---------------- Grand Total Row ---------------- #
+numeric_cols = ["Recovery 1-10", "Recovery 11-20", "Recovery 21-31", "Total"]
+grand_total_counts = result_df[numeric_cols].sum()
+grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
+
+grand_values = {}
+for col in result_df.columns:
+    if col == branch_col:
+        grand_values[col] = "Grand Total"
+    elif col == area_col:
+        grand_values[col] = ""
+    elif col in numeric_cols:
+        grand_values[col] = grand_total_counts[col]
+    elif col in ["1-10 %", "11-20 %", "21-31 %"]:
+        pct_map = {"1-10 %":"Recovery 1-10", "11-20 %":"Recovery 11-20", "21-31 %":"Recovery 21-31"}
+        grand_values[col] = grand_total_percent[pct_map[col]]
+    else:
+        grand_values[col] = ""
+
+grand_row = pd.DataFrame([grand_values])
+result_df = pd.concat([result_df, grand_row], ignore_index=True)
+
+# ---------------- Display ---------------- #
+st.subheader("Branch Wise Recovery Summary")
+st.dataframe(result_df, use_container_width=True)
+
+# ---------------- Downloads ---------------- #
+csv = result_df.to_csv(index=False).encode("utf-8")
+st.download_button(
+    label="⬇ Download CSV",
+    data=csv,
+    file_name="recovery_summary.csv",
+    mime="text/csv"
+)
+
+# PDF Generation
+buffer = BytesIO()
+doc = SimpleDocTemplate(buffer, pagesize=A4)
+table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+table = Table(table_data)
+
+style = TableStyle([
+    ('GRID',       (0,0), (-1,-1), 1, colors.black),
+    ('BACKGROUND', (0,0), (-1,0),  colors.grey),
+    ('ALIGN',      (0,0), (-1,-1), 'CENTER'),
+    ('VALIGN',     (0,0), (-1,-1), 'MIDDLE'),
+    ('FONTSIZE',   (0,0), (-1,-1), 10),
+    ('BOTTOMPADDING', (0,0), (-1,0), 6),
+    ('BACKGROUND', (0,-1), (-1,-1), colors.lightgrey),  # Grand total row
+])
+
+table.setStyle(style)
+doc.build([table])
+pdf_bytes = buffer.getvalue()
+buffer.close()
+
+st.download_button(
+    label="⬇ Download PDF",
+    data=pdf_bytes,
+    file_name="recovery_summary.pdf",
+    mime="application/pdf"
+)
+
+# Optional: close connection when done (good practice)
+# conn.close()   # Uncomment if needed, but Streamlit handles it
 
 
 

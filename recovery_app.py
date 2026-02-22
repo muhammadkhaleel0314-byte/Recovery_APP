@@ -137,7 +137,11 @@ if st.session_state.merged_df is not None:
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+import os
 
+CACHE_FILE = "sustainability_cache.xlsx"
+
+st.set_page_config(layout="wide")
 st.markdown("<h1 style='color:#003366;'>Sustainability Report</h1>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
@@ -145,32 +149,27 @@ st.sidebar.header("Options")
 project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"], key="project_upload")
 expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"], key="expense_upload")
 
-# ---------------- CACHE FILE DATA ---------------- #
-@st.cache_data(show_spinner=False)
+# ---------------- LOAD OR CACHE ---------------- #
 def load_excel(file):
     return pd.read_excel(file)
 
-# ---------------- LOAD PROJECTS ---------------- #
+# اگر نئی file upload ہو
 if project_file is not None:
     df_raw = load_excel(project_file)
-    st.session_state['df_raw_cached'] = df_raw
-elif 'df_raw_cached' in st.session_state:
-    df_raw = st.session_state['df_raw_cached']
-else:
-    df_raw = pd.DataFrame()
-
-# ---------------- LOAD EXPENSES ---------------- #
-if not df_raw.empty:
     if expense_file is not None:
         df_exp = load_excel(expense_file)
         exp_sum = df_exp.groupby("Branch Code", as_index=False)["Amount"].sum()
         df_raw = df_raw.merge(exp_sum, on="Branch Code", how="left", suffixes=("", "_Expenses"))
-        df_raw["Amount_Expenses"] = df_raw["Amount_Expenses"].fillna(0)
-        df_raw["Expenses"] = df_raw["Amount_Expenses"]
-    elif 'df_raw_cached' in st.session_state and "Expenses" in st.session_state['df_raw_cached'].columns:
-        df_raw["Expenses"] = st.session_state['df_raw_cached']["Expenses"]
+        df_raw["Expenses"] = df_raw["Amount_Expenses"].fillna(0)
     else:
         df_raw["Expenses"] = 0
+    # save locally for next reopen
+    df_raw.to_excel(CACHE_FILE, index=False)
+elif os.path.exists(CACHE_FILE):
+    # reopen, read cache
+    df_raw = pd.read_excel(CACHE_FILE)
+else:
+    df_raw = pd.DataFrame()
 
 # ---------------- AGGREGATE PER BRANCH ---------------- #
 agg_list = []
@@ -212,35 +211,20 @@ df = pd.DataFrame(agg_list)
 if not df.empty and "Area" in df.columns:
     areas = ["All Areas"] + sorted(df["Area"].dropna().unique())
     selected_area = st.sidebar.selectbox("Select Area", areas)
-    df_display = df if selected_area=="All Areas" else df[df["Area"]==selected_area]
+    if selected_area != "All Areas":
+        df_display = df[df["Area"] == selected_area]
+    else:
+        df_display = df.copy()
 else:
     df_display = df.copy()
 
 # ---------------- DISPLAY TABLE ---------------- #
-def render_table(df):
-    if df.empty:
-        st.info("Upload Project Excel to view table.")
-        return
-    html = "<table style='width:100%; border-collapse: collapse; text-align:center;'>"
-    html += "<tr style='background:#2e7d32; color:white;'>"
-    for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
-                "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
-                "Expenses","Difference"]:
-        html += f"<th style='border:1px solid #ccc; padding:5px;'>{col}</th>"
-    html += "</tr>"
-
-    for _, row in df.iterrows():
-        html += "<tr>"
-        for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
-                    "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
-                    "Expenses","Difference"]:
-            html += f"<td style='border:1px solid #ccc; padding:5px; color:white;'>{row.get(col,'')}</td>"
-        html += "</tr>"
-    html += "</table>"
-    st.markdown(html, unsafe_allow_html=True)
-
 st.subheader("Data Table")
-render_table(df_display)
+if df_display.empty:
+    st.info("Upload Project Excel to view table.")
+else:
+    st.markdown("<style>td,th{color:white;}</style>", unsafe_allow_html=True)
+    st.dataframe(df_display)
 
 # ---------------- DOWNLOAD BUTTON ---------------- #
 def to_excel(df):
@@ -1452,6 +1436,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

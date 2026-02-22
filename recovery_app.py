@@ -1234,7 +1234,7 @@ CREATE TABLE IF NOT EXISTS recovery_data (
 """)
 conn.commit()
 
-# ---------------- Always load latest data from DB first (yeh change zaroori hai) ---------------- #
+# Always load the latest data from database (this is the main change)
 df = pd.read_sql("SELECT * FROM recovery_data", conn)
 
 # ---------------- File Upload ---------------- #
@@ -1242,15 +1242,15 @@ uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
 if uploaded:
     if uploaded.name.endswith(".csv"):
-        df_new = pd.read_csv(uploaded)
+        df = pd.read_csv(uploaded)
     else:
-        df_new = pd.read_excel(uploaded)
+        df = pd.read_excel(uploaded)
 
-    # Purana data delete (overwrite) - agar append chahiye to is line ko comment out kar dena
+    # Removed: st.session_state["df"] = df
+
+    # Save to DB
     c.execute("DELETE FROM recovery_data")
-    conn.commit()
-
-    for _, row in df_new.iterrows():
+    for _, row in df.iterrows():
         branch = str(row.get("branch_id", row.get("Branch", "")))
         area = str(row.get("area_id", row.get("Area", "")))
         date = str(row.get("date", row.get("Date", "")))
@@ -1260,10 +1260,10 @@ if uploaded:
     conn.commit()
     st.success("Data uploaded and saved to database!")
 
-    # Fresh data load karo taake table update ho jaye
+    # Refresh df from database after upload (this is the other key change)
     df = pd.read_sql("SELECT * FROM recovery_data", conn)
 
-# ---------------- Agar ab bhi empty hai to message ---------------- #
+# If no data at all → show message
 if df.empty:
     st.info("No data in database. Upload file to populate table.")
     st.stop()

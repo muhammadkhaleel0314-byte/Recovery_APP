@@ -77,10 +77,9 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
+st.set_page_config(layout="wide", page_title="Target vs Achievement MIS")
 
-# -----------------------
-# Initialize Session State
-# -----------------------
+# ---------------- SESSION STATE INITIALIZATION ----------------
 if "mis_data" not in st.session_state:
     st.session_state.mis_data = {
         "projects": ["ACAG","AIM PF","PM-ALS & YBLS","PSPA","PM-LCH","Akhuwat","KLP"],
@@ -88,161 +87,150 @@ if "mis_data" not in st.session_state:
         "achievement": []
     }
 
-mis = st.session_state.mis_data
+data = st.session_state.mis_data
 
-# -----------------------
-# Sidebar - Upload & Controls
-# -----------------------
+# ---------------- SIDEBAR ----------------
 st.sidebar.header("Options")
-area_filter = st.sidebar.selectbox(
-    "Filter Area",
-    options=["All Areas"] + list({r["area"] for r in mis["target"]}) if mis["target"] else ["All Areas"]
-)
 
-target_file = st.sidebar.file_uploader("Upload Target Sheet", type=["xlsx","xls","csv"], key="target_file")
-achievement_file = st.sidebar.file_uploader("Upload Achievement Sheet", type=["xlsx","xls","csv"], key="ach_file")
+target_file = st.sidebar.file_uploader("Upload Target Sheet", type=["xlsx","xls","csv"], key="target_upload")
+achievement_file = st.sidebar.file_uploader("Upload Achievement Sheet", type=["xlsx","xls","csv"], key="ach_upload")
 
-if st.sidebar.button("Add Target Row"):
-    # Add empty row
-    mis["target"].append({
-        "area": "",
-        "branch": "",
-        "values": [{"c":0,"a":0} for _ in mis["projects"]]
-    })
+if st.sidebar.button("Add New Target Row"):
+    data["target"].append({"area":"","branch":"","values":[{"c":0,"a":0} for _ in data["projects"]]})
+    st.experimental_rerun()
 
-if st.sidebar.button("Add Project"):
-    new_proj = st.sidebar.text_input("New Project Name")
+if st.sidebar.button("Add New Project"):
+    new_proj = st.sidebar.text_input("Enter Project Name", key="new_proj_name")
     if new_proj:
-        mis["projects"].append(new_proj)
-        for r in mis["target"]:
-            r["values"].append({"c":0,"a":0})
-        for r in mis["achievement"]:
-            r["values"].append({"c":0,"a":0})
+        data["projects"].append(new_proj)
+        for row in data["target"]:
+            row["values"].append({"c":0,"a":0})
+        for row in data["achievement"]:
+            row["values"].append({"c":0,"a":0})
+        st.experimental_rerun()
 
-# -----------------------
-# Load Target File
-# -----------------------
+# ---------------- FILE UPLOAD LOGIC ----------------
+def read_file(f):
+    if f.name.endswith(".csv"):
+        return pd.read_csv(f)
+    else:
+        return pd.read_excel(f)
+
+# --- Target Upload ---
 if target_file:
     try:
-        if target_file.name.endswith(".csv"):
-            df_target = pd.read_csv(target_file)
-        else:
-            df_target = pd.read_excel(target_file, engine="openpyxl")
+        df_target = read_file(target_file)
         df_target.columns = df_target.columns.str.strip()
-        mis["target"] = []
+        # Map into session state
         for _, row in df_target.iterrows():
-            vals = []
-            for proj in mis["projects"]:
-                c = row.get(f"{proj}_Cases", 0) or 0
-                a = row.get(f"{proj}_Amount", 0) or 0
-                vals.append({"c":c,"a":a})
-            mis["target"].append({
-                "area": row.get("Area",""),
-                "branch": row.get("Branch",""),
-                "values": vals
-            })
+            area = str(row.get("Area","")).strip()
+            branch = str(row.get("Branch","")).strip()
+            branch_idx = next((i for i, r in enumerate(data["target"]) if r["area"]==area and r["branch"]==branch), None)
+            if branch_idx is None:
+                data["target"].append({"area":area,"branch":branch,"values":[{"c":0,"a":0} for _ in data["projects"]]})
+                branch_idx = len(data["target"])-1
+            proj = str(row.get("Project","")).strip()
+            cases = int(row.get("Cases",0))
+            amount = float(row.get("Amount",0))
+            proj_idx = next((i for i,p in enumerate(data["projects"]) if p==proj), None)
+            if proj_idx is not None:
+                data["target"][branch_idx]["values"][proj_idx]["c"] = cases
+                data["target"][branch_idx]["values"][proj_idx]["a"] = amount
     except Exception as e:
-        st.error(f"Error loading Target file: {e}")
+        st.sidebar.error(f"Error reading Target Sheet: {e}")
 
-# -----------------------
-# Load Achievement File
-# -----------------------
+# --- Achievement Upload ---
 if achievement_file:
     try:
-        if achievement_file.name.endswith(".csv"):
-            df_ach = pd.read_csv(achievement_file)
-        else:
-            df_ach = pd.read_excel(achievement_file, engine="openpyxl")
+        df_ach = read_file(achievement_file)
         df_ach.columns = df_ach.columns.str.strip()
-        mis["achievement"] = []
-
-        # Group by area+branch+project
-        group = {}
         for _, row in df_ach.iterrows():
             area = str(row.get("Area","")).strip()
             branch = str(row.get("Branch","")).strip()
+            branch_idx = next((i for i, r in enumerate(data["achievement"]) if r["area"]==area and r["branch"]==branch), None)
+            if branch_idx is None:
+                data["achievement"].append({"area":area,"branch":branch,"values":[{"c":0,"a":0} for _ in data["projects"]]})
+                branch_idx = len(data["achievement"])-1
             proj = str(row.get("Project","")).strip()
-            cases = int(row.get("Cases",0) or 0)
-            amount = float(row.get("Amount",0) or 0)
-            if not area or not branch or not proj:
-                continue
-            key = f"{area}|{branch}"
-            if key not in group:
-                group[key] = {"area":area,"branch":branch,"values":[{"c":0,"a":0} for _ in mis["projects"]]}
-            if proj in mis["projects"]:
-                idx = mis["projects"].index(proj)
-                group[key]["values"][idx]["c"] += cases
-                group[key]["values"][idx]["a"] += amount
-        mis["achievement"] = list(group.values())
+            cases = int(row.get("Cases",0))
+            amount = float(row.get("Amount",0))
+            proj_idx = next((i for i,p in enumerate(data["projects"]) if p==proj), None)
+            if proj_idx is not None:
+                data["achievement"][branch_idx]["values"][proj_idx]["c"] = cases
+                data["achievement"][branch_idx]["values"][proj_idx]["a"] = amount
     except Exception as e:
-        st.error(f"Error loading Achievement file: {e}")
+        st.sidebar.error(f"Error reading Achievement Sheet: {e}")
 
-# -----------------------
-# Display Table
-# -----------------------
+# ---------------- TABLE RENDERING ----------------
 def render_table():
-    if not mis["target"]:
-        st.info("No Target data to display. Add rows or upload Target sheet.")
-        return
-    # Build dataframe
+    st.markdown("<h2 style='color:#003366;'>Target vs Achievement MIS</h2>", unsafe_allow_html=True)
+    
+    projects = data["projects"]
+    # Header
+    cols = ["Area","Branch"] + [f"{p} Cases" for p in projects] + [f"{p} Amount" for p in projects] + ["Total Cases|Amount"]
+    
     rows = []
-    for t in mis["target"]:
-        if area_filter!="All Areas" and t["area"] != area_filter:
-            continue
-        row = {
-            "Area": t["area"],
-            "Branch": t["branch"]
-        }
-        tc_total = 0
-        ta_total = 0
-        # Find achievement row
-        ach_row = next((a for a in mis["achievement"] if a["area"].strip()==t["area"].strip() and a["branch"].strip()==t["branch"].strip()), None)
-        for i, proj in enumerate(mis["projects"]):
-            t_c = t["values"][i]["c"]
-            t_a = t["values"][i]["a"]
-            a_c = ach_row["values"][i]["c"] if ach_row else 0
-            a_a = ach_row["values"][i]["a"] if ach_row else 0
-            row[f"{proj}_Target_Cases"] = t_c
-            row[f"{proj}_Target_Amount"] = t_a
-            row[f"{proj}_Ach_Cases"] = a_c
-            row[f"{proj}_Ach_Amount"] = a_a
-            tc_total += t_c
-            ta_total += t_a
-        row["Total_Target"] = f"{tc_total}|{ta_total}"
+    for t in data["target"]:
+        area = t["area"]
+        branch = t["branch"]
+        total_c = 0
+        total_a = 0
+        row = [area, branch]
+        for val in t["values"]:
+            row.append(val["c"])
+        for val in t["values"]:
+            row.append(val["a"])
+            total_c += val["c"]
+            total_a += val["a"]
+        row.append(f"{total_c}|{total_a}")
         rows.append(row)
-    df_display = pd.DataFrame(rows)
+    
+    df_display = pd.DataFrame(rows, columns=cols)
+    
     st.dataframe(df_display.style.set_properties(**{'color':'white','background-color':'#2e7d32'}))
 
 render_table()
 
-# -----------------------
-# Download Excel
-# -----------------------
-def to_excel(df):
+# ---------------- DOWNLOAD BUTTON ----------------
+def to_excel():
     output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="MIS_Report")
+    wb = pd.ExcelWriter(output, engine='openpyxl')
+    
+    # Target sheet
+    t_rows = []
+    for t in data["target"]:
+        for i,p in enumerate(data["projects"]):
+            t_rows.append({
+                "Area": t["area"],
+                "Branch": t["branch"],
+                "Project": p,
+                "Cases": t["values"][i]["c"],
+                "Amount": t["values"][i]["a"]
+            })
+    df_t = pd.DataFrame(t_rows)
+    df_t.to_excel(wb, index=False, sheet_name="Target")
+    
+    # Achievement sheet
+    a_rows = []
+    for a in data["achievement"]:
+        for i,p in enumerate(data["projects"]):
+            a_rows.append({
+                "Area": a["area"],
+                "Branch": a["branch"],
+                "Project": p,
+                "Cases": a["values"][i]["c"],
+                "Amount": a["values"][i]["a"]
+            })
+    df_a = pd.DataFrame(a_rows)
+    df_a.to_excel(wb, index=False, sheet_name="Achievement")
+    
+    wb.save()
     output.seek(0)
     return output
 
-if mis["target"]:
-    df_to_download = pd.DataFrame()
-    for t in mis["target"]:
-        row = {"Area": t["area"], "Branch": t["branch"]}
-        for i, proj in enumerate(mis["projects"]):
-            row[f"{proj}_Target_Cases"] = t["values"][i]["c"]
-            row[f"{proj}_Target_Amount"] = t["values"][i]["a"]
-            ach_row = next((a for a in mis["achievement"] if a["area"].strip()==t["area"].strip() and a["branch"].strip()==t["branch"].strip()), None)
-            row[f"{proj}_Ach_Cases"] = ach_row["values"][i]["c"] if ach_row else 0
-            row[f"{proj}_Ach_Amount"] = ach_row["values"][i]["a"] if ach_row else 0
-        df_to_download = pd.concat([df_to_download, pd.DataFrame([row])], ignore_index=True)
-
-    st.sidebar.download_button(
-        label="⬇️ Download Excel",
-        data=to_excel(df_to_download),
-        file_name="MIS_Report.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+if st.sidebar.button("Download MIS Excel"):
+    excel_bytes = to_excel()
+    st.sidebar.download_button("⬇ Download MIS Excel", data=excel_bytes, file_name="Target_vs_Achievement.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 import streamlit as st
 import pandas as pd
 
@@ -1756,6 +1744,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

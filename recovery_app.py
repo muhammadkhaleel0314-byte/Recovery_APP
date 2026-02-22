@@ -101,7 +101,7 @@ if 'mis_data' not in st.session_state: st.session_state.mis_data = { 'projects':
 #if ach_file := ach_file or None: try: if ach_file.name.endswith('.csv'): ach_df = pd.read_csv(ach_file) else: ach_df = pd.read_excel(ach_file, engine='openpyxl') # Clean columns ach_df.columns = ach_df.columns.str.strip() # Reset session achievement st.session_state.mis_data['achievement'] = []
 
 # Populate session achievement
-    group = {}
+   # group = {}
     for _, row in ach_df.iterrows():
         area = str(row.get('Area','')).strip()
         branch = str(row.get('Branch','')).strip()
@@ -1678,6 +1678,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

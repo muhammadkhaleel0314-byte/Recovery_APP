@@ -138,7 +138,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-# ---------------- PAGE CONFIG ---------------- #
+st.set_page_config(layout="wide")
 st.markdown("<h1 style='color:#003366;'>Sustainability Report</h1>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
@@ -146,35 +146,38 @@ st.sidebar.header("Options")
 project_file = st.sidebar.file_uploader("Upload Project Excel", type=["xlsx"], key="project_upload")
 expense_file = st.sidebar.file_uploader("Upload Expenses Excel", type=["xlsx"], key="expense_upload")
 
-# ---------------- SESSION STATE ---------------- #
-if "df_raw" not in st.session_state:
-    st.session_state.df_raw = pd.DataFrame()
+# ---------------- CACHE FILE DATA ---------------- #
+@st.cache_data(show_spinner=False)
+def load_excel(file):
+    return pd.read_excel(file)
 
 # ---------------- LOAD PROJECTS ---------------- #
 if project_file is not None:
-    st.session_state.df_raw = pd.read_excel(project_file)
-
-df_raw = st.session_state.df_raw.copy()
+    df_raw = load_excel(project_file)
+    st.session_state['df_raw_cached'] = df_raw
+elif 'df_raw_cached' in st.session_state:
+    df_raw = st.session_state['df_raw_cached']
+else:
+    df_raw = pd.DataFrame()
 
 # ---------------- LOAD EXPENSES ---------------- #
 if not df_raw.empty:
     if expense_file is not None:
-        df_exp = pd.read_excel(expense_file)
+        df_exp = load_excel(expense_file)
         exp_sum = df_exp.groupby("Branch Code", as_index=False)["Amount"].sum()
         df_raw = df_raw.merge(exp_sum, on="Branch Code", how="left", suffixes=("", "_Expenses"))
         df_raw["Amount_Expenses"] = df_raw["Amount_Expenses"].fillna(0)
         df_raw["Expenses"] = df_raw["Amount_Expenses"]
+    elif 'df_raw_cached' in st.session_state and "Expenses" in st.session_state['df_raw_cached'].columns:
+        df_raw["Expenses"] = st.session_state['df_raw_cached']["Expenses"]
     else:
-        if "Expenses" not in df_raw.columns:
-            df_raw["Expenses"] = 0
+        df_raw["Expenses"] = 0
 
 # ---------------- AGGREGATE PER BRANCH ---------------- #
+agg_list = []
 if not df_raw.empty:
     branch_keys = ["Area", "Branch Name", "Branch Code"]
-    agg_list = []
-
     grouped = df_raw.groupby(branch_keys, as_index=False)
-
     for _, g in grouped:
         area = g["Area"].iloc[0]
         branch = g["Branch Name"].iloc[0]
@@ -202,23 +205,15 @@ if not df_raw.empty:
         row["Total Income"] = round(row["6% Income"] + row["1% Income"] + row["2% Income"] + row["3% Income"], 2)
         row["Expenses"] = expenses_total
         row["Difference"] = round(row["Total Income"] - row["Expenses"], 2)
-
         agg_list.append(row)
 
-    df = pd.DataFrame(agg_list)
-    st.session_state.df_display = df.copy()  # **Session save**
-else:
-    df = pd.DataFrame()
+df = pd.DataFrame(agg_list)
 
 # ---------------- AREA FILTER ---------------- #
 if not df.empty and "Area" in df.columns:
     areas = ["All Areas"] + sorted(df["Area"].dropna().unique())
     selected_area = st.sidebar.selectbox("Select Area", areas)
-    if selected_area != "All Areas":
-        df_display = df[df["Area"] == selected_area]
-    else:
-        df_display = df.copy()
-    st.session_state.df_display_filtered = df_display.copy()  # save filtered table
+    df_display = df if selected_area=="All Areas" else df[df["Area"]==selected_area]
 else:
     df_display = df.copy()
 
@@ -240,14 +235,13 @@ def render_table(df):
         for col in ["Area","Branch","Branch Code","Project Disburse","6% Income","ACAG Disburse",
                     "1% Income","PMLCHS Disburse","2% Income","PMY Disburse","3% Income","Total Income",
                     "Expenses","Difference"]:
-            html += f"<td style='border:1px solid #ccc; padding:5px; color:black;'>{row.get(col, '')}</td>"
+            html += f"<td style='border:1px solid #ccc; padding:5px; color:white;'>{row.get(col,'')}</td>"
         html += "</tr>"
     html += "</table>"
     st.markdown(html, unsafe_allow_html=True)
 
 st.subheader("Data Table")
-if "df_display_filtered" in st.session_state:
-    render_table(st.session_state.df_display_filtered)
+render_table(df_display)
 
 # ---------------- DOWNLOAD BUTTON ---------------- #
 def to_excel(df):
@@ -257,15 +251,14 @@ def to_excel(df):
     output.seek(0)
     return output
 
-if "df_display_filtered" in st.session_state and not st.session_state.df_display_filtered.empty:
-    excel_data = to_excel(st.session_state.df_display_filtered)
+if not df_display.empty:
+    excel_data = to_excel(df_display)
     st.sidebar.download_button(
         label=f"⬇️ Download {selected_area} Excel",
         data=excel_data,
         file_name=f"Sustainability_{selected_area}.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-
 # -------------------
 # MDP Section with G/P and Grand Total
 # -------------------
@@ -1460,6 +1453,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

@@ -90,7 +90,7 @@ if 'mis_data' not in st.session_state: st.session_state.mis_data = { 'projects':
 
 #--------------------
 
-st.sidebar.header("Upload Sheets") active_file = st.sidebar.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="active_upload") ach_file = st.sidebar.file_uploader("Upload Achievement Sheet", type=["xlsx","xls","csv"], key="achievement_upload")
+#st.sidebar.header("Upload Sheets") active_file = st.sidebar.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="active_upload") ach_file = st.sidebar.file_uploader("Upload Achievement Sheet", type=["xlsx","xls","csv"], key="achievement_upload")
 
 #--------------------
 
@@ -1678,6 +1678,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

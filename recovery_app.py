@@ -1211,46 +1211,43 @@ if uploaded_file:
 import streamlit as st
 import pandas as pd
 from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
 import os
-
 
 st.title("Recovery Date Range Summary")
 
-# ---------------- Local Save Path ----------------
-LOCAL_FILE = "data/recovery_saved.xlsx"
+# ---------------- Local storage folder ----------------
+LOCAL_FILE = "data/recovery.xlsx"
 os.makedirs("data", exist_ok=True)
 
-# ---------------- Upload File ----------------
-uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx","csv"])
+# ---------------- Initialize Session State ----------------
+if "recovery_df" not in st.session_state:
+    st.session_state["recovery_df"] = None
 
-# ---------------- Save Uploaded ----------------
-if uploaded is not None:
-
+# ---------------- File Upload ----------------
+uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+if uploaded:
     if uploaded.name.endswith(".csv"):
         df = pd.read_csv(uploaded)
     else:
         df = pd.read_excel(uploaded)
 
-    # save session
     st.session_state["recovery_df"] = df
-
-    # save locally
     df.to_excel(LOCAL_FILE, index=False)
+    st.success("File uploaded and saved locally!")
 
-    st.success("File uploaded & saved successfully")
-
-# ---------------- Restore Previous ----------------
-elif "recovery_df" in st.session_state:
+# ---------------- Load previous file if exists ----------------
+elif st.session_state["recovery_df"] is not None:
     df = st.session_state["recovery_df"]
-    st.info("Loaded from session memory")
-
+    st.info("Using previously uploaded file from session.")
 elif os.path.exists(LOCAL_FILE):
     df = pd.read_excel(LOCAL_FILE)
     st.session_state["recovery_df"] = df
-    st.info("Loaded previously saved file")
-
+    st.info("Loaded previously uploaded file from local storage.")
 else:
-    st.warning("Upload file to continue")
+    st.info("Please upload recovery file.")
     st.stop()
 
 # ---------------- Column Selection ----------------
@@ -1258,31 +1255,28 @@ st.subheader("Available Columns")
 st.write(list(df.columns))
 
 date_col = st.selectbox("Select Date Column", df.columns)
-branch_col = st.selectbox("Select Branch Column", df.columns)
+branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
+area_col = 'area_id' if 'area_id' in df.columns else None
 
-area_col = None
-if "area_id" in df.columns:
-    area_col = "area_id"
-
-# ---------------- Date Convert ----------------
+# ---------------- Convert Date ----------------
 df[date_col] = pd.to_datetime(
     df[date_col].astype(str).str.strip(),
-    format="%Y-%b-%d",
     errors="coerce"
 )
-
 df = df.dropna(subset=[date_col, branch_col])
 df["Day"] = df[date_col].dt.day
 df = df[df["Day"].notna()]
 
-# ---------------- Range ----------------
 df["Range"] = pd.cut(
     df["Day"],
     bins=[0,10,20,31],
     labels=["1-10","11-20","21-31"]
 )
+if df["Range"].isna().all():
+    st.error("Date column sahi format me nahi.")
+    st.stop()
 
-# ---------------- Pivot ----------------
+# ---------------- Pivot Table ----------------
 pivot = pd.pivot_table(
     df,
     index=[branch_col],
@@ -1291,70 +1285,92 @@ pivot = pd.pivot_table(
     fill_value=0
 )
 
+# Ensure columns exist
 for c in ["1-10","11-20","21-31"]:
     if c not in pivot.columns:
         pivot[c] = 0
 
 pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
+pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
+pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
+pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
 
-pivot["1-10 %"] = (pivot["1-10"]/pivot["Total"]*100).round(2)
-pivot["11-20 %"] = (pivot["11-20"]/pivot["Total"]*100).round(2)
-pivot["21-31 %"] = (pivot["21-31"]/pivot["Total"]*100).round(2)
-
+# Rename for readability
 pivot.rename(columns={
-    "1-10":"Recovery 1-10",
-    "11-20":"Recovery 11-20",
-    "21-31":"Recovery 21-31"
+    "1-10": "Recovery 1-10",
+    "11-20": "Recovery 11-20",
+    "21-31": "Recovery 21-31"
 }, inplace=True)
 
 result_df = pivot.reset_index()
 
-# ---------------- Add Area ----------------
+# ---------------- Add Area column BEFORE Branch ----------------
 if area_col:
-    area_df = df[[branch_col,area_col]].drop_duplicates()
-    result_df = result_df.merge(area_df,on=branch_col,how="left")
-
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    # Move Area column before Branch column
     cols = result_df.columns.tolist()
     branch_idx = cols.index(branch_col)
     cols.insert(branch_idx, cols.pop(cols.index(area_col)))
     result_df = result_df[cols]
 
-# ---------------- Grand Total ----------------
-numeric = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
-totals = result_df[numeric].sum()
+# ---------------- Grand Total Row ----------------
+numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
+grand_total_counts = result_df[numeric_cols].sum()
+grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
 
-grand = {}
+grand_values = {}
 for col in result_df.columns:
     if col == branch_col:
-        grand[col] = "Grand Total"
+        grand_values[col] = "Grand Total"
     elif col == area_col:
-        grand[col] = ""
-    elif col in numeric:
-        grand[col] = totals[col]
+        grand_values[col] = ""
+    elif col in numeric_cols:
+        grand_values[col] = grand_total_counts[col]
+    elif col in ["1-10 %","11-20 %","21-31 %"]:
+        pct_map = {"1-10 %":"Recovery 1-10","11-20 %":"Recovery 11-20","21-31 %":"Recovery 21-31"}
+        grand_values[col] = grand_total_percent[pct_map[col]]
     else:
-        grand[col] = ""
+        grand_values[col] = ""
 
-result_df = pd.concat([result_df, pd.DataFrame([grand])], ignore_index=True)
+result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
-# ---------------- Display ----------------
+# ---------------- Show Table ----------------
 st.subheader("Branch Wise Recovery Summary")
-st.dataframe(result_df, use_container_width=True)
+st.dataframe(result_df)
 
-# ---------------- Download CSV ----------------
+# ---------------- CSV Download ----------------
 csv = result_df.to_csv(index=False).encode("utf-8")
-st.download_button("⬇ Download CSV", csv, "recovery_summary.csv","text/csv")
+st.download_button(
+    label="⬇ Download CSV",
+    data=csv,
+    file_name="recovery_summary.csv",
+    mime="text/csv"
+)
 
-# ---------------- Download Excel ----------------
-output = BytesIO()
-with pd.ExcelWriter(output, engine="openpyxl") as writer:
-    result_df.to_excel(writer,index=False)
-output.seek(0)
+# ---------------- PDF Download ----------------
+buffer = BytesIO()
+doc = SimpleDocTemplate(buffer, pagesize=A4)
+table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+table = Table(table_data)
+style = TableStyle([
+    ('GRID', (0,0), (-1,-1), 1, colors.black),
+    ('BACKGROUND', (0,0), (-1,0), colors.grey),
+    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ('FONTSIZE', (0,0), (-1,-1), 10),
+    ('BOTTOMPADDING', (0,0), (-1,0), 6),
+])
+table.setStyle(style)
+doc.build([table])
+pdf_bytes = buffer.getvalue()
+buffer.close()
 
 st.download_button(
-    "⬇ Download Excel",
-    output,
-    "recovery_summary.xlsx",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    label="⬇ Download PDF",
+    data=pdf_bytes,
+    file_name="recovery_summary.pdf",
+    mime="application/pdf"
 )
 import streamlit as st
 import pandas as pd
@@ -1559,6 +1575,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

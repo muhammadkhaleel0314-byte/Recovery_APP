@@ -1219,14 +1219,11 @@ import os
 
 DB_FILE = "data/recovery.db"
 os.makedirs("data", exist_ok=True)
-
 st.title("Recovery Date Range Summary (Database Persistent)")
 
 # ---------------- SQLite Setup ---------------- #
 conn = sqlite3.connect(DB_FILE, check_same_thread=False)
 c = conn.cursor()
-
-# Create table if not exists
 c.execute("""
 CREATE TABLE IF NOT EXISTS recovery_data (
     branch TEXT,
@@ -1240,23 +1237,23 @@ conn.commit()
 # ---------------- File Upload ---------------- #
 uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
+df = pd.DataFrame()
+
 if uploaded:
-    # Read file
     if uploaded.name.endswith(".csv"):
         df = pd.read_csv(uploaded)
     else:
         df = pd.read_excel(uploaded)
 
-    # Save to DB: Clear previous data
-    c.execute("DELETE FROM recovery_data")
-    conn.commit()
+    st.session_state["df"] = df
 
-    # Save each row
+    # Save to DB
+    c.execute("DELETE FROM recovery_data")
     for _, row in df.iterrows():
-        branch = str(row.get("branch_id",""))
-        area = str(row.get("area_id",""))
-        date = str(row.get("date",""))
-        amount = float(row.get("amount",0))
+        branch = str(row.get("branch_id", row.get("Branch", "")))
+        area = str(row.get("area_id", row.get("Area", "")))
+        date = str(row.get("date", row.get("Date", "")))
+        amount = float(row.get("amount", row.get("Amount", 0)))
         c.execute("INSERT INTO recovery_data (branch, area, recovery_date, amount) VALUES (?,?,?,?)",
                   (branch, area, date, amount))
     conn.commit()
@@ -1269,23 +1266,36 @@ if not uploaded:
         st.info("No data in database. Upload file to populate table.")
         st.stop()
 
+# ---------------- Column Selection ---------------- #
+st.subheader("Column Selection")
+all_cols = df.columns.tolist()
+date_col = st.selectbox("Select Date Column", all_cols)
+branch_col = st.selectbox("Select Branch Column", all_cols)
+area_col = None
+if "area" in df.columns:
+    area_col = "area"
+
 # ---------------- Convert Date ---------------- #
-if "recovery_date" in df.columns:
-    df["recovery_date"] = pd.to_datetime(df["recovery_date"], errors="coerce")
-    df["Day"] = df["recovery_date"].dt.day
-    df = df.dropna(subset=["Day"])
-    df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
+df[date_col] = pd.to_datetime(df[date_col].astype(str), errors="coerce")
+df = df.dropna(subset=[date_col, branch_col])
+df["Day"] = df[date_col].dt.day
+df = df[df["Day"].notna()]
+df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
 
 # ---------------- Pivot Table ---------------- #
+if branch_col not in df.columns or df["Range"].isna().all():
+    st.error("Selected branch or date column not valid for pivot.")
+    st.stop()
+
 pivot = pd.pivot_table(
     df,
-    index=["branch"],
+    index=[branch_col],
     columns="Range",
     aggfunc="size",
     fill_value=0
 )
 
-# Ensure all columns exist
+# Ensure columns exist
 for c_name in ["1-10","11-20","21-31"]:
     if c_name not in pivot.columns:
         pivot[c_name] = 0
@@ -1303,15 +1313,26 @@ pivot.rename(columns={
 
 result_df = pivot.reset_index()
 
-# ---------------- Grand Total ---------------- #
+# ---------------- Add Area column ---------------- #
+if area_col:
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    cols = result_df.columns.tolist()
+    branch_idx = cols.index(branch_col)
+    cols.insert(branch_idx, cols.pop(cols.index(area_col)))
+    result_df = result_df[cols]
+
+# ---------------- Grand Total Row ---------------- #
 numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
 grand_total_counts = result_df[numeric_cols].sum()
-grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]]/grand_total_counts["Total"]*100).round(2)
+grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
 
 grand_values = {}
 for col in result_df.columns:
-    if col=="branch":
+    if col == branch_col:
         grand_values[col] = "Grand Total"
+    elif col == area_col:
+        grand_values[col] = ""
     elif col in numeric_cols:
         grand_values[col] = grand_total_counts[col]
     elif col in ["1-10 %","11-20 %","21-31 %"]:
@@ -1322,20 +1343,14 @@ for col in result_df.columns:
 
 result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
-# ---------------- Display ---------------- #
+# ---------------- Display Table ---------------- #
 st.subheader("Branch Wise Recovery Summary")
 st.dataframe(result_df)
 
-# ---------------- CSV Download ---------------- #
+# ---------------- CSV & PDF Download ---------------- #
 csv = result_df.to_csv(index=False).encode("utf-8")
-st.download_button(
-    "⬇ Download CSV",
-    data=csv,
-    file_name="recovery_summary.csv",
-    mime="text/csv"
-)
+st.download_button("⬇ Download CSV", data=csv, file_name="recovery_summary.csv", mime="text/csv")
 
-# ---------------- PDF Download ---------------- #
 buffer = BytesIO()
 doc = SimpleDocTemplate(buffer, pagesize=A4)
 table_data = [result_df.columns.tolist()] + result_df.values.tolist()
@@ -1353,12 +1368,7 @@ doc.build([table])
 pdf_bytes = buffer.getvalue()
 buffer.close()
 
-st.download_button(
-    "⬇ Download PDF",
-    data=pdf_bytes,
-    file_name="recovery_summary.pdf",
-    mime="application/pdf"
-)
+st.download_button("⬇ Download PDF", data=pdf_bytes, file_name="recovery_summary.pdf", mime="application/pdf")
 import streamlit as st
 import pandas as pd
 from io import BytesIO
@@ -1562,6 +1572,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

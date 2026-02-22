@@ -1234,7 +1234,7 @@ CREATE TABLE IF NOT EXISTS recovery_data (
 """)
 conn.commit()
 
-# Always load the latest data from database (this is the main change)
+# یہ لائن شامل کی ہے
 df = pd.read_sql("SELECT * FROM recovery_data", conn)
 
 # ---------------- File Upload ---------------- #
@@ -1246,7 +1246,8 @@ if uploaded:
     else:
         df = pd.read_excel(uploaded)
 
-    # Removed: st.session_state["df"] = df
+    # یہ لائن ہٹا دی گئی ہے
+    # st.session_state["df"] = df
 
     # Save to DB
     c.execute("DELETE FROM recovery_data")
@@ -1260,13 +1261,8 @@ if uploaded:
     conn.commit()
     st.success("Data uploaded and saved to database!")
 
-    # Refresh df from database after upload (this is the other key change)
+    # یہ لائن شامل کی ہے
     df = pd.read_sql("SELECT * FROM recovery_data", conn)
-
-# If no data at all → show message
-if df.empty:
-    st.info("No data in database. Upload file to populate table.")
-    st.stop()
 
 # ---------------- Column Selection ---------------- #
 st.subheader("Column Selection")

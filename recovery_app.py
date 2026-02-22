@@ -1210,34 +1210,29 @@ if uploaded_file:
         )
 import streamlit as st
 import pandas as pd
-import sqlite3
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from reportlab.lib import colors
-import os
+import boto3
 
-DB_FILE = "data/recovery.db"
-os.makedirs("data", exist_ok=True)
-st.title("Recovery Date Range Summary (Database Persistent)")
+# ===================== S3 CONFIG =====================
+AWS_ACCESS_KEY_ID = "YOUR_AWS_ACCESS_KEY"
+AWS_SECRET_ACCESS_KEY = "YOUR_AWS_SECRET_KEY"
+BUCKET_NAME = "your-bucket-name"
+S3_KEY = "recovery/recovery.xlsx"  # Path in S3
 
-# ---------------- SQLite Setup ---------------- #
-conn = sqlite3.connect(DB_FILE, check_same_thread=False)
-c = conn.cursor()
-c.execute("""
-CREATE TABLE IF NOT EXISTS recovery_data (
-    branch TEXT,
-    area TEXT,
-    recovery_date TEXT,
-    amount REAL
+s3 = boto3.client(
+    "s3",
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
-""")
-conn.commit()
 
-# ---------------- File Upload ---------------- #
-uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+st.set_page_config(layout="wide")
+st.title("Recovery Date Range Summary (Cloud Saved)")
 
-df = pd.DataFrame()
+# ===================== UPLOAD =====================
+uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx","csv"])
 
 if uploaded:
     if uploaded.name.endswith(".csv"):
@@ -1245,48 +1240,49 @@ if uploaded:
     else:
         df = pd.read_excel(uploaded)
 
-    st.session_state["df"] = df
+    # Save to S3
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False)
+    buffer.seek(0)
+    s3.put_object(Bucket=BUCKET_NAME, Key=S3_KEY, Body=buffer)
+    st.success("File uploaded and saved to cloud!")
 
-    # Save to DB
-    c.execute("DELETE FROM recovery_data")
-    for _, row in df.iterrows():
-        branch = str(row.get("branch_id", row.get("Branch", "")))
-        area = str(row.get("area_id", row.get("Area", "")))
-        date = str(row.get("date", row.get("Date", "")))
-        amount = float(row.get("amount", row.get("Amount", 0)))
-        c.execute("INSERT INTO recovery_data (branch, area, recovery_date, amount) VALUES (?,?,?,?)",
-                  (branch, area, date, amount))
-    conn.commit()
-    st.success("Data uploaded and saved to database!")
-
-# ---------------- Load from DB if no upload ---------------- #
-if not uploaded:
-    df = pd.read_sql("SELECT * FROM recovery_data", conn)
-    if df.empty:
-        st.info("No data in database. Upload file to populate table.")
+# ===================== LOAD FROM S3 =====================
+try:
+    obj = s3.get_object(Bucket=BUCKET_NAME, Key=S3_KEY)
+    df = pd.read_excel(BytesIO(obj["Body"].read()))
+    st.info("Loaded recovery data from cloud.")
+except s3.exceptions.NoSuchKey:
+    if not uploaded:
+        st.warning("No recovery file found in cloud. Upload a file first.")
         st.stop()
 
-# ---------------- Column Selection ---------------- #
-st.subheader("Column Selection")
-all_cols = df.columns.tolist()
-date_col = st.selectbox("Select Date Column", all_cols)
-branch_col = st.selectbox("Select Branch Column", all_cols)
-area_col = None
-if "area" in df.columns:
-    area_col = "area"
+# ===================== COLUMN SELECTION =====================
+st.subheader("Available Columns")
+st.write(list(df.columns))
 
-# ---------------- Convert Date ---------------- #
-df[date_col] = pd.to_datetime(df[date_col].astype(str), errors="coerce")
+date_col = st.selectbox("Select Date Column", df.columns)
+branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
+area_col = None
+if 'area_id' in df.columns:
+    area_col = 'area_id'
+
+# ===================== DATE PROCESSING =====================
+df[date_col] = pd.to_datetime(df[date_col].astype(str).str.strip(), errors="coerce")
 df = df.dropna(subset=[date_col, branch_col])
 df["Day"] = df[date_col].dt.day
-df = df[df["Day"].notna()]
-df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
 
-# ---------------- Pivot Table ---------------- #
-if branch_col not in df.columns or df["Range"].isna().all():
-    st.error("Selected branch or date column not valid for pivot.")
+df["Range"] = pd.cut(
+    df["Day"],
+    bins=[0,10,20,31],
+    labels=["1-10","11-20","21-31"]
+)
+
+if df["Range"].isna().all():
+    st.error("Date column sahi format me nahi.")
     st.stop()
 
+# ===================== PIVOT =====================
 pivot = pd.pivot_table(
     df,
     index=[branch_col],
@@ -1295,10 +1291,9 @@ pivot = pd.pivot_table(
     fill_value=0
 )
 
-# Ensure columns exist
-for c_name in ["1-10","11-20","21-31"]:
-    if c_name not in pivot.columns:
-        pivot[c_name] = 0
+for c in ["1-10","11-20","21-31"]:
+    if c not in pivot.columns:
+        pivot[c] = 0
 
 pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
 pivot["1-10 %"] = (pivot["1-10"]/pivot["Total"]*100).round(2)
@@ -1313,19 +1308,20 @@ pivot.rename(columns={
 
 result_df = pivot.reset_index()
 
-# ---------------- Add Area column ---------------- #
+# ===================== ADD AREA =====================
 if area_col:
     branch_area_df = df[[branch_col, area_col]].drop_duplicates()
     result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+    # Move Area column before Branch
     cols = result_df.columns.tolist()
     branch_idx = cols.index(branch_col)
     cols.insert(branch_idx, cols.pop(cols.index(area_col)))
     result_df = result_df[cols]
 
-# ---------------- Grand Total Row ---------------- #
+# ===================== GRAND TOTAL =====================
 numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
 grand_total_counts = result_df[numeric_cols].sum()
-grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100).round(2)
+grand_total_percent = (grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]]/grand_total_counts["Total"]*100).round(2)
 
 grand_values = {}
 for col in result_df.columns:
@@ -1343,16 +1339,23 @@ for col in result_df.columns:
 
 result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
-# ---------------- Display Table ---------------- #
+# ===================== SHOW TABLE =====================
 st.subheader("Branch Wise Recovery Summary")
 st.dataframe(result_df)
 
-# ---------------- CSV & PDF Download ---------------- #
+# ===================== CSV DOWNLOAD =====================
 csv = result_df.to_csv(index=False).encode("utf-8")
-st.download_button("⬇ Download CSV", data=csv, file_name="recovery_summary.csv", mime="text/csv")
+st.download_button(
+    label="⬇ Download CSV",
+    data=csv,
+    file_name="recovery_summary.csv",
+    mime="text/csv"
+)
 
+# ===================== PDF DOWNLOAD =====================
 buffer = BytesIO()
 doc = SimpleDocTemplate(buffer, pagesize=A4)
+
 table_data = [result_df.columns.tolist()] + result_df.values.tolist()
 table = Table(table_data)
 style = TableStyle([
@@ -1364,8 +1367,14 @@ style = TableStyle([
     ('BOTTOMPADDING', (0,0), (-1,0), 6),
 ])
 table.setStyle(style)
+
 doc.build([table])
 pdf_bytes = buffer.getvalue()
 buffer.close()
 
-st.download_button("⬇ Download PDF", data=pdf_bytes, file_name="recovery_summary.pdf", mime="application/pdf")
+st.download_button(
+    label="⬇ Download PDF",
+    data=pdf_bytes,
+    file_name="recovery_summary.pdf",
+    mime="application/pdf"
+)

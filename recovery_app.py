@@ -138,7 +138,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(layout="wide")
 st.markdown("<h1 style='color:#003366;'>Sustainability Report</h1>", unsafe_allow_html=True)
 
 # ---------------- SIDEBAR ---------------- #
@@ -1453,6 +1452,7 @@ if files:
         file_name="merged_data.csv",
         mime="text/csv"
     )
+
 
 
 

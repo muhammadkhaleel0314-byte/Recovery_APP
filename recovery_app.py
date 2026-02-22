@@ -77,26 +77,26 @@ import streamlit as st
 import pandas as pd 
 from io import BytesIO
 st.set_page_config(layout="wide", page_title="Target vs Achievement MIS")
+#--------------------
+#Initialize Session State
 
-Initialize Session State
-
---------------------
+#--------------------
 
 if 'mis_data' not in st.session_state: st.session_state.mis_data = { 'projects': ["ACAG","AIM PF","PM-ALS & YBLS","PSPA","PM-LCH","Akhuwat","KLP"], 'target': [], 'achievement': [] }
 
---------------------
+#--------------------
 
 Sidebar Uploads
 
---------------------
+#--------------------
 
 st.sidebar.header("Upload Sheets") active_file = st.sidebar.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="active_upload") ach_file = st.sidebar.file_uploader("Upload Achievement Sheet", type=["xlsx","xls","csv"], key="achievement_upload")
 
---------------------
+#--------------------
 
 Load Achievement Sheet
 
---------------------
+#--------------------
 
 if ach_file := ach_file or None: try: if ach_file.name.endswith('.csv'): ach_df = pd.read_csv(ach_file) else: ach_df = pd.read_excel(ach_file, engine='openpyxl') # Clean columns ach_df.columns = ach_df.columns.str.strip() # Reset session achievement st.session_state.mis_data['achievement'] = []
 
@@ -130,19 +130,19 @@ if ach_file := ach_file or None: try: if ach_file.name.endswith('.csv'): ach_df 
 except Exception as e:
     st.sidebar.error(f"Error reading achievement sheet: {e}")
 
---------------------
+#--------------------
 
 Add/Remove Target Row
 
---------------------
+#--------------------
 
 st.sidebar.subheader("Target Options") if st.sidebar.button("➕ Add Target Row"): st.session_state.mis_data['target'].append({'area':'','branch':'','values':[{'c':0,'a':0} for _ in st.session_state.mis_data['projects']]}) if st.sidebar.button("🗑 Remove Last Target Row"): if st.session_state.mis_data['target']: st.session_state.mis_data['target'].pop()
 
---------------------
+#--------------------
 
 Display Table
 
---------------------
+#--------------------
 
 st.title("Target vs Achievement MIS")
 
@@ -1678,6 +1678,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

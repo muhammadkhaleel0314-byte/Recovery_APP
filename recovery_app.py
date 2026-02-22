@@ -1234,11 +1234,10 @@ CREATE TABLE IF NOT EXISTS recovery_data (
 """)
 conn.commit()
 
-# یہ لائن شامل کی ہے
-df = pd.read_sql("SELECT * FROM recovery_data", conn)
-
 # ---------------- File Upload ---------------- #
 uploaded = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+
+df = pd.DataFrame()
 
 if uploaded:
     if uploaded.name.endswith(".csv"):
@@ -1246,8 +1245,7 @@ if uploaded:
     else:
         df = pd.read_excel(uploaded)
 
-    # یہ لائن ہٹا دی گئی ہے
-    # st.session_state["df"] = df
+    st.session_state["df"] = df
 
     # Save to DB
     c.execute("DELETE FROM recovery_data")
@@ -1261,8 +1259,12 @@ if uploaded:
     conn.commit()
     st.success("Data uploaded and saved to database!")
 
-    # یہ لائن شامل کی ہے
+# ---------------- Load from DB if no upload ---------------- #
+if not uploaded:
     df = pd.read_sql("SELECT * FROM recovery_data", conn)
+    if df.empty:
+        st.info("No data in database. Upload file to populate table.")
+        st.stop()
 
 # ---------------- Column Selection ---------------- #
 st.subheader("Column Selection")

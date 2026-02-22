@@ -1228,7 +1228,6 @@ s3 = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
 
-st.set_page_config(layout="wide")
 st.title("Recovery Date Range Summary (Cloud Saved)")
 
 # ===================== UPLOAD =====================
@@ -1378,3 +1377,4 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+

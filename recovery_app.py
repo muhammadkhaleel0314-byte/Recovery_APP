@@ -77,8 +77,6 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 
-st.set_page_config(layout="wide", page_title="Target vs Achievement MIS")
-
 # ---------------- SESSION STATE INITIALIZATION ----------------
 if "mis_data" not in st.session_state:
     st.session_state.mis_data = {
@@ -1744,6 +1742,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

@@ -73,188 +73,99 @@ st.markdown("""
     <h3 style='text-align: center; color: Yellow;'>Recovery and Overdue Portal</h3>
     <hr style='border-top: 3px solid #bbb;'>
 """, unsafe_allow_html=True)
-import streamlit as st
-import pandas as pd
+import streamlit as st 
+import pandas as pd 
 from io import BytesIO
+
+--------------------
+
+Initialize Session State
+
+--------------------
+
+if 'mis_data' not in st.session_state: st.session_state.mis_data = { 'projects': ["ACAG","AIM PF","PM-ALS & YBLS","PSPA","PM-LCH","Akhuwat","KLP"], 'target': [], 'achievement': [] }
+
+--------------------
+
+Sidebar Uploads
+
+--------------------
+
+st.sidebar.header("Upload Sheets") active_file = st.sidebar.file_uploader("Upload Active Sheet", type=["xlsx","xls","csv"], key="active_upload") ach_file = st.sidebar.file_uploader("Upload Achievement Sheet", type=["xlsx","xls","csv"], key="achievement_upload")
+
+--------------------
+
+Load Achievement Sheet
+
+--------------------
+
+if ach_file := ach_file or None: try: if ach_file.name.endswith('.csv'): ach_df = pd.read_csv(ach_file) else: ach_df = pd.read_excel(ach_file, engine='openpyxl') # Clean columns ach_df.columns = ach_df.columns.str.strip() # Reset session achievement st.session_state.mis_data['achievement'] = []
+
+# Populate session achievement
+    group = {}
+    for _, row in ach_df.iterrows():
+        area = str(row.get('Area','')).strip()
+        branch = str(row.get('Branch','')).strip()
+        proj = row.get('Project')
+        cases = int(row.get('Cases',0))
+        amount = float(row.get('Amount',0))
+        if not area or not branch or not proj: continue
+
+        key = (area.lower(), branch.lower(), proj)
+        if key not in group:
+            group[key] = {'area': area, 'branch': branch, 'proj': proj, 'c':0, 'a':0}
+        group[key]['c'] += cases
+        group[key]['a'] += amount
+
+    for g in group.values():
+        # find existing target row
+        idx = next((i for i, x in enumerate(st.session_state.mis_data['achievement']) if x['area'].lower()==g['area'].lower() and x['branch'].lower()==g['branch'].lower()), None)
+        if idx is None:
+            st.session_state.mis_data['achievement'].append({'area': g['area'], 'branch': g['branch'], 'values':[{'c':0,'a':0} for _ in st.session_state.mis_data['projects']]})
+            idx = len(st.session_state.mis_data['achievement'])-1
+        proj_idx = st.session_state.mis_data['projects'].index(g['proj']) if g['proj'] in st.session_state.mis_data['projects'] else -1
+        if proj_idx>=0:
+            st.session_state.mis_data['achievement'][idx]['values'][proj_idx]['c'] = g['c']
+            st.session_state.mis_data['achievement'][idx]['values'][proj_idx]['a'] = g['a']
+
+except Exception as e:
+    st.sidebar.error(f"Error reading achievement sheet: {e}")
+
+--------------------
+
+Add/Remove Target Row
+
+--------------------
+
+st.sidebar.subheader("Target Options") if st.sidebar.button("➕ Add Target Row"): st.session_state.mis_data['target'].append({'area':'','branch':'','values':[{'c':0,'a':0} for _ in st.session_state.mis_data['projects']]}) if st.sidebar.button("🗑 Remove Last Target Row"): if st.session_state.mis_data['target']: st.session_state.mis_data['target'].pop()
+
+--------------------
+
+Display Table
+
+--------------------
 
 st.title("Target vs Achievement MIS")
 
-# ---------------- SESSION STATE ---------------- #
-if "mis_data" not in st.session_state:
-    st.session_state.mis_data = {
-        "projects": ["ACAG","AIM PF","PM-ALS & YBLS","PSPA","PM-LCH","Akhuwat","KLP"],
-        "target": [],
-        "achievement": []
-    }
+projects = st.session_state.mis_data['projects'] target = st.session_state.mis_data['target'] achievement = st.session_state.mis_data['achievement']
 
-# ---------------- UPLOAD TARGET SHEET ---------------- #
-target_file = st.sidebar.file_uploader("Upload Target Sheet (Excel/CSV)", type=["xlsx","csv"])
-if target_file:
-    try:
-        if target_file.name.endswith(".csv"):
-            df_target = pd.read_csv(target_file)
-        else:
-            df_target = pd.read_excel(target_file)
-        st.session_state.mis_data["target"] = []
-        # Auto populate target rows from sheet
-        for _, row in df_target.iterrows():
-            area = str(row.get("Area","")).strip()
-            branch = str(row.get("Branch Name","")).strip()
-            code = str(row.get("Branch Code","")).strip()
-            values = []
-            for p in st.session_state.mis_data["projects"]:
-                # sum cases and amounts for each project
-                proj_rows = df_target[(df_target["Branch Code"]==code) & (df_target["Project Name"]==p)]
-                c_sum = len(proj_rows)
-                a_sum = proj_rows["Amount"].sum() if not proj_rows.empty else 0
-                values.append({"c":c_sum,"a":a_sum})
-            st.session_state.mis_data["target"].append({
-                "area": area,
-                "branch": branch,
-                "code": code,
-                "values": values
-            })
-    except Exception as e:
-        st.error(f"Error reading target file: {e}")
+Area Filter\areas = list(set([x['area'] for x in target if x['area']]))
 
-# ---------------- UPLOAD ACHIEVEMENT ---------------- #
-ach_file = st.sidebar.file_uploader("Upload Achievement Sheet (Excel/CSV)", type=["xlsx","csv"])
-if ach_file:
-    try:
-        if ach_file.name.endswith(".csv"):
-            df_ach = pd.read_csv(ach_file)
-        else:
-            df_ach = pd.read_excel(ach_file)
-        st.session_state.mis_data["achievement"] = []
-        for _, row in df_ach.iterrows():
-            area = str(row.get("Area","")).strip()
-            branch = str(row.get("Branch Name","")).strip()
-            values = []
-            for p in st.session_state.mis_data["projects"]:
-                proj_rows = df_ach[(df_ach["Branch Name"]==branch) & (df_ach["Project Name"]==p)]
-                c_sum = len(proj_rows)
-                a_sum = proj_rows["Amount"].sum() if not proj_rows.empty else 0
-                values.append({"c":c_sum,"a":a_sum})
-            st.session_state.mis_data["achievement"].append({
-                "area": area,
-                "branch": branch,
-                "values": values
-            })
-    except Exception as e:
-        st.error(f"Error reading achievement file: {e}")
+areas.sort() selected_area = st.selectbox("Select Area", options=['All Areas']+areas)
 
-# ---------------- REMOVE TARGET ROW ---------------- #
-def remove_row(idx):
-    st.session_state.mis_data["target"].pop(idx)
+Helper to draw rows
 
-# ---------------- RENDER TABLE ---------------- #
-def render_table():
-    projects = st.session_state.mis_data["projects"]
-    targets = st.session_state.mis_data["target"]
-    achievements = st.session_state.mis_data["achievement"]
+def draw_rows(rows, readonly=False): html = "" for i,row in enumerate(rows): if selected_area!='All Areas' and row['area'] != selected_area: continue html += f"<tr>" html += f"<td><input {'readonly' if readonly else ''} value='{row['area']}'></td>" html += f"<td><input {'readonly' if readonly else ''} value='{row['branch']}'></td>" total_c=0; total_a=0 for v in row['values']: c = v['c']; a=v['a'] total_c+=c; total_a+=a html += f"<td><input {'readonly' if readonly else ''} value='{c}'></td>" html += f"<td><input {'readonly' if readonly else ''} value='{a}'></td>" html += f"<td>{total_c}|{total_a}</td></tr>" return html
 
-    # Filter area if selected
-    areas = ["All Areas"] + sorted(list({t["area"] for t in targets}))
-    selected_area = st.sidebar.selectbox("Filter Area", areas)
-    display_targets = [t for t in targets if t["area"]==selected_area or selected_area=="All Areas"]
+Build full HTML table
 
-    html = "<table style='width:100%;border-collapse:collapse;text-align:center;'>"
-    html += "<tr style='background:#2e7d32;color:white;'><th>Area</th><th>Branch</th>"
-    for p in projects:
-        html += f"<th colspan='2'>{p}</th>"
-    html += "<th>Total</th><th>Action</th></tr>"
-    html += "<tr style='background:#2e7d32;color:white;'><th></th><th></th>"
-    for _ in projects:
-        html += "<th>Cases</th><th>Amount</th>"
-    html += "<th></th><th></th></tr>"
+html = "<table border='1' style='border-collapse:collapse;width:100%;text-align:center;'><thead>"
 
-    # Target Rows
-    for i, t in enumerate(display_targets):
-        row_html = f"<tr style='color:white;background:#3e7d32'><td>{t['area']}</td><td>{t['branch']}</td>"
-        tc_total = 0
-        ta_total = 0
-        for v in t["values"]:
-            tc_total += v["c"]
-            ta_total += v["a"]
-            row_html += f"<td>{v['c']}</td><td>{v['a']}</td>"
-        row_html += f"<td>{tc_total}|{ta_total}</td>"
-        row_html += f"<td><button onclick=''>🗑 Remove</button></td>"
-        row_html += "</tr>"
-        html += row_html
+Header
 
-    # Achievement Rows
-    html += f"<tr style='background:#9bbb59;color:white;'><td colspan='{2+len(projects)*2+2}'>ACHIEVEMENT</td></tr>"
-    for t in display_targets:
-        a = next((x for x in achievements if x["branch"]==t["branch"] and x["area"]==t["area"]), None)
-        row_html = f"<tr style='color:white;background:#4b7d42'><td>{t['area']}</td><td>{t['branch']}</td>"
-        tc_total = 0
-        ta_total = 0
-        for i,_ in enumerate(t["values"]):
-            c = a["values"][i]["c"] if a else 0
-            am = a["values"][i]["a"] if a else 0
-            tc_total += c
-            ta_total += am
-            row_html += f"<td>{c}</td><td>{am}</td>"
-        row_html += f"<td>{tc_total}|{ta_total}</td><td></td></tr>"
-        html += row_html
+html += f"<tr style='background:#2e7d32;color:white;'><th>Area</th><th>Branch</th>" for p in projects: html += f"<th colspan='2'>{p}</th>" html += f"<th>Total</th></tr></thead>" html += f"<tbody>{draw_rows(target)}</tbody>" html += f"<tbody style='background:#c6e0b4;color:white;'><tr><td colspan='{2+len(projects)*2+1}'>Achievement</td></tr>{draw_rows(achievement, readonly=True)}</tbody>" html += f"</table>"
 
-    # Variance Rows
-    html += f"<tr style='background:#f2a65a;color:white;'><td colspan='{2+len(projects)*2+2}'>VARIANCE</td></tr>"
-    for t in display_targets:
-        a = next((x for x in achievements if x["branch"]==t["branch"] and x["area"]==t["area"]), None)
-        row_html = f"<tr style='color:white;background:#3a7d42'><td>{t['area']}</td><td>{t['branch']}</td>"
-        tc_total=0; ta_total=0
-        for i,v in enumerate(t["values"]):
-            c = v["c"] - (a["values"][i]["c"] if a else 0)
-            am = v["a"] - (a["values"][i]["a"] if a else 0)
-            tc_total+=c; ta_total+=am
-            row_html += f"<td>{c}</td><td>{am}</td>"
-        row_html += f"<td>{tc_total}|{ta_total}</td><td></td></tr>"
-        html += row_html
-
-    html += "</table>"
-    st.markdown(html, unsafe_allow_html=True)
-
-st.subheader("MIS Table")
-render_table()
-
-# ---------------- DOWNLOAD EXCEL ---------------- #
-def download_excel():
-    projects = st.session_state.mis_data["projects"]
-    targets = st.session_state.mis_data["target"]
-    achievements = st.session_state.mis_data["achievement"]
-    aoa = []
-
-    for sec in ["TARGET","ACHIEVEMENT","VARIANCE"]:
-        aoa.append([sec])
-        h1=["Area","Branch"]; h2=["",""]
-        for p in projects: h1.extend([p,""]); h2.extend(["Cases","Amount"])
-        aoa.append(h1); aoa.append(h2)
-        for t in targets:
-            a = next((x for x in achievements if x["area"]==t["area"] and x["branch"]==t["branch"]), None)
-            row=[t["area"],t["branch"]]
-            tc=0; ta=0
-            for i,v in enumerate(t["values"]):
-                if sec=="TARGET": c=v["c"]; am=v["a"]
-                elif sec=="ACHIEVEMENT": c=a["values"][i]["c"] if a else 0; am=a["values"][i]["a"] if a else 0
-                else: c=v["c"]-(a["values"][i]["c"] if a else 0); am=v["a"]-(a["values"][i]["a"] if a else 0)
-                tc+=c; ta+=am
-                row.extend([c,am])
-            row.append(f"{tc}|{ta}")
-            aoa.append(row)
-        aoa.append([])
-
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        pd.DataFrame(aoa).to_excel(writer, index=False, header=False)
-    output.seek(0)
-    return output
-
-if st.button("⬇ Download Excel"):
-    excel_data = download_excel()
-    st.download_button("Download MIS Excel", data=excel_data,
-                       file_name="Target_vs_Achievement.xlsx",
-                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+st.markdown(html, unsafe_allow_html=True)
 import streamlit as st
 import pandas as pd
 
@@ -1768,6 +1679,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

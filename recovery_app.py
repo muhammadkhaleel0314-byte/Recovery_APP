@@ -86,7 +86,7 @@ if 'mis_data' not in st.session_state: st.session_state.mis_data = { 'projects':
 
 #--------------------
 
-Sidebar Uploads
+#Sidebar Uploads
 
 #--------------------
 
@@ -1678,6 +1678,7 @@ if st.sidebar.button("⬇ Download Excel"):
     st.sidebar.download_button("Download MIS Excel", data=excel_file,
                                 file_name="Target_vs_Achievement.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 

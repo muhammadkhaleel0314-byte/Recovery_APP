@@ -1770,35 +1770,3 @@ st.download_button(
 
 # Optional: close connection when done (good practice)
 # conn.close()   # Uncomment if needed, but Streamlit handles it
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

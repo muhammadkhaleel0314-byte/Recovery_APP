@@ -11,7 +11,7 @@ st.set_page_config(page_title="Login System",)
 # ---------- USERS ----------
 USERS = {
     "Khaleel": "112345",
-    "Baqir@0315": "Baq0ir315",
+    "Baqir@0315": "Baqir315",
     "SaneelHaider": "Haider222",
     "Atif Sajjad": "Sajjad222",
     
@@ -1292,6 +1292,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

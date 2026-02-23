@@ -763,7 +763,7 @@ if do_file and recovery_file:
     if 'overdue_df' in locals() and not overdue_df.empty:
         overdue_df["branch_id"] = overdue_df.get("branch_id", overdue_df.get("Branch",""))
         if "area_id" not in overdue_df.columns:
-            overdue_df["area_id"] = overdue_df.get("Area", "")
+            overdue_df["area_id"] = overdue_df.get("area_id", "")
 
         if overdue_df["area_id"].nunique() > 0:
             overdue_areas = sorted(overdue_df["area_id"].astype(str).unique())
@@ -1278,6 +1278,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

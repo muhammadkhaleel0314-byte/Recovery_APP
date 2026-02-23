@@ -570,9 +570,11 @@ if uploaded_file:
             file_name=f"Branch_{branch}.pdf",
             mime="application/pdf"
         )
-import streamlit as st import pandas as pd import os import io from fpdf import FPDF
+import streamlit as st 
+import pandas as pd
+import os import io 
+from fpdf import FPDF
 
-st.set_page_config(page_title="Recovery & Overdue App", layout="wide")
 
 st.title("🏦 Recovery & Overdue App")
 
@@ -1223,6 +1225,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

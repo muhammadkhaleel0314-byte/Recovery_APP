@@ -761,35 +761,58 @@ if recovery_file:
 # ---------------- OVERDUE PDF AREA & BRANCH ----------------
 if do_file and recovery_file:
     if 'overdue_df' in locals() and not overdue_df.empty:
-        overdue_df["branch_id"] = overdue_df.get("branch_id", overdue_df.get("Branch",""))
-        if "area_id" not in overdue_df.columns:
-            overdue_df["area_id"] = overdue_df.get("area_id", "")
 
-        if overdue_df["area_id"].nunique() > 0:
-            overdue_areas = sorted(overdue_df["area_id"].astype(str).unique())
-            selected_overdue_area = st.selectbox(
-                "Select Area for Overdue PDFs",
-                ["All Areas"] + overdue_areas,
-                key="overdue_area_select"
-            )
-            if selected_overdue_area != "All Areas":
-                overdue_df_filtered = overdue_df[overdue_df["area_id"].astype(str) == selected_overdue_area]
-            else:
-                overdue_df_filtered = overdue_df.copy()
+        # ---------- FIX AREA COLUMN AUTO DETECT ----------
+        area_col = None
+        for col in overdue_df.columns:
+            if "area" in col.lower():
+                area_col = col
+                break
+
+        if area_col:
+            overdue_df["area_id"] = overdue_df[area_col].astype(str)
         else:
-            overdue_df_filtered = overdue_df.copy()
+            overdue_df["area_id"] = "Unknown"
 
-        # BRANCH DROPDOWN FOR OVERDUE
-        branches_overdue = sorted(overdue_df_filtered["branch_id"].astype(str).unique())
+        # ---------- BRANCH COLUMN ----------
+        if "branch_id" not in overdue_df.columns:
+            for col in overdue_df.columns:
+                if "branch" in col.lower():
+                    overdue_df["branch_id"] = overdue_df[col]
+                    break
+            else:
+                overdue_df["branch_id"] = "Unknown"
+
+        # ---------- AREA DROPDOWN ----------
+        overdue_areas = sorted(overdue_df["area_id"].dropna().unique())
+
+        selected_overdue_area = st.selectbox(
+            "Select Area for Overdue PDFs",
+            ["All Areas"] + list(overdue_areas),
+            key="overdue_area_select"
+        )
+
+        if selected_overdue_area != "All Areas":
+            overdue_df_filtered = overdue_df[overdue_df["area_id"] == selected_overdue_area]
+        else:
+            overdue_df_filtered = overdue_df
+
+        # ---------- BRANCH DROPDOWN ----------
+        branches_overdue = sorted(overdue_df_filtered["branch_id"].dropna().unique())
+
         selected_branch_overdue = st.selectbox(
             "Select Branch for Overdue PDF",
-            ["All Branches"] + branches_overdue,
+            ["All Branches"] + list(branches_overdue),
             key="overdue_branch_select"
         )
 
+        # ---------- GENERATE PDF ----------
         if st.button("Generate Overdue PDF", key="gen_overdue_pdfs_btn"):
+
             if selected_branch_overdue != "All Branches":
-                df_branch = overdue_df_filtered[overdue_df_filtered["branch_id"].astype(str)==selected_branch_overdue]
+                df_branch = overdue_df_filtered[
+                    overdue_df_filtered["branch_id"] == selected_branch_overdue
+                ]
             else:
                 df_branch = overdue_df_filtered
 
@@ -799,16 +822,14 @@ if do_file and recovery_file:
             pdf.cell(0, 10, f"Overdue List - {selected_branch_overdue}", ln=True)
 
             pdf.set_font("Arial", "B", 10)
-            for col in ["Sanction No","Name","branch_id","area_id"]:
-                if col in df_branch.columns:
-                    pdf.cell(40,8,col,1)
+            for col in df_branch.columns[:5]:
+                pdf.cell(38,8,str(col),1)
             pdf.ln()
 
             pdf.set_font("Arial","",9)
             for _,row in df_branch.iterrows():
-                for col in ["Sanction No","Name","branch_id","area_id"]:
-                    if col in df_branch.columns:
-                        pdf.cell(40,8,str(row[col]),1)
+                for col in df_branch.columns[:5]:
+                    pdf.cell(38,8,str(row[col]),1)
                 pdf.ln()
 
             st.download_button(
@@ -1278,6 +1299,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

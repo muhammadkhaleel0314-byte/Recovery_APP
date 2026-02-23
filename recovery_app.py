@@ -572,7 +572,8 @@ if uploaded_file:
         )
 import streamlit as st 
 import pandas as pd
-import os import io 
+import os 
+import io 
 from fpdf import FPDF
 
 
@@ -1225,6 +1226,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

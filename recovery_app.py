@@ -570,201 +570,253 @@ if uploaded_file:
             file_name=f"Branch_{branch}.pdf",
             mime="application/pdf"
         )
-import streamlit as st 
+import streamlit as st
 import pandas as pd
-import os 
-import io 
+import os
+import io
+import zipfile
 from fpdf import FPDF
+import plotly.express as px
 
+st.title("🏦 Recovery & Reports App")
 
-st.title("🏦 Recovery & Overdue App")
+# ---------- PERMANENT STORAGE ----------
+SAVE_DIR = "saved_files"
+os.makedirs(SAVE_DIR, exist_ok=True)
 
----------- PERMANENT STORAGE ----------
+DO_PATH = os.path.join(SAVE_DIR, "do.xlsx")
+REC_PATH = os.path.join(SAVE_DIR, "recovery.xlsx")
 
-SAVE_DIR = "saved_files" os.makedirs(SAVE_DIR, exist_ok=True) DO_PATH = os.path.join(SAVE_DIR, "do.xlsx") REC_PATH = os.path.join(SAVE_DIR, "recovery.xlsx")
+# --------------------
+# File Upload
+# --------------------
+do_file = st.file_uploader("Upload Do List", type=["xlsx", "xls"], key="uploader_do")
+recovery_file = st.file_uploader("Upload Recovery File", type=["xlsx", "xls"], key="uploader_recovery")
 
----------- FILE UPLOAD ----------
+# ---------- SAVE FILES ----------
+if do_file:
+    with open(DO_PATH, "wb") as f:
+        f.write(do_file.getbuffer())
 
-do_file = st.file_uploader("Upload Do List", type=["xlsx", "xls"], key="uploader_do") recovery_file = st.file_uploader("Upload Recovery File", type=["xlsx", "xls"], key="uploader_recovery")
+if recovery_file:
+    with open(REC_PATH, "wb") as f:
+        f.write(recovery_file.getbuffer())
 
----------- SAVE FILES ----------
+# ---------- LOAD IF NOT UPLOADED ----------
+if do_file is None and os.path.exists(DO_PATH):
+    do_file = DO_PATH
 
-if do_file: with open(DO_PATH, "wb") as f: f.write(do_file.getbuffer())
+if recovery_file is None and os.path.exists(REC_PATH):
+    recovery_file = REC_PATH
 
-if recovery_file: with open(REC_PATH, "wb") as f: f.write(recovery_file.getbuffer())
+# ---------------- MAIN LOGIC ----------------
+if do_file and recovery_file:
 
----------- LOAD FILES IF NOT UPLOADED ----------
+    do_df = pd.read_excel(do_file)
+    recovery_df = pd.read_excel(recovery_file)
 
-if do_file is None and os.path.exists(DO_PATH): do_file = DO_PATH if recovery_file is None and os.path.exists(REC_PATH): recovery_file = REC_PATH
+    for df in [do_df, recovery_df]:
+        df.columns = df.columns.str.strip()
 
----------- MAIN LOGIC ----------
-
-if do_file and recovery_file: do_df = pd.read_excel(do_file) recovery_df = pd.read_excel(recovery_file)
-
-for df in [do_df, recovery_df]:
-    df.columns = df.columns.str.strip()
-
-# ---------- OVERDUE ----------
-overdue_df = do_df[~do_df['Sanction No'].astype(str).str.strip().isin(
-    recovery_df['Sanction No'].astype(str).str.strip()
-)].copy()
-
-st.subheader("🕒 Final Overdue List")
-st.dataframe(overdue_df)
-
-# ---------- AREA FILTER FOR OVERDUE ----------
-if 'area_id' in overdue_df.columns:
-    overdue_areas = sorted(overdue_df['area_id'].astype(str).unique())
-    selected_area_overdue = st.selectbox("Select Area for Overdue", ["All Areas"] + overdue_areas, key="overdue_area_select")
-    if selected_area_overdue != "All Areas":
-        overdue_area_df = overdue_df[overdue_df['area_id'].astype(str) == selected_area_overdue]
+    # ---------- OVERDUE ----------
+    if 'Sanction No' not in do_df.columns or 'Sanction No' not in recovery_df.columns:
+        st.error("Both files must contain 'Sanction No'")
     else:
-        overdue_area_df = overdue_df.copy()
-else:
-    overdue_area_df = overdue_df.copy()
-
-# ---------- DOWNLOAD OVERDUE PDFs ----------
-branches_overdue = overdue_area_df['branch_id'].astype(str).unique() if not overdue_area_df.empty else []
-if branches_overdue.any():
-    st.subheader("📄 Download Overdue PDFs per Branch")
-    selected_branch_overdue = st.selectbox("Select Branch", ["All Branches"] + list(branches_overdue), key="overdue_branch_select")
-
-    if st.button("Download Overdue PDF", key="download_overdue_btn"):
-        if selected_branch_overdue == "All Branches":
-            branches_to_pdf = branches_overdue
-        else:
-            branches_to_pdf = [selected_branch_overdue]
-
-        for branch in branches_to_pdf:
-            branch_data = overdue_area_df[overdue_area_df['branch_id'].astype(str) == branch]
-
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", "B", 14)
-            pdf.cell(0, 10, f"Branch: {branch}", ln=True)
-            pdf.set_font("Arial", "B", 10)
-            pdf.cell(12, 8, "Sr#", 1)
-            pdf.cell(50, 8, "Name", 1)
-            pdf.cell(50, 8, "Sanction No", 1)
-            pdf.ln()
-
-            pdf.set_font("Arial", "", 9)
-            for i, (_, row) in enumerate(branch_data.iterrows(), 1):
-                pdf.cell(12, 8, str(i), 1)
-                pdf.cell(50, 8, str(row.get("Name", ""))[:25], 1)
-                pdf.cell(50, 8, str(row.get("Sanction No", "")), 1)
-                pdf.ln()
-
-            pdf_bytes = pdf.output(dest="S").encode("latin1")
-            st.download_button(
-                label=f"Download PDF for Branch {branch}",
-                data=pdf_bytes,
-                file_name=f"Overdue_{branch}.pdf",
-                mime="application/pdf",
-                key=f"overdue_pdf_{branch}"
+        overdue_df = do_df[
+            ~do_df['Sanction No'].astype(str).str.strip().isin(
+                recovery_df['Sanction No'].astype(str).str.strip()
             )
+        ].copy()
 
-# ---------- MONTHLY RECOVERY ----------
-do_df['Sanction No'] = do_df['Sanction No'].astype(str).str.strip()
-recovery_df['Sanction No'] = recovery_df['Sanction No'].astype(str).str.strip()
+        st.subheader("🕒 Final Overdue List")
+        st.dataframe(overdue_df)
 
-if 'recovery_date' in recovery_df.columns:
-    recovery_df['recovery_date'] = pd.to_datetime(recovery_df['recovery_date'], errors='coerce')
-else:
-    recovery_df['recovery_date'] = pd.NaT
+    # ---------- MONTHLY RECOVERY ----------
+    do_df['Sanction No'] = do_df['Sanction No'].astype(str).str.strip()
+    recovery_df['Sanction No'] = recovery_df['Sanction No'].astype(str).str.strip()
 
-month = pd.Timestamp.now().month
-year = pd.Timestamp.now().year
-
-recovery_this_month = recovery_df[
-    (recovery_df['recovery_date'].dt.month == month) &
-    (recovery_df['recovery_date'].dt.year == year)
-] if not recovery_df['recovery_date'].isna().all() else recovery_df.iloc[0:0]
-
-recovered = recovery_this_month[
-    recovery_this_month['Sanction No'].isin(do_df['Sanction No'])
-]
-
-if 'branch_id' not in do_df.columns:
-    do_df['branch_id'] = do_df.get('Branch', '')
-if 'branch_id' not in recovery_df.columns:
-    recovery_df['branch_id'] = recovery_df.get('Branch Code', '')
-
-due_summary = do_df.groupby('branch_id')['Sanction No'].count().reset_index()
-due_summary.columns = ['branch_id', 'total_due']
-
-recovered_summary = recovered.groupby('branch_id')['Sanction No'].count().reset_index()
-recovered_summary.columns = ['branch_id', 'recovered']
-
-summary = due_summary.merge(recovered_summary, on='branch_id', how='left').fillna(0)
-summary['remaining'] = summary['total_due'] - summary['recovered']
-summary['recovery_percent'] = (summary['recovered'] / summary['total_due'].replace(0, pd.NA)) * 100
-summary['recovery_percent'] = summary['recovery_percent'].fillna(0)
-
-st.subheader("📋 Branch-wise Recovery Summary (This Month)")
-st.dataframe(summary)
-
-# ---------- RECOVERY PDFs ----------
-if 'area_id' in recovery_df.columns:
-    recovery_areas = sorted(recovery_df['area_id'].astype(str).unique())
-    selected_area_recovery = st.selectbox("Select Area for Recovery", ["All Areas"] + recovery_areas, key="recovery_area_select")
-    if selected_area_recovery != "All Areas":
-        recovery_area_df = recovery_df[recovery_df['area_id'].astype(str) == selected_area_recovery]
+    if 'recovery_date' in recovery_df.columns:
+        recovery_df['recovery_date'] = pd.to_datetime(recovery_df['recovery_date'], errors='coerce')
     else:
-        recovery_area_df = recovery_df.copy()
-else:
-    recovery_area_df = recovery_df.copy()
+        recovery_df['recovery_date'] = pd.NaT
 
-branches_recovery = recovery_area_df['branch_id'].astype(str).unique() if not recovery_area_df.empty else []
-if branches_recovery.any():
-    selected_branch_recovery = st.selectbox("Select Branch for Recovery PDF", ["All Branches"] + list(branches_recovery), key="recovery_branch_select")
+    month = pd.Timestamp.now().month
+    year = pd.Timestamp.now().year
 
-    if st.button("Download Recovery PDF", key="download_recovery_btn"):
-        if selected_branch_recovery == "All Branches":
-            branches_to_pdf = branches_recovery
+    recovery_this_month = recovery_df[
+        (recovery_df['recovery_date'].dt.month == month) &
+        (recovery_df['recovery_date'].dt.year == year)
+    ] if not recovery_df['recovery_date'].isna().all() else recovery_df.iloc[0:0]
+
+    recovered = recovery_this_month[
+        recovery_this_month['Sanction No'].isin(do_df['Sanction No'])
+    ]
+
+    if 'branch_id' not in do_df.columns:
+        do_df['branch_id'] = do_df.get('Branch', '')
+
+    if 'branch_id' not in recovery_df.columns:
+        recovery_df['branch_id'] = recovery_df.get('Branch Code', '')
+
+    due_summary = do_df.groupby('branch_id')['Sanction No'].count().reset_index()
+    due_summary.columns = ['branch_id', 'total_due']
+
+    recovered_summary = recovered.groupby('branch_id')['Sanction No'].count().reset_index()
+    recovered_summary.columns = ['branch_id', 'recovered']
+
+    summary = due_summary.merge(recovered_summary, on='branch_id', how='left').fillna(0)
+    summary['remaining'] = summary['total_due'] - summary['recovered']
+    summary['recovery_percent'] = (summary['recovered'] / summary['total_due'].replace(0, pd.NA)) * 100
+    summary['recovery_percent'] = summary['recovery_percent'].fillna(0)
+
+    st.subheader("📋 Branch-wise Recovery Summary (This Month)")
+    st.dataframe(summary)
+
+    # ---------- CHART ----------
+    fig = px.bar(
+        summary,
+        x='branch_id',
+        y='recovery_percent',
+        text=summary['recovery_percent'].apply(lambda x: f"{x:.1f}%")
+    )
+    fig.update_traces(textposition='outside')
+    st.plotly_chart(fig, use_container_width=True)
+
+# ---------------- RECOVERY PDF ZIP + AREA FILTER ----------------
+if recovery_file:
+
+    rec_df = pd.read_excel(recovery_file)
+    rec_df.columns = rec_df.columns.str.strip()
+
+    for col in ["branch_id", "recovery_date", "amount", "Name", "Sanction No", "area_id"]:
+        if col not in rec_df.columns:
+            rec_df[col] = ""
+
+    rec_df["Date"] = pd.to_datetime(rec_df["recovery_date"], errors='coerce').dt.strftime("%d-%m-%y")
+
+    # ---------- AREA FILTER FOR RECOVERY ----------
+    if rec_df["area_id"].nunique() > 0:
+        areas = sorted(rec_df["area_id"].astype(str).unique())
+        selected_area = st.selectbox(
+            "Select Area for Recovery PDFs",
+            ["All Areas"] + areas,
+            key="recovery_area_select"
+        )
+        if selected_area != "All Areas":
+            rec_df_filtered = rec_df[rec_df["area_id"].astype(str) == selected_area]
         else:
-            branches_to_pdf = [selected_branch_recovery]
+            rec_df_filtered = rec_df.copy()
+    else:
+        rec_df_filtered = rec_df.copy()
 
-        for branch in branches_to_pdf:
-            branch_data = recovery_area_df[recovery_area_df['branch_id'].astype(str) == branch]
+    if st.button("Generate Recovery PDFs", key="gen_recovery_pdfs_btn"):
+        branches = rec_df_filtered["branch_id"].astype(str).unique()
+        zip_buffer = io.BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED) as zf:
+            for branch in branches:
+                branch_data = rec_df_filtered[rec_df_filtered["branch_id"].astype(str) == str(branch)]
+
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Arial", "B", 14)
+                pdf.cell(0, 10, f"Branch: {branch}", ln=True)
+
+                pdf.set_font("Arial", "B", 10)
+                pdf.cell(12,8,"Sr#",1)
+                pdf.cell(50,8,"Date",1)
+                pdf.cell(40,8,"Amount",1)
+                pdf.cell(60,8,"Name",1)
+                pdf.cell(40,8,"Sanction",1)
+                pdf.ln()
+
+                pdf.set_font("Arial","",9)
+                total=0
+
+                for i,(_,row) in enumerate(branch_data.iterrows(),1):
+                    pdf.cell(12,8,str(i),1)
+                    pdf.cell(50,8,str(row["Date"]),1)
+                    pdf.cell(40,8,str(row["amount"]),1)
+                    pdf.cell(60,8,str(row["Name"])[:25],1)
+                    pdf.cell(40,8,str(row["Sanction No"]),1)
+                    pdf.ln()
+                    try:
+                        total+=float(row["amount"])
+                    except:
+                        pass
+
+                pdf.cell(62,8,"Total",1)
+                pdf.cell(40,8,f"{total:,.2f}",1)
+
+                zf.writestr(f"{branch}.pdf", pdf.output(dest="S").encode("latin1"))
+
+        zip_buffer.seek(0)
+        st.download_button(
+            "Download Recovery PDFs (ZIP)",
+            zip_buffer.getvalue(),
+            f"{selected_area}_Recovery.zip",
+            "application/zip"
+        )
+
+# ---------------- OVERDUE PDF AREA & BRANCH ----------------
+if do_file and recovery_file:
+    if 'overdue_df' in locals() and not overdue_df.empty:
+        overdue_df["branch_id"] = overdue_df.get("branch_id", overdue_df.get("Branch",""))
+        if "area_id" not in overdue_df.columns:
+            overdue_df["area_id"] = overdue_df.get("Area", "")
+
+        if overdue_df["area_id"].nunique() > 0:
+            overdue_areas = sorted(overdue_df["area_id"].astype(str).unique())
+            selected_overdue_area = st.selectbox(
+                "Select Area for Overdue PDFs",
+                ["All Areas"] + overdue_areas,
+                key="overdue_area_select"
+            )
+            if selected_overdue_area != "All Areas":
+                overdue_df_filtered = overdue_df[overdue_df["area_id"].astype(str) == selected_overdue_area]
+            else:
+                overdue_df_filtered = overdue_df.copy()
+        else:
+            overdue_df_filtered = overdue_df.copy()
+
+        # BRANCH DROPDOWN FOR OVERDUE
+        branches_overdue = sorted(overdue_df_filtered["branch_id"].astype(str).unique())
+        selected_branch_overdue = st.selectbox(
+            "Select Branch for Overdue PDF",
+            ["All Branches"] + branches_overdue,
+            key="overdue_branch_select"
+        )
+
+        if st.button("Generate Overdue PDF", key="gen_overdue_pdfs_btn"):
+            if selected_branch_overdue != "All Branches":
+                df_branch = overdue_df_filtered[overdue_df_filtered["branch_id"].astype(str)==selected_branch_overdue]
+            else:
+                df_branch = overdue_df_filtered
+
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", "B", 14)
-            pdf.cell(0, 10, f"Branch: {branch}", ln=True)
+            pdf.cell(0, 10, f"Overdue List - {selected_branch_overdue}", ln=True)
 
             pdf.set_font("Arial", "B", 10)
-            pdf.cell(12,8,"Sr#",1)
-            pdf.cell(50,8,"Date",1)
-            pdf.cell(40,8,"Amount",1)
-            pdf.cell(60,8,"Name",1)
-            pdf.cell(40,8,"Sanction",1)
+            for col in ["Sanction No","Name","branch_id","area_id"]:
+                if col in df_branch.columns:
+                    pdf.cell(40,8,col,1)
             pdf.ln()
 
-            pdf.set_font("Arial", "", 9)
-            total=0
-
-            for i,(_,row) in enumerate(branch_data.iterrows(),1):
-                pdf.cell(12,8,str(i),1)
-                pdf.cell(50,8,str(row.get("recovery_date",""))[:10],1)
-                pdf.cell(40,8,str(row.get("amount",0)),1)
-                pdf.cell(60,8,str(row.get("Name",""))[:25],1)
-                pdf.cell(40,8,str(row.get("Sanction No","")),1)
+            pdf.set_font("Arial","",9)
+            for _,row in df_branch.iterrows():
+                for col in ["Sanction No","Name","branch_id","area_id"]:
+                    if col in df_branch.columns:
+                        pdf.cell(40,8,str(row[col]),1)
                 pdf.ln()
-                try:
-                    total+=float(row.get("amount",0))
-                except:
-                    pass
 
-            pdf.cell(62,8,"Total",1)
-            pdf.cell(40,8,f"{total:,.2f}",1)
-
-            pdf_bytes = pdf.output(dest="S").encode("latin1")
             st.download_button(
-                label=f"Download Recovery PDF for Branch {branch}",
-                data=pdf_bytes,
-                file_name=f"Recovery_{branch}.pdf",
-                mime="application/pdf",
-                key=f"recovery_pdf_{branch}"
+                "Download Overdue PDF",
+                pdf.output(dest="S").encode("latin1"),
+                f"{selected_branch_overdue}_Overdue.pdf",
+                "application/pdf",
+                key="download_overdue_pdf"
             )
 import streamlit as st
 import pandas as pd
@@ -1226,6 +1278,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

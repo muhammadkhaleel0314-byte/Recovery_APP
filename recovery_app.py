@@ -582,7 +582,6 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 import plotly.express as px
 
-st.set_page_config(layout="wide")
 st.title("🏦 Recovery & Reports App")
 
 # --------------------
@@ -1246,6 +1245,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

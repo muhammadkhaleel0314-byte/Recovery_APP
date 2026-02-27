@@ -1109,7 +1109,10 @@ if uploaded_file:
         # ---------------------- TABLE ROWS ----------------------
         fill = False
         for _, row in br_df.iterrows():
-            pdf.set_fill_color(235, 245, 255) if fill else pdf.set_fill_color(255, 255, 255)
+          if fill:
+    pdf.set_fill_color(235, 245, 255)
+else:
+    pdf.set_fill_color(255, 255, 255)
             pdf.set_font("Arial", '', 9)
             pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
             pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
@@ -1299,6 +1302,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

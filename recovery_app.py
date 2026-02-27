@@ -1032,7 +1032,7 @@ st.title("Loan Disbursement PDF Generator (Branchwise)")
 
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
-# ---------------------- Safe Functions ----------------------
+# ---------------------- Safe Function ----------------------
 def safe(val):
     try:
         if pd.isna(val):
@@ -1050,6 +1050,7 @@ class PDF(FPDF):
 
 # ---------------------- MAIN ----------------------
 if uploaded_file:
+
     df = pd.read_excel(uploaded_file)
 
     # Fix column spellings
@@ -1075,7 +1076,7 @@ if uploaded_file:
         st.stop()
 
     # ---------------------- Branch Dropdown ----------------------
-    branches = df["branch_id"].unique()
+    branches = df["branch_id"].dropna().unique()
     selected_branch = st.selectbox("Select Branch", options=branches)
 
     # Filter dataframe for selected branch
@@ -1085,7 +1086,7 @@ if uploaded_file:
     # ---------------------- Download PDF ----------------------
     if st.button(f"Download PDF for Branch {selected_branch}"):
 
-        pdf = PDF(orientation="L", unit="mm", format="A4")  # LANDSCAPE
+        pdf = PDF(orientation="L", unit="mm", format="A4")
         pdf.set_auto_page_break(auto=True, margin=10)
         pdf.add_page()
 
@@ -1102,17 +1103,21 @@ if uploaded_file:
 
         pdf.set_fill_color(200, 200, 200)
         pdf.set_font("Arial", 'B', 9)
+
         for i, h in enumerate(headers):
             pdf.cell(col_widths[i], 8, h, border=1, align="C", fill=True)
         pdf.ln()
 
         # ---------------------- TABLE ROWS ----------------------
         fill = False
+
         for _, row in br_df.iterrows():
-if fill:
-    pdf.set_fill_color(235, 245, 255)
-else:
-    pdf.set_fill_color(255, 255, 255)
+
+            if fill:
+                pdf.set_fill_color(235, 245, 255)
+            else:
+                pdf.set_fill_color(255, 255, 255)
+
             pdf.set_font("Arial", '', 9)
             pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
             pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
@@ -1123,10 +1128,12 @@ else:
             pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
             pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
             pdf.ln()
+
             fill = not fill
 
-        # Export PDF
+        # ---------------------- EXPORT PDF ----------------------
         pdf_bytes = pdf.output(dest="S").encode("latin-1")
+
         st.download_button(
             label=f"Download {selected_branch} PDF",
             data=pdf_bytes,
@@ -1302,6 +1309,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

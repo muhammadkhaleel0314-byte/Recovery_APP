@@ -1109,7 +1109,7 @@ if uploaded_file:
         # ---------------------- TABLE ROWS ----------------------
         fill = False
         for _, row in br_df.iterrows():
-          if fill:
+if fill:
     pdf.set_fill_color(235, 245, 255)
 else:
     pdf.set_fill_color(255, 255, 255)
@@ -1302,6 +1302,7 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+
 
 
 

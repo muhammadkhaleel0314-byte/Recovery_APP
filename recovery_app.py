@@ -81,8 +81,6 @@ from fpdf import FPDF
 import os
 import zipfile
 
-st.set_page_config(page_title="Excel to Branch PDF", layout="wide")
-
 st.title("📊 Excel Cleaner + Branch-wise PDF Generator")
 
 # Upload Excel file

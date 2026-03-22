@@ -81,74 +81,95 @@ from fpdf import FPDF
 import os
 import zipfile
 
-st.title("Excel Cleaner + Branch-wise PDF Generator")
+st.set_page_config(page_title="Excel to Branch PDF", layout="wide")
 
-# Upload file
+st.title("📊 Excel Cleaner + Branch-wise PDF Generator")
+
+# Upload Excel file
 uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
 if uploaded_file:
-    df = pd.read_excel(uploaded_file)
+    try:
+        df = pd.read_excel(uploaded_file)
 
-    st.subheader("Original Data")
-    st.dataframe(df)
+        st.subheader("📋 Original Data")
+        st.dataframe(df, use_container_width=True)
 
-    # Column selection (delete option)
-    st.subheader("Select Columns to Keep")
-    selected_columns = st.multiselect("Choose columns", df.columns, default=df.columns)
+        # Clean column names (important)
+        df.columns = df.columns.astype(str).str.strip()
 
-    if selected_columns:
-        df = df[selected_columns]
+        columns = list(df.columns)
 
-    st.subheader("Cleaned Data")
-    st.dataframe(df)
+        # Remove columns option
+        st.subheader("❌ Remove Columns")
+        remove_columns = st.multiselect("Select columns to REMOVE", columns)
 
-    # Branch column select
-    branch_column = st.selectbox("Select Branch Column", df.columns)
+        if remove_columns:
+            df = df.drop(columns=remove_columns)
 
-    if branch_column:
-        branches = df[branch_column].dropna().unique()
+        st.subheader("✅ Cleaned Data")
+        st.dataframe(df, use_container_width=True)
 
-        if st.button("Generate Branch-wise PDFs"):
-            os.makedirs("pdfs", exist_ok=True)
+        # Select Branch Column
+        st.subheader("🏢 Branch Selection")
+        branch_column = st.selectbox("Select Branch Column", list(df.columns))
 
-            for branch in branches:
-                branch_df = df[df[branch_column] == branch]
+        if branch_column:
+            branches = df[branch_column].dropna().astype(str).unique()
 
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_font("Arial", size=8)
+            st.write(f"Total Branches Found: {len(branches)}")
 
-                # Title
-                pdf.cell(200, 10, txt=f"Branch: {branch}", ln=True)
+            if st.button("📄 Generate Branch-wise PDFs"):
+                os.makedirs("pdfs", exist_ok=True)
 
-                # Table Header
-                for col in branch_df.columns:
-                    pdf.cell(40, 8, col, border=1)
-                pdf.ln()
+                # Clear old PDFs
+                for f in os.listdir("pdfs"):
+                    os.remove(os.path.join("pdfs", f))
 
-                # Table Data
-                for _, row in branch_df.iterrows():
-                    for item in row:
-                        pdf.cell(40, 8, str(item), border=1)
+                for branch in branches:
+                    branch_df = df[df[branch_column].astype(str) == branch]
+
+                    pdf = FPDF(orientation='L')  # Landscape for better width
+                    pdf.add_page()
+                    pdf.set_font("Arial", size=8)
+
+                    # Title
+                    pdf.cell(0, 10, txt=f"Branch: {branch}", ln=True)
+
+                    col_width = 40
+
+                    # Header
+                    for col in branch_df.columns:
+                        pdf.cell(col_width, 8, str(col)[:15], border=1)
                     pdf.ln()
 
-                pdf.output(f"pdfs/{branch}.pdf")
+                    # Data
+                    for _, row in branch_df.iterrows():
+                        for item in row:
+                            pdf.cell(col_width, 8, str(item)[:15], border=1)
+                        pdf.ln()
 
-            # Zip all PDFs
-            zip_path = "branch_pdfs.zip"
-            with zipfile.ZipFile(zip_path, "w") as zipf:
-                for file in os.listdir("pdfs"):
-                    zipf.write(f"pdfs/{file}")
+                    safe_branch = branch.replace("/", "_")
+                    pdf.output(f"pdfs/{safe_branch}.pdf")
 
-            # Download button
-            with open(zip_path, "rb") as f:
-                st.download_button(
-                    "Download All PDFs",
-                    f,
-                    file_name="branch_pdfs.zip"
-                )
+                # Create ZIP
+                zip_path = "branch_pdfs.zip"
+                with zipfile.ZipFile(zip_path, "w") as zipf:
+                    for file in os.listdir("pdfs"):
+                        zipf.write(os.path.join("pdfs", file), file)
 
-            st.success("PDFs Generated Successfully!")
+                # Download button
+                with open(zip_path, "rb") as f:
+                    st.download_button(
+                        "⬇️ Download All PDFs",
+                        f,
+                        file_name="branch_pdfs.zip"
+                    )
+
+                st.success("✅ PDFs Generated Successfully!")
+
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
 import streamlit as st
 import pandas as pd
 

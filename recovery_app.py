@@ -1309,7 +1309,80 @@ st.download_button(
     file_name="recovery_summary.pdf",
     mime="application/pdf"
 )
+import streamlit as st
+import pandas as pd
+from fpdf import FPDF
+import os
+import zipfile
 
+st.title("Excel Cleaner + Branch-wise PDF Generator")
+
+# Upload file
+uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+
+if uploaded_file:
+    df = pd.read_excel(uploaded_file)
+
+    st.subheader("Original Data")
+    st.dataframe(df)
+
+    # Column selection (delete option)
+    st.subheader("Select Columns to Keep")
+    selected_columns = st.multiselect("Choose columns", df.columns, default=df.columns)
+
+    if selected_columns:
+        df = df[selected_columns]
+
+    st.subheader("Cleaned Data")
+    st.dataframe(df)
+
+    # Branch column select
+    branch_column = st.selectbox("Select Branch Column", df.columns)
+
+    if branch_column:
+        branches = df[branch_column].dropna().unique()
+
+        if st.button("Generate Branch-wise PDFs"):
+            os.makedirs("pdfs", exist_ok=True)
+
+            for branch in branches:
+                branch_df = df[df[branch_column] == branch]
+
+                pdf = FPDF()
+                pdf.add_page()
+                pdf.set_font("Arial", size=8)
+
+                # Title
+                pdf.cell(200, 10, txt=f"Branch: {branch}", ln=True)
+
+                # Table Header
+                for col in branch_df.columns:
+                    pdf.cell(40, 8, col, border=1)
+                pdf.ln()
+
+                # Table Data
+                for _, row in branch_df.iterrows():
+                    for item in row:
+                        pdf.cell(40, 8, str(item), border=1)
+                    pdf.ln()
+
+                pdf.output(f"pdfs/{branch}.pdf")
+
+            # Zip all PDFs
+            zip_path = "branch_pdfs.zip"
+            with zipfile.ZipFile(zip_path, "w") as zipf:
+                for file in os.listdir("pdfs"):
+                    zipf.write(f"pdfs/{file}")
+
+            # Download button
+            with open(zip_path, "rb") as f:
+                st.download_button(
+                    "Download All PDFs",
+                    f,
+                    file_name="branch_pdfs.zip"
+                )
+
+            st.success("PDFs Generated Successfully!")
 
 
 

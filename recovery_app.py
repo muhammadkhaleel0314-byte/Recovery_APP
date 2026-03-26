@@ -1123,7 +1123,7 @@ from fpdf import FPDF
 
 st.title("Loan Disbursement PDF Generator (Branchwise)")
 
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+uploaded_file = st.file_uploader("Upload Excel File", type=["u1"])
 
 # ---------------------- Safe Function ----------------------
 def safe(val):

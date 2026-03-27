@@ -1117,122 +1117,6 @@ if uploaded_cheque:
             "branches.zip",
             "application/zip"
         )
-import streamlit as st
-import pandas as pd
-from fpdf import FPDF
-
-st.title("Loan Disbursement PDF Generator (Branchwise)")
-
-uploaded_file = st.file_uploader("Upload Excel File", type=["u1"])
-
-# ---------------------- Safe Function ----------------------
-def safe(val):
-    try:
-        if pd.isna(val):
-            return ""
-        return str(val)
-    except:
-        return ""
-
-# ---------------------- PDF Class ----------------------
-class PDF(FPDF):
-    def header(self):
-        self.set_font("Arial", 'B', 12)
-        self.cell(0, 8, "Loan Disbursement Report", ln=True, align="C")
-        self.ln(3)
-
-# ---------------------- MAIN ----------------------
-if uploaded_file:
-
-    df = pd.read_excel(uploaded_file)
-
-    # Fix column spellings
-    df.rename(columns={
-        "date_disbursed": "date_disburse",
-        "date_of_disbursement": "date_disburse",
-        "tranch_no": "tranch",
-        "grouo_no": "group_no",
-    }, inplace=True)
-
-    # Required Columns
-    required_cols = [
-        "branch_id", "member_name", "member_cnic", "loan_amount",
-        "tranch", "cheque_no", "sanction_no",
-        "group_no", "date_disburse"
-    ]
-
-    # Check Missing Columns
-    missing = [c for c in required_cols if c not in df.columns]
-
-    if missing:
-        st.error(f"Missing columns: {missing}")
-        st.stop()
-
-    # ---------------------- Branch Dropdown ----------------------
-    branches = df["branch_id"].dropna().unique()
-    selected_branch = st.selectbox("Select Branch", options=branches)
-
-    # Filter dataframe for selected branch
-    br_df = df[df["branch_id"] == selected_branch]
-    st.dataframe(br_df)
-
-    # ---------------------- Download PDF ----------------------
-    if st.button(f"Download PDF for Branch {selected_branch}"):
-
-        pdf = PDF(orientation="L", unit="mm", format="A4")
-        pdf.set_auto_page_break(auto=True, margin=10)
-        pdf.add_page()
-
-        pdf.set_font("Arial", 'B', 12)
-        pdf.cell(0, 8, f"Branch: {selected_branch}", ln=True, align="C")
-        pdf.ln(3)
-
-        # ---------------------- TABLE HEADER ----------------------
-        headers = [
-            "Date Disburse", "Sanction No", "Tranch", "Cheque No",
-            "Loan Amount", "Group No", "Member Name", "CNIC"
-        ]
-        col_widths = [30, 35, 15, 40, 30, 30, 55, 45]
-
-        pdf.set_fill_color(200, 200, 200)
-        pdf.set_font("Arial", 'B', 9)
-
-        for i, h in enumerate(headers):
-            pdf.cell(col_widths[i], 8, h, border=1, align="C", fill=True)
-        pdf.ln()
-
-        # ---------------------- TABLE ROWS ----------------------
-        fill = False
-
-        for _, row in br_df.iterrows():
-
-            if fill:
-                pdf.set_fill_color(235, 245, 255)
-            else:
-                pdf.set_fill_color(255, 255, 255)
-
-            pdf.set_font("Arial", '', 9)
-            pdf.cell(col_widths[0], 7, safe(row["date_disburse"]), border=1, fill=True)
-            pdf.cell(col_widths[1], 7, safe(row["sanction_no"]), border=1, fill=True)
-            pdf.cell(col_widths[2], 7, safe(row["tranch"]), border=1, fill=True)
-            pdf.cell(col_widths[3], 7, safe(row["cheque_no"]), border=1, fill=True)
-            pdf.cell(col_widths[4], 7, safe(row["loan_amount"]), border=1, fill=True)
-            pdf.cell(col_widths[5], 7, safe(row["group_no"]), border=1, fill=True)
-            pdf.cell(col_widths[6], 7, safe(row["member_name"]), border=1, fill=True)
-            pdf.cell(col_widths[7], 7, safe(row["member_cnic"]), border=1, fill=True)
-            pdf.ln()
-
-            fill = not fill
-
-        # ---------------------- EXPORT PDF ----------------------
-        pdf_bytes = pdf.output(dest="S").encode("latin-1")
-
-        st.download_button(
-            label=f"Download {selected_branch} PDF",
-            data=pdf_bytes,
-            file_name=f"{selected_branch}_Loan_Disbursement.pdf",
-            mime="application/pdf"
-        )
 import streamlit as st import pandas as pd from io import BytesIO from reportlab.lib.pagesizes import A4 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle from reportlab.lib import colors import os
 
 Google Drive imports
@@ -1249,13 +1133,11 @@ LOCAL_FOLDER = "data" LOCAL_FILE = os.path.join(LOCAL_FOLDER, "recovery.xlsx") o
 
 ---------------- Google Drive Setup ----------------
 
-SCOPES = ['https://www.googleapis.com/auth/drive'] SERVICE_ACCOUNT_FILE = "service_account.json"  # put JSON file in project folder
+SCOPES = ['https://www.googleapis.com/auth/drive'] SERVICE_ACCOUNT_FILE = "service_account.json"
 
 credentials = service_account.Credentials.from_service_account_file( SERVICE_ACCOUNT_FILE, scopes=SCOPES )
 
 drive_service = build('drive', 'v3', credentials=credentials)
-
-Your Google Drive folder ID
 
 FOLDER_ID = "1zbDCaRUi7QQ4xiV6c3iM19Py9CjFj3I8"
 
@@ -1263,7 +1145,7 @@ FOLDER_ID = "1zbDCaRUi7QQ4xiV6c3iM19Py9CjFj3I8"
 
 uploaded_file = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
 
-if uploaded_file: try: # Read file if uploaded_file.name.endswith(".csv"): df = pd.read_csv(uploaded_file) else: df = pd.read_excel(uploaded_file)
+if uploaded_file: try: if uploaded_file.name.endswith(".csv"): df = pd.read_csv(uploaded_file) else: df = pd.read_excel(uploaded_file)
 
 st.session_state["df"] = df
 
@@ -1295,27 +1177,29 @@ except Exception as e:
     st.error(f"Error reading file: {e}")
     st.stop()
 
----------------- Load from session or local file ----------------
+---------------- Load Data ----------------
 
-elif "df" in st.session_state: df = st.session_state["df"] st.info("Using previously uploaded file from session.") elif os.path.exists(LOCAL_FILE): try: df = pd.read_excel(LOCAL_FILE) st.session_state["df"] = df st.info("Loaded previously saved file from local storage.") except Exception as e: st.error(f"Error loading local file: {e}") st.stop() else: st.info("Please upload a recovery file to proceed.") st.stop()
+elif "df" in st.session_state: df = st.session_state["df"] st.info("Using session data.") elif os.path.exists(LOCAL_FILE): try: df = pd.read_excel(LOCAL_FILE) st.session_state["df"] = df st.info("Loaded from local storage.") except Exception as e: st.error(f"Error loading file: {e}") st.stop() else: st.info("Please upload a file.") st.stop()
 
----------------- Column Selection ----------------
+---------------- Columns ----------------
 
 st.subheader("Available Columns") st.write(list(df.columns))
 
-date_col = st.selectbox("Select Date Column", df.columns) branch_col = st.selectbox("Select Branch Column (branch_id)", df.columns)
+date_col = st.selectbox("Select Date Column", df.columns) branch_col = st.selectbox("Select Branch Column", df.columns)
 
-area_col = None if 'area_id' in df.columns: area_col = 'area_id'
+area_col = 'area_id' if 'area_id' in df.columns else None
 
----------------- Convert Date & Create Day/Range ----------------
+---------------- Date Processing ----------------
 
-df[date_col] = pd.to_datetime(df[date_col].astype(str).str.strip(), errors='coerce') df = df.dropna(subset=[date_col, branch_col]) df["Day"] = df[date_col].dt.day df = df[df["Day"].notna()]
+df[date_col] = pd.to_datetime(df[date_col].astype(str).str.strip(), errors='coerce') df = df.dropna(subset=[date_col, branch_col]) df["Day"] = df[date_col].dt.day
+
+Range buckets
 
 df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
 
-if df["Range"].isna().all(): st.error("Date column format not recognized.") st.stop()
+if df["Range"].isna().all(): st.error("Date format not recognized.") st.stop()
 
----------------- Pivot Table ----------------
+---------------- Pivot ----------------
 
 pivot = pd.pivot_table( df, index=[branch_col], columns="Range", aggfunc="size", fill_value=0 )
 
@@ -1329,22 +1213,17 @@ pivot.rename(columns={ "1-10": "Recovery 1-10", "11-20": "Recovery 11-20", "21-3
 
 result_df = pivot.reset_index()
 
----------------- Add Area Column ----------------
+---------------- Area merge ----------------
 
 if area_col: branch_area_df = df[[branch_col, area_col]].drop_duplicates() result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
 
-cols = result_df.columns.tolist()
-branch_idx = cols.index(branch_col)
-cols.insert(branch_idx, cols.pop(cols.index(area_col)))
-result_df = result_df[cols]
-
----------------- Grand Total Row ----------------
+---------------- Grand Total ----------------
 
 numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"] grand_total_counts = result_df[numeric_cols].sum()
 
 grand_total_percent = ( grand_total_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]] / grand_total_counts["Total"] * 100 ).round(2)
 
-grand_values = {} for col in result_df.columns: if col == branch_col: grand_values[col] = "Grand Total" elif col == area_col: grand_values[col] = "" elif col in numeric_cols: grand_values[col] = grand_total_counts[col] elif col in ["1-10 %","11-20 %","21-31 %"]: map_cols = { "1-10 %":"Recovery 1-10", "11-20 %":"Recovery 11-20", "21-31 %":"Recovery 21-31" } grand_values[col] = grand_total_percent[map_cols[col]] else: grand_values[col] = ""
+grand_values = {} for col in result_df.columns: if col == branch_col: grand_values[col] = "Grand Total" elif col in numeric_cols: grand_values[col] = grand_total_counts[col] elif col in ["1-10 %","11-20 %","21-31 %"]: mapping = { "1-10 %":"Recovery 1-10", "11-20 %":"Recovery 11-20", "21-31 %":"Recovery 21-31" } grand_values[col] = grand_total_percent[mapping[col]] else: grand_values[col] = ""
 
 result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=True)
 
@@ -1352,18 +1231,20 @@ result_df = pd.concat([result_df, pd.DataFrame([grand_values])], ignore_index=Tr
 
 st.subheader("Branch Wise Recovery Summary") st.dataframe(result_df)
 
----------------- CSV Download ----------------
+---------------- CSV ----------------
 
-csv = result_df.to_csv(index=False).encode("utf-8") st.download_button( "⬇ Download CSV", data=csv, file_name="recovery_summary.csv", mime="text/csv" )
+csv = result_df.to_csv(index=False).encode("utf-8") st.download_button("⬇ Download CSV", csv, "recovery_summary.csv", "text/csv")
 
----------------- PDF Download ----------------
+---------------- PDF ----------------
 
 buffer = BytesIO() doc = SimpleDocTemplate(buffer, pagesize=A4)
 
-table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+table_data = [result_df.columns.tolist()] + result_df.values.tolist() table = Table(table_data)
 
-table = Table(table_data) style = TableStyle([ ('GRID', (0,0), (-1,-1), 1, colors.black), ('BACKGROUND', (0,0), (-1,0), colors.grey), ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'), ('FONTSIZE', (0,0), (-1,-1), 10), ('BOTTOMPADDING', (0,0), (-1,0), 6), ]) table.setStyle(style) doc.build([table])
+style = TableStyle([ ('GRID', (0,0), (-1,-1), 1, colors.black), ('BACKGROUND', (0,0), (-1,0), colors.grey), ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'), ('FONTSIZE', (0,0), (-1,-1), 10) ])
+
+table.setStyle(style) doc.build([table])
 
 pdf_bytes = buffer.getvalue() buffer.close()
 
-st.download_button( "⬇ Download PDF", data=pdf_bytes, file_name="recovery_summary.pdf", mime="application/pdf" )
+st.download_button("⬇ Download PDF", pdf_bytes, "recovery_summary.pdf", "application/pdf")

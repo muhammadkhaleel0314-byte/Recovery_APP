@@ -1121,11 +1121,9 @@ import streamlit as st import pandas as pd from io import BytesIO import os
 
 from reportlab.lib.pagesizes import A4 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle from reportlab.lib import colors
 
-Google Drive imports
-
 from googleapiclient.discovery import build from googleapiclient.http import MediaFileUpload from google.oauth2 import service_account
 
----------------- PAGE ----------------
+---------------- PAGE CONFIG ----------------
 
 st.title("Recovery Date Range Summary")
 
@@ -1137,9 +1135,9 @@ LOCAL_FOLDER = "data" LOCAL_FILE = os.path.join(LOCAL_FOLDER, "recovery.xlsx") o
 
 SCOPES = ['https://www.googleapis.com/auth/drive'] SERVICE_ACCOUNT_FILE = "service_account.json" FOLDER_ID = "1zbDCaRUi7QQ4xiV6c3iM19Py9CjFj3I8"
 
-credentials = service_account.Credentials.from_service_account_file( SERVICE_ACCOUNT_FILE, scopes=SCOPES )
+Initialize Drive safely
 
-drive_service = build('drive', 'v3', credentials=credentials)
+try: credentials = service_account.Credentials.from_service_account_file( SERVICE_ACCOUNT_FILE, scopes=SCOPES ) drive_service = build('drive', 'v3', credentials=credentials) DRIVE_ENABLED = True except Exception as e: DRIVE_ENABLED = False st.warning(f"Google Drive not connected: {e}")
 
 ---------------- FILE UPLOAD ----------------
 
@@ -1154,26 +1152,28 @@ st.session_state["df"] = df
     # Save locally
     df.to_excel(LOCAL_FILE, index=False)
 
-    # Temp file for Drive
-    temp_file = os.path.join(LOCAL_FOLDER, "upload_temp.xlsx")
-    df.to_excel(temp_file, index=False)
+    # Upload to Google Drive if enabled
+    if DRIVE_ENABLED:
+        temp_file = os.path.join(LOCAL_FOLDER, "upload_temp.xlsx")
+        df.to_excel(temp_file, index=False)
 
-    # Upload to Drive
-    file_metadata = {
-        "name": "recovery.xlsx",
-        "parents": [FOLDER_ID]
-    }
+        file_metadata = {
+            "name": "recovery.xlsx",
+            "parents": [FOLDER_ID]
+        }
 
-    media = MediaFileUpload(temp_file, resumable=True)
+        media = MediaFileUpload(temp_file, resumable=True)
 
-    file = drive_service.files().create(
-        body=file_metadata,
-        media_body=media,
-        fields="id"
-    ).execute()
+        file = drive_service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id"
+        ).execute()
 
-    st.success("File saved locally + uploaded to Google Drive 🚀")
-    st.write("Drive File ID:", file.get("id"))
+        st.success("File saved locally + uploaded to Google Drive 🚀")
+        st.write("Drive File ID:", file.get("id"))
+    else:
+        st.success("File saved locally (Drive not connected)")
 
 except Exception as e:
     st.error(f"File error: {e}")
@@ -1181,7 +1181,7 @@ except Exception as e:
 
 elif "df" in st.session_state: df = st.session_state["df"] st.info("Using session data") elif os.path.exists(LOCAL_FILE): df = pd.read_excel(LOCAL_FILE) st.session_state["df"] = df st.info("Loaded from local storage") else: st.info("Upload file to continue") st.stop()
 
----------------- COLUMNS ----------------
+---------------- COLUMN SELECTION ----------------
 
 st.subheader("Available Columns") st.write(list(df.columns))
 
@@ -1191,11 +1191,13 @@ date_col = st.selectbox("Select Date Column", df.columns) branch_col = st.select
 
 df[date_col] = pd.to_datetime(df[date_col].astype(str).str.strip(), errors='coerce') df = df.dropna(subset=[date_col, branch_col]) df["Day"] = df[date_col].dt.day
 
+Range buckets
+
 df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
 
 if df["Range"].isna().all(): st.error("Invalid date format") st.stop()
 
----------------- PIVOT ----------------
+---------------- PIVOT TABLE ----------------
 
 pivot = pd.pivot_table( df, index=[branch_col], columns="Range", aggfunc="size", fill_value=0 )
 
@@ -1235,9 +1237,7 @@ csv = result_df.to_csv(index=False).encode("utf-8") st.download_button("⬇ Down
 
 buffer = BytesIO() doc = SimpleDocTemplate(buffer, pagesize=A4)
 
-table_data = [result_df.columns.tolist()] + result_df.values.tolist()
-
-table = Table(table_data)
+table_data = [result_df.columns.tolist()] + result_df.values.tolist() table = Table(table_data)
 
 style = TableStyle([ ('GRID', (0,0), (-1,-1), 1, colors.black), ('BACKGROUND', (0,0), (-1,0), colors.grey), ('ALIGN', (0,0), (-1,-1), 'CENTER'), ('VALIGN', (0,0), (-1,-1), 'MIDDLE'), ('FONTSIZE', (0,0), (-1,-1), 10) ])
 

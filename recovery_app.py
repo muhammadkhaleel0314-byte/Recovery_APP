@@ -1117,7 +1117,13 @@ if uploaded_cheque:
             "branches.zip",
             "application/zip"
         )
-import streamlit as st import pandas as pd from io import BytesIO from reportlab.lib.pagesizes import A4 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle from reportlab.lib import colors import os
+import streamlit as st
+import pandas as pd
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+import os
 
 Google Drive imports
 

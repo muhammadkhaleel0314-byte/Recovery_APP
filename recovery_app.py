@@ -1117,4 +1117,414 @@ if uploaded_cheque:
             "branches.zip",
             "application/zip"
         )
+import streamlit as st
+import pandas as pd
+from io import BytesIO
+import os
 
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2 import service_account
+
+# ---------------- PAGE ----------------
+st.title("Recovery Date Range Summary")
+
+# ---------------- LOCAL STORAGE ----------------
+LOCAL_FOLDER = "data"
+LOCAL_FILE = os.path.join(LOCAL_FOLDER, "recovery.xlsx")
+os.makedirs(LOCAL_FOLDER, exist_ok=True)
+
+# ---------------- GOOGLE DRIVE SETUP ----------------
+SCOPES = ['https://www.googleapis.com/auth/drive']
+SERVICE_ACCOUNT_FILE = "service_account.json"
+FOLDER_ID = "1zbDCaRUi7QQ4xiV6c3iM19Py9CjFj3I8"
+
+# Safe Drive init
+try:
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    drive_service = build('drive', 'v3', credentials=credentials)
+    DRIVE_ENABLED = True
+except Exception as e:
+    DRIVE_ENABLED = False
+    st.warning(f"Google Drive not connected: {e}")
+
+# ---------------- FILE UPLOAD ----------------
+uploaded_file = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+
+df = None
+
+if uploaded_file:
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+
+        st.session_state["df"] = df
+
+        # Save locally
+        df.to_excel(LOCAL_FILE, index=False)
+
+        # Upload to Drive
+        if DRIVE_ENABLED:
+            temp_file = os.path.join(LOCAL_FOLDER, "upload_temp.xlsx")
+            df.to_excel(temp_file, index=False)
+
+            file_metadata = {
+                "name": "recovery.xlsx",
+                "parents": [FOLDER_ID]
+            }
+
+            media = MediaFileUpload(temp_file, resumable=True)
+
+            file = drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields="id"
+            ).execute()
+
+            st.success("File saved locally + uploaded to Google Drive 🚀")
+            st.write("Drive File ID:", file.get("id"))
+
+        else:
+            st.success("File saved locally (Drive not connected)")
+
+    except Exception as e:
+        st.error(f"File error: {e}")
+        st.stop()
+
+elif "df" in st.session_state:
+    df = st.session_state["df"]
+    st.info("Using session data")
+
+elif os.path.exists(LOCAL_FILE):
+    df = pd.read_excel(LOCAL_FILE)
+    st.session_state["df"] = df
+    st.info("Loaded from local storage")
+
+else:
+    st.info("Upload file to continue")
+    st.stop()
+
+# ---------------- COLUMNS ----------------
+st.subheader("Available Columns")
+st.write(list(df.columns))
+
+date_col = st.selectbox("Select Date Column", df.columns)
+branch_col = st.selectbox("Select Branch Column", df.columns)
+area_col = "area_id" if "area_id" in df.columns else None
+
+# ---------------- DATE PROCESS ----------------
+df[date_col] = pd.to_datetime(df[date_col].astype(str).str.strip(), errors='coerce')
+df = df.dropna(subset=[date_col, branch_col])
+
+df["Day"] = df[date_col].dt.day
+
+df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
+
+if df["Range"].isna().all():
+    st.error("Invalid date format")
+    st.stop()
+
+# ---------------- PIVOT ----------------
+pivot = pd.pivot_table(
+    df,
+    index=[branch_col],
+    columns="Range",
+    aggfunc="size",
+    fill_value=0
+)
+
+for c in ["1-10","11-20","21-31"]:
+    if c not in pivot.columns:
+        pivot[c] = 0
+
+pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
+
+pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
+pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
+pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
+
+pivot.rename(columns={
+    "1-10": "Recovery 1-10",
+    "11-20": "Recovery 11-20",
+    "21-31": "Recovery 21-31"
+}, inplace=True)
+
+result_df = pivot.reset_index()
+
+# ---------------- AREA ----------------
+if area_col:
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+
+# ---------------- GRAND TOTAL ----------------
+numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
+grand_counts = result_df[numeric_cols].sum()
+
+grand_percent = (
+    grand_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]]
+    / grand_counts["Total"] * 100
+).round(2)
+
+grand_row = {}
+
+for col in result_df.columns:
+    if col == branch_col:
+        grand_row[col] = "Grand Total"
+    elif col in numeric_cols:
+        grand_row[col] = grand_counts[col]
+    elif col in ["1-10 %","11-20 %","21-31 %"]:
+        mapping = {
+            "1-10 %":"Recovery 1-10",
+            "11-20 %":"Recovery 11-20",
+            "21-31 %":"Recovery 21-31"
+        }
+        grand_row[col] = grand_percent[mapping[col]]
+    else:
+        grand_row[col] = ""
+
+result_df = pd.concat([result_df, pd.DataFrame([grand_row])], ignore_index=True)
+
+# ---------------- DISPLAY ----------------
+st.subheader("Branch Wise Recovery Summary")
+st.dataframe(result_df)
+
+# ---------------- CSV ----------------
+csv = result_df.to_csv(index=False).encode("utf-8")
+st.download_button("⬇ Download CSV", csv, "recovery_summary.csv", "text/csv")
+
+# ---------------- PDF ----------------
+buffer = BytesIO()
+doc = SimpleDocTemplate(buffer, pagesize=A4)
+
+table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+
+table = Table(table_data)
+
+style = TableStyle([
+    ('GRID', (0,0), (-1,-1), 1, colors.black),
+    ('BACKGROUND', (0,0), (-1,0), colors.grey),
+    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ('FONTSIZE', (0,0), (-1,-1), 10)
+])
+
+table.setStyle(style)
+doc.build([table])
+
+pdf_bytes = buffer.getvalue()
+buffer.close()
+
+st.download_import streamlit as st
+import pandas as pd
+from io import BytesIO
+import os
+
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib import colors
+
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2 import service_account
+
+# ---------------- PAGE ----------------
+st.title("Recovery Date Range Summary")
+
+# ---------------- LOCAL STORAGE ----------------
+LOCAL_FOLDER = "data"
+LOCAL_FILE = os.path.join(LOCAL_FOLDER, "recovery.xlsx")
+os.makedirs(LOCAL_FOLDER, exist_ok=True)
+
+# ---------------- GOOGLE DRIVE SETUP ----------------
+SCOPES = ['https://www.googleapis.com/auth/drive']
+SERVICE_ACCOUNT_FILE = "service_account.json"
+FOLDER_ID = "1zbDCaRUi7QQ4xiV6c3iM19Py9CjFj3I8"
+
+# Safe Drive init
+try:
+    credentials = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    drive_service = build('drive', 'v3', credentials=credentials)
+    DRIVE_ENABLED = True
+except Exception as e:
+    DRIVE_ENABLED = False
+    st.warning(f"Google Drive not connected: {e}")
+
+# ---------------- FILE UPLOAD ----------------
+uploaded_file = st.file_uploader("Upload Recovery Excel / CSV", type=["xlsx", "csv"])
+
+df = None
+
+if uploaded_file:
+    try:
+        if uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+
+        st.session_state["df"] = df
+
+        # Save locally
+        df.to_excel(LOCAL_FILE, index=False)
+
+        # Upload to Drive
+        if DRIVE_ENABLED:
+            temp_file = os.path.join(LOCAL_FOLDER, "upload_temp.xlsx")
+            df.to_excel(temp_file, index=False)
+
+            file_metadata = {
+                "name": "recovery.xlsx",
+                "parents": [FOLDER_ID]
+            }
+
+            media = MediaFileUpload(temp_file, resumable=True)
+
+            file = drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields="id"
+            ).execute()
+
+            st.success("File saved locally + uploaded to Google Drive 🚀")
+            st.write("Drive File ID:", file.get("id"))
+
+        else:
+            st.success("File saved locally (Drive not connected)")
+
+    except Exception as e:
+        st.error(f"File error: {e}")
+        st.stop()
+
+elif "df" in st.session_state:
+    df = st.session_state["df"]
+    st.info("Using session data")
+
+elif os.path.exists(LOCAL_FILE):
+    df = pd.read_excel(LOCAL_FILE)
+    st.session_state["df"] = df
+    st.info("Loaded from local storage")
+
+else:
+    st.info("Upload file to continue")
+    st.stop()
+
+# ---------------- COLUMNS ----------------
+st.subheader("Available Columns")
+st.write(list(df.columns))
+
+date_col = st.selectbox("Select Date Column", df.columns)
+branch_col = st.selectbox("Select Branch Column", df.columns)
+area_col = "area_id" if "area_id" in df.columns else None
+
+# ---------------- DATE PROCESS ----------------
+df[date_col] = pd.to_datetime(df[date_col].astype(str).str.strip(), errors='coerce')
+df = df.dropna(subset=[date_col, branch_col])
+
+df["Day"] = df[date_col].dt.day
+
+df["Range"] = pd.cut(df["Day"], bins=[0,10,20,31], labels=["1-10","11-20","21-31"])
+
+if df["Range"].isna().all():
+    st.error("Invalid date format")
+    st.stop()
+
+# ---------------- PIVOT ----------------
+pivot = pd.pivot_table(
+    df,
+    index=[branch_col],
+    columns="Range",
+    aggfunc="size",
+    fill_value=0
+)
+
+for c in ["1-10","11-20","21-31"]:
+    if c not in pivot.columns:
+        pivot[c] = 0
+
+pivot["Total"] = pivot[["1-10","11-20","21-31"]].sum(axis=1)
+
+pivot["1-10 %"] = (pivot["1-10"] / pivot["Total"] * 100).round(2)
+pivot["11-20 %"] = (pivot["11-20"] / pivot["Total"] * 100).round(2)
+pivot["21-31 %"] = (pivot["21-31"] / pivot["Total"] * 100).round(2)
+
+pivot.rename(columns={
+    "1-10": "Recovery 1-10",
+    "11-20": "Recovery 11-20",
+    "21-31": "Recovery 21-31"
+}, inplace=True)
+
+result_df = pivot.reset_index()
+
+# ---------------- AREA ----------------
+if area_col:
+    branch_area_df = df[[branch_col, area_col]].drop_duplicates()
+    result_df = result_df.merge(branch_area_df, on=branch_col, how='left')
+
+# ---------------- GRAND TOTAL ----------------
+numeric_cols = ["Recovery 1-10","Recovery 11-20","Recovery 21-31","Total"]
+grand_counts = result_df[numeric_cols].sum()
+
+grand_percent = (
+    grand_counts[["Recovery 1-10","Recovery 11-20","Recovery 21-31"]]
+    / grand_counts["Total"] * 100
+).round(2)
+
+grand_row = {}
+
+for col in result_df.columns:
+    if col == branch_col:
+        grand_row[col] = "Grand Total"
+    elif col in numeric_cols:
+        grand_row[col] = grand_counts[col]
+    elif col in ["1-10 %","11-20 %","21-31 %"]:
+        mapping = {
+            "1-10 %":"Recovery 1-10",
+            "11-20 %":"Recovery 11-20",
+            "21-31 %":"Recovery 21-31"
+        }
+        grand_row[col] = grand_percent[mapping[col]]
+    else:
+        grand_row[col] = ""
+
+result_df = pd.concat([result_df, pd.DataFrame([grand_row])], ignore_index=True)
+
+# ---------------- DISPLAY ----------------
+st.subheader("Branch Wise Recovery Summary")
+st.dataframe(result_df)
+
+# ---------------- CSV ----------------
+csv = result_df.to_csv(index=False).encode("utf-8")
+st.download_button("⬇ Download CSV", csv, "recovery_summary.csv", "text/csv")
+
+# ---------------- PDF ----------------
+buffer = BytesIO()
+doc = SimpleDocTemplate(buffer, pagesize=A4)
+
+table_data = [result_df.columns.tolist()] + result_df.values.tolist()
+
+table = Table(table_data)
+
+style = TableStyle([
+    ('GRID', (0,0), (-1,-1), 1, colors.black),
+    ('BACKGROUND', (0,0), (-1,0), colors.grey),
+    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+    ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+    ('FONTSIZE', (0,0), (-1,-1), 10)
+])
+
+table.setStyle(style)
+doc.build([table])
+
+pdf_bytes = buffer.getvalue()
+buffer.close()
+
+st.downlbutton("⬇ Download PDF", pdf_bytes, "recovery_summary.pdf", "application/pdf")

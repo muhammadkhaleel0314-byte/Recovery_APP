@@ -236,7 +236,6 @@ import pandas as pd
 from datetime import datetime
 
 # ---------------- PAGE ----------------
-st.set_page_config(page_title="Expense App", layout="wide")
 
 # ---------------- CUSTOM STYLE ----------------
 st.markdown("""

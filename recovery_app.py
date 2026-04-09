@@ -1,233 +1,113 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import plotly.express as px
+import os
+import zipfile
 from fpdf import FPDF
 
-st.set_page_config(page_title="Recovery Portal", layout="wide")
+# ⚠️ MUST be first Streamlit command
 
-st.markdown("""
-    <h1 style='text-align: center; color: white;'>📊 Welcome to Recovery Portal</h1>
-    <h3 style='text-align: center; color: Blue;'>Recovery and Overdue Portal</h3>
-    <hr style='border-top: 3px solid #bbb;'>
-""", unsafe_allow_html=True)
+st.title("📊 Excel Cleaner + Branch-wise PDF Generator")
 
-# Upload Recovery File
-uploaded_file = st.file_uploader("📁 Upload Recovery File (Excel)", type=["xlsx"])
+# Upload Excel file
+uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
 
 if uploaded_file:
-    df = pd.read_excel(uploaded_file)
-    df['recovery_date'] = pd.to_datetime(df['recovery_date'], errors='coerce')
-    df.dropna(subset=['recovery_date'], inplace=True)
-    df['day'] = df['recovery_date'].dt.day
+    try:
+        df = pd.read_excel(uploaded_file)
 
-    def get_range(day):
-        if 1 <= day <= 10:
-            return "1-10"
-        elif 11 <= day <= 20:
-            return "11-20"
-        elif 21 <= day <= 31:
-            return "21-31"
-        return "Unknown"
+        st.subheader("📋 Original Data")
+        st.dataframe(df, use_container_width=True)
 
-    df['range'] = df['day'].apply(get_range)
+        # Clean column names
+        df.columns = df.columns.astype(str).str.strip()
 
-    st.write("### 📄 Complete Recovery Data")
-    st.dataframe(df)
+        columns = list(df.columns)
 
-    # Summary
-    summary = df.groupby(['branch_id', 'range']).agg({
-        'amount': 'sum',
-        'receipt_no': 'count'
-    }).reset_index()
+        # Remove columns option
+        st.subheader("❌ Remove Columns")
+        remove_columns = st.multiselect("Select columns to REMOVE", columns)
 
-    branch_totals = df.groupby('branch_id')['amount'].sum().reset_index().rename(columns={'amount': 'total_amount'})
-    summary = summary.merge(branch_totals, on='branch_id')
-    summary['percentage'] = (summary['amount'] / summary['total_amount']) * 100
+        if remove_columns:
+            df = df.drop(columns=remove_columns)
 
-    st.subheader("📊 Branch-wise Recovery Summary")
-    st.dataframe(summary.style.format({
-        'amount': 'Rs {:,.0f}',
-        'percentage': '{:.2f}%'
-    }))
+        st.subheader("✅ Cleaned Data")
+        st.dataframe(df, use_container_width=True)
 
-    # Chart
-    st.subheader("📈 Recovery Chart by Date Range")
-    fig = px.bar(summary, x='branch_id', y='amount', color='range',
-                 barmode='group',
-                 text=summary['percentage'].apply(lambda x: f"{x:.1f}%"),
-                 labels={'amount': 'Amount Recovered', 'branch_id': 'Branch'})
-    fig.update_traces(textposition='outside')
-    fig.update_layout(xaxis_title="Branch", yaxis_title="Amount", legend_title="Date Range")
-    st.plotly_chart(fig, use_container_width=True)
+        # Select Branch Column
+        st.subheader("🏢 Branch Selection")
+        branch_column = st.selectbox("Select Branch Column", df.columns)
 
-    # Pivot Table
-    st.subheader("📌 Pivot Table (Branch → Project → Date)")
-    pivot_df = df.groupby(['branch_id', 'project', 'recovery_date']).agg(
-        Receipts=('receipt_no', 'count'),
-        Amount=('amount', 'sum')
-    ).reset_index()
+        # ---------------- PDF FUNCTION ----------------
+        def create_pdf(branch_df, filename, branch_name):
 
-    st.dataframe(pivot_df)
+            pdf = FPDF(orientation='L')
+            pdf.add_page()
+            pdf.set_font("Arial", size=8)
 
-    # PDF Class
-    class PDF(FPDF):
-        def header(self):
-            pass
-        def footer(self):
-            pass
+            pdf.cell(0, 10, f"Branch: {branch_name}", ln=True)
 
-    # Branch-wise PDF downloads
-    st.subheader("📥 Download Branch-wise Pivot Table PDFs")
-    for branch, branch_df in pivot_df.groupby('branch_id'):
-        branch_pdf = PDF()
-        branch_pdf.set_auto_page_break(auto=True, margin=15)
-        branch_pdf.add_page()
-        branch_pdf.set_font("Arial", 'B', 14)
-        branch_pdf.cell(0, 10, f"Branch: {branch}", ln=True, align='C')
+            # Auto width
+            page_width = 277
+            col_width = page_width / len(branch_df.columns)
 
-        branch_total_amount = 0
-        branch_total_receipts = 0
-
-        for project, proj_df in branch_df.groupby('project'):
-            branch_pdf.set_font("Arial", 'B', 12)
-            branch_pdf.cell(0, 8, f"Project: {project}", ln=True)
-
-            # Table Header
-            branch_pdf.set_font("Arial", 'B', 10)
-            branch_pdf.cell(40, 8, "Date", border=1, align='C')
-            branch_pdf.cell(40, 8, "Receipts", border=1, align='C')
-            branch_pdf.cell(40, 8, "Amount", border=1, align='C')
-            branch_pdf.ln()
-
-            project_total_amount = 0
-            project_total_receipts = 0
-
-            branch_pdf.set_font("Arial", '', 10)
-            for _, row in proj_df.iterrows():
-                date_str = row['recovery_date'].strftime('%Y-%m-%d') if pd.notnull(row['recovery_date']) else ''
-                branch_pdf.cell(40, 8, date_str, border=1)
-                branch_pdf.cell(40, 8, str(row['Receipts']), border=1, align='C')
-                branch_pdf.cell(40, 8, f"Rs {row['Amount']:,.0f}", border=1, align='R')
-                branch_pdf.ln()
-                project_total_receipts += row['Receipts']
-                project_total_amount += row['Amount']
-
-            # Project total
-            branch_pdf.set_font("Arial", 'B', 10)
-            branch_pdf.cell(40, 8, "Project Total", border=1)
-            branch_pdf.cell(40, 8, str(project_total_receipts), border=1, align='C')
-            branch_pdf.cell(40, 8, f"Rs {project_total_amount:,.0f}", border=1, align='R')
-            branch_pdf.ln(10)
-
-            branch_total_receipts += project_total_receipts
-            branch_total_amount += project_total_amount
-
-        # Branch total
-        branch_pdf.set_font("Arial", 'B', 11)
-        branch_pdf.cell(40, 8, "Branch Total", border=1)
-        branch_pdf.cell(40, 8, str(branch_total_receipts), border=1, align='C')
-        branch_pdf.cell(40, 8, f"Rs {branch_total_amount:,.0f}", border=1, align='R')
-
-        pdf_bytes = branch_pdf.output(dest='S').encode('latin1')
-        st.download_button(
-            label=f"📥 Download PDF for Branch {branch}",
-            data=pdf_bytes,
-            file_name=f"Branch_{branch}.pdf",
-            mime="application/pdf"
-        )
-st.subheader("📥 Upload Due List and Recovery File for Overdue Detection")
-
-dolist_file = st.file_uploader("📄 Due List Upload", type=["xlsx"], key="dolist")
-recovery_file2 = st.file_uploader("📄 Recovery File Upload", type=["xlsx"], key="recovery2")
-
-if dolist_file and recovery_file2:
-    dolist_df = pd.read_excel(dolist_file)
-    recovery_df2 = pd.read_excel(recovery_file2)
-
-    dolist_df['Sanction No'] = dolist_df['Sanction No'].astype(str).str.strip()
-    recovery_df2['Sanction No'] = recovery_df2['Sanction No'].astype(str).str.strip()
-
-    overdue_df = dolist_df[~dolist_df['Sanction No'].isin(recovery_df2['Sanction No'])]
-    st.subheader("❗ Overdue List")
-    st.write(f"🔢 Total Overdue: {len(overdue_df)}")
-    st.dataframe(overdue_df)
-
-# Final Overdue via Terabyte
-st.subheader("📥 Upload Terabyte File (Final Overdue)")
-
-terabyte_file = st.file_uploader("📄 Terabyte File Upload", type=["xlsx"], key="terabyte")
-
-if terabyte_file and 'overdue_df' in locals() and not overdue_df.empty:
-    terabyte_df = pd.read_excel(terabyte_file)
-    terabyte_df['Sanction No'] = terabyte_df['Sanction No'].astype(str).str.strip()
-    overdue_df['Sanction No'] = overdue_df['Sanction No'].astype(str).str.strip()
-
-    final_overdue_df = overdue_df[~overdue_df['Sanction No'].isin(terabyte_df['Sanction No'])]
-
-    st.subheader("🚨 Final Overdue Cases")
-    st.write(f"🔢 Total Final Overdue: {len(final_overdue_df)}")
-    st.dataframe(final_overdue_df)
-
-    # Full PDF: Branch-wise + Date-wise
-    full_pdf = FPDF()
-    full_pdf.set_auto_page_break(auto=True, margin=15)
-
-    if 'branch_id' not in final_overdue_df.columns:
-        final_overdue_df['branch_id'] = 'Unknown'
-
-    for branch in final_overdue_df['branch_id'].unique():
-        data = final_overdue_df[final_overdue_df['branch_id'] == branch]
-        full_pdf.add_page()
-        full_pdf.set_font("Arial", 'B', 12)
-        full_pdf.cell(200, 10, txt=f"Branch: {branch}", ln=True, align='C')
-
-        full_pdf.set_font("Arial", size=10)
-        full_pdf.cell(10, 10, "Sr#", 1)
-        full_pdf.cell(70, 10, "Name", 1)
-        full_pdf.cell(60, 10, "Sanction No", 1)
-        full_pdf.ln()
-
-        for i, (_, row) in enumerate(data.iterrows(), start=1):
-            full_pdf.cell(10, 10, str(i), 1)
-            full_pdf.cell(70, 10, str(row.get('Name', '')), 1)
-            full_pdf.cell(60, 10, str(row.get('Sanction No', '')), 1)
-            full_pdf.ln()
-
-    full_pdf_output = full_pdf.output(dest='S').encode('latin1')
-    st.download_button("📥 Download Final Overdue PDF (Branch-wise)", full_pdf_output, "final_overdue.pdf", "application/pdf")
-# 🔽 Separate Branch-wise PDF Downloads
-    st.subheader("📂 Download Final Overdue Branch-wise PDFs")
-
-    branch_pdfs = {}
-
-    for branch in final_overdue_df['branch_id'].unique():
-        branch_data = final_overdue_df[final_overdue_df['branch_id'] == branch]
-
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", 'B', 12)
-        pdf.cell(200, 10, txt=f"Branch: {branch}", ln=True, align='C')
-
-        pdf.set_font("Arial", size=10)
-        pdf.cell(10, 10, "Sr#", 1)
-        pdf.cell(70, 10, "Name", 1)
-        pdf.cell(60, 10, "Sanction No", 1)
-        pdf.ln()
-
-        for i, (_, row) in enumerate(branch_data.iterrows(), start=1):
-            pdf.cell(10, 10, str(i), 1)
-            pdf.cell(70, 10, str(row.get('Name', '')), 1)
-            pdf.cell(60, 10, str(row.get('Sanction No', '')), 1)
+            # HEADER
+            for col in branch_df.columns:
+                pdf.cell(col_width, 8, str(col), border=1)
             pdf.ln()
 
-        pdf_bytes = pdf.output(dest='S').encode('latin1')
-        branch_pdfs[branch] = pdf_bytes
+            # DATA (🔥 CHEQUE NO FIX HERE)
+            for _, row in branch_df.iterrows():
+                for item in row:
+                    text = str(item)
 
-    for branch, pdf_data in branch_pdfs.items():
-        st.download_button(
-            label=f"📥 Download PDF for Branch: {branch}",
-            data=pdf_data,
-            file_name=f"final_overdue_branch_{branch}.pdf",
-            mime="application/pdf"
-        )
+                    # 🔥 FIX: Cheque No / long text prevent cut
+                    if len(text) > 25:
+                        text = text[:25]
+
+                    pdf.cell(col_width, 8, text, border=1)
+
+                pdf.ln()
+
+            pdf.output(filename)
+
+        # ---------------- GENERATE PDFs ----------------
+        if st.button("📄 Generate Branch-wise PDFs"):
+
+            os.makedirs("pdfs", exist_ok=True)
+
+            # clear old files
+            for f in os.listdir("pdfs"):
+                os.remove(os.path.join("pdfs", f))
+
+            branches = df[branch_column].dropna().astype(str).unique()
+
+            st.write(f"Total Branches Found: {len(branches)}")
+
+            for branch in branches:
+
+                branch_df = df[df[branch_column].astype(str) == branch]
+
+                safe_branch = str(branch).replace("/", "_").replace("\\", "_")
+                file_path = f"pdfs/{safe_branch}.pdf"
+
+                create_pdf(branch_df, file_path, branch)
+
+            # ---------------- ZIP ----------------
+            zip_path = "branch_pdfs.zip"
+
+            with zipfile.ZipFile(zip_path, "w") as zipf:
+                for file in os.listdir("pdfs"):
+                    zipf.write(os.path.join("pdfs", file), file)
+
+            # ---------------- DOWNLOAD ----------------
+            with open(zip_path, "rb") as f:
+                st.download_button(
+                    "⬇️ Download All PDFs",
+                    f,
+                    file_name="branch_pdfs.zip"
+                )
+
+            st.success("✅ PDFs Generated Successfully (Cheque No Fixed)")
+
+    except Exception as e:
+        st.error(f"Error: {str(e)}")

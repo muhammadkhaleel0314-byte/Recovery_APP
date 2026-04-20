@@ -14,28 +14,47 @@ st.markdown("""
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* ✨ Hover + Click Effect */
 .box:hover {
-    transform: scale(1.05);
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
-/* 🎨 Updated Colors */
+/* 🎨 Colors */
 .box1 { 
-    background: #ffffff;   /* white */
+    background: #ffffff;
     color: black;
-    border: 2px solid #ddd; /* thoda visible banane ke liye */
+    border: 2px solid #ddd;
 }
 
 .box2 { 
-    background: #FFD700;   /* yellow */
+    background: #FFD700;
     color: black;
 }
 
 .box3 { 
-    background: #808080;   /* gray */
+    background: #808080;
     color: white;
+}
+
+.box4 { 
+    background: linear-gradient(135deg, #11998e, #38ef7d); /* green */
+    color: white;
+}
+
+.box5 { 
+    background: linear-gradient(135deg, #36d1dc, #5b86e5); /* blue */
+    color: white;
+}
+
+/* 🔥 Active click effect */
+.box:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 /* Remove blue link color */
@@ -66,7 +85,7 @@ with col3:
     st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG All Batch Data</div></a>', unsafe_allow_html=True)
 
 with col4:
-    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box3">PMY Apply & Track</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">PMY Apply & Track</div></a>', unsafe_allow_html=True)
 
 with col5:
-    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box3">ACAG Apply</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">ACAG Apply</div></a>', unsafe_allow_html=True)

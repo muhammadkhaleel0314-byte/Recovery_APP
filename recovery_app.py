@@ -21,17 +21,20 @@ st.markdown("""
     transform: scale(1.05);
 }
 
-/* Box Colors */
+/* 🎨 Updated Colors */
 .box1 { 
-    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    background: #ffffff;   /* white */
+    color: black;
+    border: 2px solid #ddd; /* thoda visible banane ke liye */
+}
+
+.box2 { 
+    background: #FFD700;   /* yellow */
     color: black;
 }
-.box2 { 
-    background: linear-gradient(135deg, #36d1dc, #5b86e5);
-    color: white;
-}
+
 .box3 { 
-    background: linear-gradient(135deg, #11998e, #38ef7d);
+    background: #808080;   /* gray */
     color: white;
 }
 
@@ -54,36 +57,16 @@ link5 = "https://acag.punjab.gov.pk/"
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.markdown(f'''
-        <a href="{link1}" target="_blank">
-            <div class="box box1">PMY All Verify Data</div>
-        </a>
-    ''', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY All Verify Data</div></a>', unsafe_allow_html=True)
 
 with col2:
-    st.markdown(f'''
-        <a href="{link2}" target="_blank">
-            <div class="box box2">Account Link</div>
-        </a>
-    ''', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">Account Link</div></a>', unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f'''
-        <a href="{link3}" target="_blank">
-            <div class="box box3">ACAG All Batch Data</div>
-        </a>
-    ''', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG All Batch Data</div></a>', unsafe_allow_html=True)
 
 with col4:
-    st.markdown(f'''
-        <a href="{link4}" target="_blank">
-            <div class="box box3">PMY Apply & Track</div>
-        </a>
-    ''', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box3">PMY Apply & Track</div></a>', unsafe_allow_html=True)
 
 with col5:
-    st.markdown(f'''
-        <a href="{link5}" target="_blank">
-            <div class="box box3">ACAG Apply</div>
-        </a>
-    ''', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box3">ACAG Apply</div></a>', unsafe_allow_html=True)

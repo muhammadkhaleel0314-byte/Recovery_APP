@@ -4,20 +4,37 @@ st.set_page_config(page_title="My Links", layout="wide")
 
 st.title("🚀 My Quick Links")
 
-# ----------- CSS DESIGN + ANIMATION -----------
+# ----------- CSS + ANIMATIONS -----------
 st.markdown("""
 <style>
 
-/* 🔥 Slide Animation */
+/* 🔥 Animations */
+@keyframes slideLeft {
+    from {opacity:0; transform:translateX(-100px);}
+    to {opacity:1; transform:translateX(0);}
+}
+
+@keyframes slideRight {
+    from {opacity:0; transform:translateX(100px);}
+    to {opacity:1; transform:translateX(0);}
+}
+
 @keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from {opacity:0; transform:translateY(100px);}
+    to {opacity:1; transform:translateY(0);}
+}
+
+@keyframes slideDown {
+    from {opacity:0; transform:translateY(-100px);}
+    to {opacity:1; transform:translateY(0);}
+}
+
+/* 💃 Dance animation */
+@keyframes dance {
+    0%   {opacity:0; transform:scale(0.5) rotate(-10deg);}
+    50%  {transform:scale(1.1) rotate(10deg);}
+    75%  {transform:scale(0.95) rotate(-5deg);}
+    100% {opacity:1; transform:scale(1) rotate(0);}
 }
 
 .box {
@@ -29,57 +46,29 @@ st.markdown("""
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-
-    /* Animation */
-    animation: slideUp 0.6s ease forwards;
 }
 
-/* ⏱️ Delay for each box (one by one effect) */
-.box1 { animation-delay: 0.1s; }
-.box2 { animation-delay: 0.3s; }
-.box3 { animation-delay: 0.5s; }
-.box4 { animation-delay: 0.7s; }
-.box5 { animation-delay: 0.9s; }
+/* 🎯 Apply animations */
+.box1 { animation: slideLeft 0.6s ease forwards; }
+.box2 { animation: slideRight 0.6s ease forwards; }
+.box3 { animation: slideUp 0.6s ease forwards; }
+.box4 { animation: slideDown 0.6s ease forwards; }
+.box5 { animation: dance 0.8s ease forwards; }
 
-/* Hover Effect */
+/* Hover */
 .box:hover {
     transform: scale(1.08);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
-/* Click Effect */
-.box:active {
-    transform: scale(0.95);
-}
+/* Colors */
+.box1 { background:#ffffff; color:black; border:2px solid #ddd;}
+.box2 { background:#FFD700; color:black;}
+.box3 { background:#808080; color:white;}
+.box4 { background:linear-gradient(135deg,#11998e,#38ef7d); color:white;}
+.box5 { background:linear-gradient(135deg,#36d1dc,#5b86e5); color:white;}
 
-/* 🎨 Colors */
-.box1 { 
-    background: #ffffff;
-    color: black;
-    border: 2px solid #ddd;
-}
-
-.box2 { 
-    background: #FFD700;
-    color: black;
-}
-
-.box3 { 
-    background: #808080;
-    color: white;
-}
-
-.box4 { 
-    background: linear-gradient(135deg, #11998e, #38ef7d);
-    color: white;
-}
-
-.box5 { 
-    background: linear-gradient(135deg, #36d1dc, #5b86e5);
-    color: white;
-}
-
-/* Remove blue link */
+/* Remove link blue */
 a, a:visited {
     color: inherit !important;
     text-decoration: none !important;

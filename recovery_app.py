@@ -4,11 +4,11 @@ st.set_page_config(page_title="My Links", layout="wide")
 
 st.title("🚀 My Quick Links")
 
-# ----------- CSS (Smooth Sequential Animation) -----------
+# ----------- CSS ANIMATION -----------
 st.markdown("""
 <style>
 
-/* Page fade-in */
+/* Page fade */
 body {
     animation: fadeIn 0.8s ease-in-out;
 }
@@ -18,7 +18,7 @@ body {
     to {opacity:1;}
 }
 
-/* Box basic style */
+/* Base box */
 .box {
     padding: 30px;
     border-radius: 15px;
@@ -30,26 +30,45 @@ body {
     box-shadow: 0 5px 12px rgba(0,0,0,0.12);
 }
 
-/* Hover effect */
+/* Hover */
 .box:hover {
     transform: translateY(-6px) scale(1.05);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.25);
 }
 
-/* Animation */
-@keyframes pop {
-    from {opacity:0; transform: translateY(30px);}
+/* ========= ANIMATIONS ========= */
+@keyframes fromRight {
+    from {opacity:0; transform: translateX(120px);}
+    to {opacity:1; transform: translateX(0);}
+}
+
+@keyframes fromLeft {
+    from {opacity:0; transform: translateX(-120px);}
+    to {opacity:1; transform: translateX(0);}
+}
+
+@keyframes fromTop {
+    from {opacity:0; transform: translateY(-120px);}
     to {opacity:1; transform: translateY(0);}
 }
 
-/* 🔥 SEQUENTIAL SLOW ENTRY */
-.box1 { animation: pop 0.8s ease 0.2s forwards; opacity:0; }
-.box2 { animation: pop 0.8s ease 1.0s forwards; opacity:0; }
-.box3 { animation: pop 0.8s ease 1.8s forwards; opacity:0; }
-.box4 { animation: pop 0.8s ease 2.6s forwards; opacity:0; }
-.box5 { animation: pop 0.8s ease 3.4s forwards; opacity:0; }
+@keyframes fromBottom {
+    from {opacity:0; transform: translateY(120px);}
+    to {opacity:1; transform: translateY(0);}
+}
 
-/* 🎨 COLORS */
+@keyframes fadeOnly {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+/* ========= APPLY ANIMATION ========= */
+.box1 { animation: fromRight 1.2s ease-in-out forwards; opacity:0; }
+.box2 { animation: fromLeft 1.2s ease-in-out forwards; opacity:0; }
+.box3 { animation: fromTop 1.2s ease-in-out forwards; opacity:0; }
+.box4 { animation: fromBottom 1.2s ease-in-out forwards; opacity:0; }
+.box5 { animation: fadeOnly 1.5s ease-in-out forwards; opacity:0; }
+
+/* ========= COLORS ========= */
 .box1 { background:#ffffff; color:black; border:1px solid #ddd; }
 .box2 { background:#FFD700; color:black; }
 .box3 { background:#808080; color:white; }
@@ -76,7 +95,7 @@ link5 = "https://acag.punjab.gov.pk/"
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY All Verify Data</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY Verify Data</div></a>', unsafe_allow_html=True)
 
 with col2:
     st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">Account Link</div></a>', unsafe_allow_html=True)
@@ -85,7 +104,7 @@ with col3:
     st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG Batch Data</div></a>', unsafe_allow_html=True)
 
 with col4:
-    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">PMY Apply & Track</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">PMY Track</div></a>', unsafe_allow_html=True)
 
 with col5:
     st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">ACAG Apply</div></a>', unsafe_allow_html=True)

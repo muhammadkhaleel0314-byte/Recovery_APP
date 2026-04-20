@@ -79,7 +79,7 @@ with col4:
             <div class="box box3">PMY Apply And Track Application</div>
         </a>
     ''', unsafe_allow_html=True)
-    with col5:
+with col5:
     st.markdown(f'''
         <a href="{link3}" target="_blank">
             <div class="box box3">ACAG Apply</div>

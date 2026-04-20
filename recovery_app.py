@@ -4,74 +4,61 @@ st.set_page_config(page_title="My Links", layout="wide")
 
 st.title("🚀 My Quick Links")
 
-# ----------- CSS + ANIMATIONS -----------
+# ----------- PREMIUM CSS -----------
 st.markdown("""
 <style>
 
-/* 🔥 Animations */
-@keyframes slideLeft {
-    from {opacity:0; transform:translateX(-100px);}
-    to {opacity:1; transform:translateX(0);}
+/* Page fade-in */
+body {
+    animation: fadeIn 1.2s ease-in-out;
 }
 
-@keyframes slideRight {
-    from {opacity:0; transform:translateX(100px);}
-    to {opacity:1; transform:translateX(0);}
+@keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
 }
 
-@keyframes slideUp {
-    from {opacity:0; transform:translateY(100px);}
-    to {opacity:1; transform:translateY(0);}
-}
-
-@keyframes slideDown {
-    from {opacity:0; transform:translateY(-100px);}
-    to {opacity:1; transform:translateY(0);}
-}
-
-/* 💃 Dance animation */
-@keyframes dance {
-    0%   {opacity:0; transform:scale(0.5) rotate(-10deg);}
-    50%  {transform:scale(1.1) rotate(10deg);}
-    75%  {transform:scale(0.95) rotate(-5deg);}
-    100% {opacity:1; transform:scale(1) rotate(0);}
-}
-
+/* Card style (modern glass feel) */
 .box {
     padding: 30px;
-    border-radius: 15px;
+    border-radius: 18px;
     text-align: center;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.4s ease;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
 }
 
-/* 🎯 Apply animations */
-.box1 { animation: slideLeft 0.6s ease forwards; }
-.box2 { animation: slideRight 0.6s ease forwards; }
-.box3 { animation: slideUp 0.6s ease forwards; }
-.box4 { animation: slideDown 0.6s ease forwards; }
-.box5 { animation: dance 0.8s ease forwards; }
-
-/* Hover */
+/* smooth hover */
 .box:hover {
-    transform: scale(1.08);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.25);
 }
+
+/* 🎯 Stagger animation (REAL SMOOTH FEEL) */
+@keyframes pop {
+    from {opacity:0; transform: scale(0.8);}
+    to {opacity:1; transform: scale(1);}
+}
+
+.box1 { animation: pop 0.6s ease 0.2s forwards; opacity:0; }
+.box2 { animation: pop 0.6s ease 0.4s forwards; opacity:0; }
+.box3 { animation: pop 0.6s ease 0.6s forwards; opacity:0; }
+.box4 { animation: pop 0.6s ease 0.8s forwards; opacity:0; }
+.box5 { animation: pop 0.6s ease 1.0s forwards; opacity:0; }
 
 /* Colors */
-.box1 { background:#ffffff; color:black; border:2px solid #ddd;}
-.box2 { background:#FFD700; color:black;}
-.box3 { background:#808080; color:white;}
-.box4 { background:linear-gradient(135deg,#11998e,#38ef7d); color:white;}
-.box5 { background:linear-gradient(135deg,#36d1dc,#5b86e5); color:white;}
+.box1 { background:#ffffff; color:black; border:1px solid #ddd; }
+.box2 { background:#FFD700; color:black; }
+.box3 { background:#808080; color:white; }
+.box4 { background:linear-gradient(135deg,#11998e,#38ef7d); color:white; }
+.box5 { background:linear-gradient(135deg,#36d1dc,#5b86e5); color:white; }
 
-/* Remove link blue */
+/* Remove blue link */
 a, a:visited {
-    color: inherit !important;
-    text-decoration: none !important;
+    text-decoration:none !important;
+    color:inherit !important;
 }
 
 </style>
@@ -88,16 +75,16 @@ link5 = "https://acag.punjab.gov.pk/"
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY All Verify Data</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY Verify Data</div></a>', unsafe_allow_html=True)
 
 with col2:
     st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">Account Link</div></a>', unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG All Batch Data</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG Batch Data</div></a>', unsafe_allow_html=True)
 
 with col4:
-    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">PMY Apply & Track</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">PMY Track</div></a>', unsafe_allow_html=True)
 
 with col5:
     st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">ACAG Apply</div></a>', unsafe_allow_html=True)

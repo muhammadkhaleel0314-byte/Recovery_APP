@@ -95,16 +95,16 @@ link5 = "https://acag.punjab.gov.pk/"
 col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
-    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY Verify Data</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">All PMY Verify Data </div></a>', unsafe_allow_html=True)
 
 with col2:
-    st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">Account Link</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">BOP Account Open Detail </div></a>', unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG Batch Data</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG All Batch's Data</div></a>', unsafe_allow_html=True)
 
 with col4:
-    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">PMY Track</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">Online PMY Tracking</div></a>', unsafe_allow_html=True)
 
 with col5:
-    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">ACAG Apply</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">Online ACAG Apply</div></a>', unsafe_allow_html=True)

@@ -51,7 +51,7 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 
 # ----------- BOXES -----------
-col1, col2, col3, co14, col5 = st.columns(3)
+col1, col2, col3, co14, col5 = st.columns(5)
 
 with col1:
     st.markdown(f'''

@@ -54,7 +54,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown(f'''
         <a href="{link1}" target="_blank">
-            <div class="box box1">PMY Link</div>
+            <div class="box box1">PMY All Verify Data Link</div>
         </a>
     ''', unsafe_allow_html=True)
 
@@ -68,6 +68,6 @@ with col2:
 with col3:
     st.markdown(f'''
         <a href="{link3}" target="_blank">
-            <div class="box box3">ACAG</div>
+            <div class="box box3">ACAG All Batch's Data</div>
         </a>
     ''', unsafe_allow_html=True)

@@ -1,113 +1,56 @@
 import streamlit as st
-import pandas as pd
-import os
-import zipfile
-from fpdf import FPDF
 
-# ⚠️ MUST be first Streamlit command
+st.set_page_config(page_title="My Links", layout="wide")
 
-st.title("📊 Excel Cleaner + Branch-wise PDF Generator")
+st.title("🚀 My Quick Links")
 
-# Upload Excel file
-uploaded_file = st.file_uploader("Upload Excel File", type=["xlsx"])
+# ----------- CSS DESIGN -----------
+st.markdown("""
+<style>
+.container {
+    display: flex;
+    gap: 20px;
+}
 
-if uploaded_file:
-    try:
-        df = pd.read_excel(uploaded_file)
+.box {
+    flex: 1;
+    padding: 40px;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
 
-        st.subheader("📋 Original Data")
-        st.dataframe(df, use_container_width=True)
+.box:hover {
+    transform: scale(1.05);
+}
 
-        # Clean column names
-        df.columns = df.columns.astype(str).str.strip()
+.box1 { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
+.box2 { background: linear-gradient(135deg, #36d1dc, #5b86e5); }
+.box3 { background: linear-gradient(135deg, #11998e, #38ef7d); }
 
-        columns = list(df.columns)
+a {
+    text-decoration: none;
+}
+</style>
+""", unsafe_allow_html=True)
 
-        # Remove columns option
-        st.subheader("❌ Remove Columns")
-        remove_columns = st.multiselect("Select columns to REMOVE", columns)
+# ----------- LINKS -----------
+link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
+link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
+link3 = "#"  # jab ready ho jaye to yahan apna link daal dena
 
-        if remove_columns:
-            df = df.drop(columns=remove_columns)
+# ----------- BOXES -----------
+col1, col2, col3 = st.columns(3)
 
-        st.subheader("✅ Cleaned Data")
-        st.dataframe(df, use_container_width=True)
+with col1:
+    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">📊 Link 1</div></a>', unsafe_allow_html=True)
 
-        # Select Branch Column
-        st.subheader("🏢 Branch Selection")
-        branch_column = st.selectbox("Select Branch Column", df.columns)
+with col2:
+    st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">📁 Link 2</div></a>', unsafe_allow_html=True)
 
-        # ---------------- PDF FUNCTION ----------------
-        def create_pdf(branch_df, filename, branch_name):
-
-            pdf = FPDF(orientation='L')
-            pdf.add_page()
-            pdf.set_font("Arial", size=8)
-
-            pdf.cell(0, 10, f"Branch: {branch_name}", ln=True)
-
-            # Auto width
-            page_width = 277
-            col_width = page_width / len(branch_df.columns)
-
-            # HEADER
-            for col in branch_df.columns:
-                pdf.cell(col_width, 8, str(col), border=1)
-            pdf.ln()
-
-            # DATA (🔥 CHEQUE NO FIX HERE)
-            for _, row in branch_df.iterrows():
-                for item in row:
-                    text = str(item)
-
-                    # 🔥 FIX: Cheque No / long text prevent cut
-                    if len(text) > 25:
-                        text = text[:25]
-
-                    pdf.cell(col_width, 8, text, border=1)
-
-                pdf.ln()
-
-            pdf.output(filename)
-
-        # ---------------- GENERATE PDFs ----------------
-        if st.button("📄 Generate Branch-wise PDFs"):
-
-            os.makedirs("pdfs", exist_ok=True)
-
-            # clear old files
-            for f in os.listdir("pdfs"):
-                os.remove(os.path.join("pdfs", f))
-
-            branches = df[branch_column].dropna().astype(str).unique()
-
-            st.write(f"Total Branches Found: {len(branches)}")
-
-            for branch in branches:
-
-                branch_df = df[df[branch_column].astype(str) == branch]
-
-                safe_branch = str(branch).replace("/", "_").replace("\\", "_")
-                file_path = f"pdfs/{safe_branch}.pdf"
-
-                create_pdf(branch_df, file_path, branch)
-
-            # ---------------- ZIP ----------------
-            zip_path = "branch_pdfs.zip"
-
-            with zipfile.ZipFile(zip_path, "w") as zipf:
-                for file in os.listdir("pdfs"):
-                    zipf.write(os.path.join("pdfs", file), file)
-
-            # ---------------- DOWNLOAD ----------------
-            with open(zip_path, "rb") as f:
-                st.download_button(
-                    "⬇️ Download All PDFs",
-                    f,
-                    file_name="branch_pdfs.zip"
-                )
-
-            st.success("✅ PDFs Generated Successfully (Cheque No Fixed)")
-
-    except Exception as e:
-        st.error(f"Error: {str(e)}")
+with col3:
+    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">⚙️ Coming Soon</div></a>', unsafe_allow_html=True)

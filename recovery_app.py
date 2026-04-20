@@ -93,7 +93,7 @@ link5 = "https://acag.punjab.gov.pk/"
 link6 = "Coming Soon"
 
 # ----------- BOXES -----------
-col1, col2, col3, col4, col5, col6 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 with col1:
     st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">All PMY Verify Data </div></a>', unsafe_allow_html=True)

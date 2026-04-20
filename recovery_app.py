@@ -109,5 +109,3 @@ with col4:
 
 with col5:
     st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">Online ACAG Apply</div></a>', unsafe_allow_html=True)
-with col6:
-    st.markdown(f'<a href="{link6}" target="_blank"><div class="box box6">RDC</div></a>', unsafe_allow_html=True)   

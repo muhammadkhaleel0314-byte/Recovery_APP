@@ -4,9 +4,22 @@ st.set_page_config(page_title="My Links", layout="wide")
 
 st.title("🚀 My Quick Links")
 
-# ----------- CSS DESIGN -----------
+# ----------- CSS DESIGN + ANIMATION -----------
 st.markdown("""
 <style>
+
+/* 🔥 Slide Animation */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .box {
     padding: 30px;
     border-radius: 15px;
@@ -16,12 +29,27 @@ st.markdown("""
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+
+    /* Animation */
+    animation: slideUp 0.6s ease forwards;
 }
 
-/* ✨ Hover + Click Effect */
+/* ⏱️ Delay for each box (one by one effect) */
+.box1 { animation-delay: 0.1s; }
+.box2 { animation-delay: 0.3s; }
+.box3 { animation-delay: 0.5s; }
+.box4 { animation-delay: 0.7s; }
+.box5 { animation-delay: 0.9s; }
+
+/* Hover Effect */
 .box:hover {
     transform: scale(1.08);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+/* Click Effect */
+.box:active {
+    transform: scale(0.95);
 }
 
 /* 🎨 Colors */
@@ -42,26 +70,21 @@ st.markdown("""
 }
 
 .box4 { 
-    background: linear-gradient(135deg, #11998e, #38ef7d); /* green */
+    background: linear-gradient(135deg, #11998e, #38ef7d);
     color: white;
 }
 
 .box5 { 
-    background: linear-gradient(135deg, #36d1dc, #5b86e5); /* blue */
+    background: linear-gradient(135deg, #36d1dc, #5b86e5);
     color: white;
 }
 
-/* 🔥 Active click effect */
-.box:active {
-    transform: scale(0.95);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-/* Remove blue link color */
+/* Remove blue link */
 a, a:visited {
     color: inherit !important;
     text-decoration: none !important;
 }
+
 </style>
 """, unsafe_allow_html=True)
 

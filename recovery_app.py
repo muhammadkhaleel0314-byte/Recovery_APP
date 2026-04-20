@@ -68,6 +68,6 @@ with col2:
 with col3:
     st.markdown(f'''
         <a href="{link3}" target="_blank">
-            <div class="box box3">Coming Soon</div>
+            <div class="box box3">ACAG</div>
         </a>
     ''', unsafe_allow_html=True)

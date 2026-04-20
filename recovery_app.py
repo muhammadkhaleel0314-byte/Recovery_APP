@@ -90,9 +90,10 @@ link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5Wlxa
 link3 = "https://script.google.com/macros/s/AKfycbzTMdTGQczpfnWd76rdwhj1rr_4DCMTMITYFgJZBcGrDbBSQZIHKu3mTkaXYnB5Y9VZew/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
+link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/#branch-wise-recovery-summary/"
 
 # ----------- BOXES -----------
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(5)
 
 with col1:
     st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">All PMY Verify Data </div></a>', unsafe_allow_html=True)
@@ -108,3 +109,5 @@ with col4:
 
 with col5:
     st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">Online ACAG Apply</div></a>', unsafe_allow_html=True)
+ with col6:
+    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box6">RDC</div></a>', unsafe_allow_html=True)   

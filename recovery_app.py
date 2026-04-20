@@ -67,6 +67,7 @@ body {
 .box3 { animation: fromTop 1.2s ease-in-out forwards; opacity:0; }
 .box4 { animation: fromBottom 1.2s ease-in-out forwards; opacity:0; }
 .box5 { animation: fadeOnly 1.5s ease-in-out forwards; opacity:0; }
+.box6 { background:#FFD700; color:black; }
 
 /* ========= COLORS ========= */
 .box1 { background:#ffffff; color:black; border:1px solid #ddd; }
@@ -74,6 +75,7 @@ body {
 .box3 { background:#808080; color:white; }
 .box4 { background:linear-gradient(135deg,#11998e,#38ef7d); color:white; }
 .box5 { background:linear-gradient(135deg,#36d1dc,#5b86e5); color:white; }
+.box3 { background:#808080; color:white; }
 
 /* remove link blue */
 a, a:visited {

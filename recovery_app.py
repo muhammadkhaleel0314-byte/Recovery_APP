@@ -8,10 +8,10 @@ st.title("🚀 My Quick Links")
 st.markdown("""
 <style>
 .box {
-    padding: 40px;
+    padding: 30px;
     border-radius: 15px;
     text-align: center;
-    font-size: 22px;
+    font-size: 18px;
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
@@ -24,7 +24,7 @@ st.markdown("""
 /* Box Colors */
 .box1 { 
     background: linear-gradient(135deg, #ff7e5f, #feb47b);
-    color: black;   /* 👈 Black text */
+    color: black;
 }
 .box2 { 
     background: linear-gradient(135deg, #36d1dc, #5b86e5);
@@ -35,7 +35,7 @@ st.markdown("""
     color: white;
 }
 
-/* 🔥 IMPORTANT FIX (remove blue link color) */
+/* Remove blue link color */
 a, a:visited {
     color: inherit !important;
     text-decoration: none !important;
@@ -51,12 +51,12 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 
 # ----------- BOXES -----------
-col1, col2, col3, co14, col5 = st.columns(5)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.markdown(f'''
         <a href="{link1}" target="_blank">
-            <div class="box box1">PMY All Verify Data Link</div>
+            <div class="box box1">PMY All Verify Data</div>
         </a>
     ''', unsafe_allow_html=True)
 
@@ -70,15 +70,17 @@ with col2:
 with col3:
     st.markdown(f'''
         <a href="{link3}" target="_blank">
-            <div class="box box3">ACAG All Batch's Data</div>
+            <div class="box box3">ACAG All Batch Data</div>
         </a>
     ''', unsafe_allow_html=True)
+
 with col4:
     st.markdown(f'''
-        <a href="{link3}" target="_blank">
-            <div class="box box3">PMY Apply And Track Application</div>
+        <a href="{link4}" target="_blank">
+            <div class="box box3">PMY Apply & Track</div>
         </a>
     ''', unsafe_allow_html=True)
+
 with col5:
     st.markdown(f'''
         <a href="{link5}" target="_blank">

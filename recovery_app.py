@@ -35,8 +35,10 @@ st.markdown("""
     color: white;
 }
 
-a {
-    text-decoration: none;
+/* 🔥 IMPORTANT FIX (remove blue link color) */
+a, a:visited {
+    color: inherit !important;
+    text-decoration: none !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -50,10 +52,22 @@ link3 = "#"
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">PMY Link</div></a>', unsafe_allow_html=True)
+    st.markdown(f'''
+        <a href="{link1}" target="_blank">
+            <div class="box box1">PMY Link</div>
+        </a>
+    ''', unsafe_allow_html=True)
 
 with col2:
-    st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">Account Link</div></a>', unsafe_allow_html=True)
+    st.markdown(f'''
+        <a href="{link2}" target="_blank">
+            <div class="box box2">Account Link</div>
+        </a>
+    ''', unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">Coming Soon</div></a>', unsafe_allow_html=True)
+    st.markdown(f'''
+        <a href="{link3}" target="_blank">
+            <div class="box box3">Coming Soon</div>
+        </a>
+    ''', unsafe_allow_html=True)

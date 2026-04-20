@@ -101,7 +101,7 @@ with col2:
     st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">BOP Account Open Detail </div></a>', unsafe_allow_html=True)
 
 with col3:
-    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG All Batch's Data</div></a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">ACAG All Batchs Data</div></a>', unsafe_allow_html=True)
 
 with col4:
     st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">Online PMY Tracking</div></a>', unsafe_allow_html=True)

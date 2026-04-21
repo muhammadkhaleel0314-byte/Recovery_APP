@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Smart Dashboard", layout="wide")
+st.set_page_config(page_title="My Quick Link's Dashboard", layout="wide")
 
 st.title("🚀 Smart Dashboard")
 
@@ -98,7 +98,9 @@ st.markdown(f"""
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🇵🇰 Pakistan Zindabad 🇵🇰 — 💚 Pak Army Zindabad 💚 — 🌙 Unity Faith Discipline
+        Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
+        🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
+        🇵🇰 We Love Pakistan 🇵🇰
     </div>
 </div>
 """, unsafe_allow_html=True)

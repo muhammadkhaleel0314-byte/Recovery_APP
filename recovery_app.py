@@ -4,14 +4,13 @@ st.set_page_config(page_title="Smart Dashboard", layout="wide")
 
 st.title("🚀 Smart Dashboard")
 
-# ----------- AOS + STYLE -----------
+# ----------- CSS -----------
 st.markdown("""
-<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
 <style>
+
+/* Background */
 body {
     background: linear-gradient(135deg, #141E30, #243B55);
-    color: white;
 }
 
 /* Card Style */
@@ -21,42 +20,48 @@ body {
     text-align: center;
     font-size: 18px;
     font-weight: bold;
-    margin: 10px;
+    cursor: pointer;
+    transition: 0.4s;
 
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(10px);
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.2);
 
-    transition: 0.3s;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
 }
 
 /* Hover */
 .card:hover {
     transform: translateY(-10px) scale(1.05);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
 }
 
+/* 🎬 Animation */
+@keyframes fadeUp {
+    from {opacity:0; transform: translateY(60px);}
+    to {opacity:1; transform: translateY(0);}
+}
+
+/* Stagger */
+.c1 {animation: fadeUp 0.8s ease 0.2s forwards; opacity:0;}
+.c2 {animation: fadeUp 0.8s ease 0.5s forwards; opacity:0;}
+.c3 {animation: fadeUp 0.8s ease 0.8s forwards; opacity:0;}
+.c4 {animation: fadeUp 0.8s ease 1.1s forwards; opacity:0;}
+.c5 {animation: fadeUp 0.8s ease 1.4s forwards; opacity:0;}
+.c6 {animation: fadeUp 0.8s ease 1.7s forwards; opacity:0;}
+
 /* Colors */
-.c1 {background:#fff; color:black;}
+.c1 {background:#ffffff; color:black;}
 .c2 {background:#FFD700; color:black;}
-.c3 {background:#777;}
-.c4 {background:linear-gradient(135deg,#11998e,#38ef7d);}
-.c5 {background:linear-gradient(135deg,#36d1dc,#5b86e5);}
-.c6 {background:linear-gradient(135deg,#ff512f,#dd2476);}
+.c3 {background:#777; color:white;}
+.c4 {background:linear-gradient(135deg,#11998e,#38ef7d); color:white;}
+.c5 {background:linear-gradient(135deg,#36d1dc,#5b86e5); color:white;}
+.c6 {background:linear-gradient(135deg,#ff512f,#dd2476); color:white;}
 
 /* Remove link style */
 a {text-decoration:none; color:inherit;}
-</style>
 
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-<script>
-setTimeout(function(){
-    AOS.init({
-        duration: 1200,
-        once: true
-    });
-}, 500);
-</script>
+</style>
 """, unsafe_allow_html=True)
 
 # ----------- LINKS -----------
@@ -67,33 +72,17 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "#"
 
-# ----------- GRID UI -----------
+# ----------- GRID -----------
+
 st.markdown(f"""
 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:20px;">
 
-<a href="{link1}" target="_blank">
-<div class="card c1" data-aos="fade-right">📊 PMY Verify Data</div>
-</a>
-
-<a href="{link2}" target="_blank">
-<div class="card c2" data-aos="fade-left">🏦 BOP Account</div>
-</a>
-
-<a href="{link3}" target="_blank">
-<div class="card c3" data-aos="fade-up">📁 ACAG Batch Data</div>
-</a>
-
-<a href="{link4}" target="_blank">
-<div class="card c4" data-aos="zoom-in">📲 PMY Apply</div>
-</a>
-
-<a href="{link5}" target="_blank">
-<div class="card c5" data-aos="flip-left">📝 ACAG Apply</div>
-</a>
-
-<a href="{link6}" target="_blank">
-<div class="card c6" data-aos="zoom-out">🚧 RDC</div>
-</a>
+<a href="{link1}" target="_blank"><div class="card c1">📊 PMY Verify Data</div></a>
+<a href="{link2}" target="_blank"><div class="card c2">🏦 BOP Account</div></a>
+<a href="{link3}" target="_blank"><div class="card c3">📁 ACAG Batch Data</div></a>
+<a href="{link4}" target="_blank"><div class="card c4">📲 PMY Apply</div></a>
+<a href="{link5}" target="_blank"><div class="card c5">📝 ACAG Apply</div></a>
+<a href="{link6}" target="_blank"><div class="card c6">🚧 RDC</div></a>
 
 </div>
 """, unsafe_allow_html=True)

@@ -15,53 +15,52 @@ st.markdown("""
     gap:18px;
 }
 
-/* CARD STYLE */
+/* CARD */
 .card {
     padding:28px;
-    border-radius:18px;
+    border-radius:15px;
     text-align:center;
     font-weight:bold;
-    font-size:17px;
+    font-size:16px;
     transition:0.3s;
-    box-shadow:0 6px 18px rgba(0,0,0,0.15);
+    box-shadow:0 6px 15px rgba(0,0,0,0.15);
 }
 
 /* HOVER */
 .card:hover {
-    transform: translateY(-8px) scale(1.05);
-    box-shadow:0 12px 25px rgba(0,0,0,0.3);
+    transform: translateY(-6px) scale(1.04);
 }
 
-/* 🎨 IMPROVED COLORS */
-.c1 { background:#f5f5f5; color:black; }
+/* SIMPLE COLORS */
+.c1 { background:#f8f9fa; color:black; }
 .c2 { background:#ffd54f; color:black; }
-.c3 { background:#757575; color:white; }
-.c4 { background:linear-gradient(135deg,#00c853,#64dd17); color:white; }
-.c5 { background:linear-gradient(135deg,#00b0ff,#2962ff); color:white; }
-.c6 { background:linear-gradient(135deg,#ff6f00,#ff1744); color:white; }
+.c3 { background:#9e9e9e; color:white; }
+.c4 { background:#4caf50; color:white; }
+.c5 { background:#2196f3; color:white; }
+.c6 { background:#ff5722; color:white; }
 
-/* REMOVE LINK STYLE */
+/* LINKS */
 a {
     text-decoration:none;
     color:inherit;
 }
 
-/* 🎬 TICKER */
+/* TICKER */
 .ticker {
     margin-top:30px;
     overflow:hidden;
     background:black;
     color:white;
-    padding:12px;
-    border-radius:12px;
+    padding:10px;
+    border-radius:10px;
 }
 
 .ticker-text {
     display:inline-block;
+    white-space:nowrap;
     padding-left:100%;
     animation: scroll 20s linear infinite;
-    font-size:18px;
-    font-weight:bold;
+    font-size:17px;
 }
 
 /* ANIMATION */
@@ -95,13 +94,11 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ----------- RUNNING TEXT -----------
+# ----------- SIMPLE TICKER -----------
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🇵🇰 Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
-        🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
-        🇵🇰 We Love Pakistan 🇵🇰
+        🇵🇰 Pakistan Zindabad 🇵🇰 — 💚 Pak Army Zindabad 💚 — 🌙 Unity Faith Discipline
     </div>
 </div>
 """, unsafe_allow_html=True)

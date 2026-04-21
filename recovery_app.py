@@ -101,10 +101,10 @@ st.markdown("""
        Breaking News:
 
 Iranian negotiators have received permission from Supreme Leader to travel to Islamabad for US-Iran talks.
-
-ایران کے سپریم لیڈر مجتبیٰ خامنہ ای نے امریکہ ایران مذاکرات کے لیے ایرانی وفد کو اسلام آباد جانے کی اجازت دے دی Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
-        🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
-        🇵🇰 We Love Pakistan 🇵🇰 
+Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
+        🇵🇰 We Love Pakistan 🇵🇰  🌙 Pakistan Our Pride |
+ایران کے سپریم لیڈر مجتبیٰ خامنہ ای نے امریکہ ایران مذاکرات کے لیے ایرانی وفد کو اسلام آباد جانے کی اجازت دے دی  |
+       
     </div>
 </div>
 """, unsafe_allow_html=True)

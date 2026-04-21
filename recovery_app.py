@@ -78,7 +78,7 @@ link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5Wlxa
 link3 = "https://script.google.com/macros/s/AKfycbzTMdTGQczpfnWd76rdwhj1rr_4DCMTMITYFgJZBcGrDbBSQZIHKu3mTkaXYnB5Y9VZew/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
-link6 = "#"
+link6 = "https://qrcode.tec-it.com/en"
 
 # ----------- BOXES -----------
 st.markdown(f"""
@@ -89,7 +89,7 @@ st.markdown(f"""
 <a href="{link3}" target="_blank"><div class="card c3">📁 ACAG Batch Data</div></a>
 <a href="{link4}" target="_blank"><div class="card c4">📲 PMY Apply & Track</div></a>
 <a href="{link5}" target="_blank"><div class="card c5">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card c6">🚧 RDC (Coming Soon)</div></a>
+<a href="{link6}" target="_blank"><div class="card c6">🚧 UCT (Urdu Card Take QR)</div></a>
 
 </div>
 """, unsafe_allow_html=True)
@@ -100,7 +100,7 @@ st.markdown("""
     <div class="ticker-text">
         Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
         🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
-        🇵🇰 We Love Pakistan 🇵🇰
+        🇵🇰 We Love Pakistan 🇵🇰 
     </div>
 </div>
 """, unsafe_allow_html=True)

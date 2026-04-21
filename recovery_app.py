@@ -1,41 +1,33 @@
 import streamlit as st
 import requests
-import time
 
 st.set_page_config(page_title="Smart Dashboard", layout="wide")
 
 st.title("🚀 Smart Dashboard")
 
-# ----------- AUTO REFRESH -----------
-st.experimental_rerun = st.runtime.scriptrunner.script_run_context.get_script_run_ctx
-time.sleep(30)
-
 # ----------- NEWS FUNCTION -----------
+@st.cache_data(ttl=60)   # 👈 60 sec baad auto refresh
 def get_news():
-    api_key = "YOUR_API_KEY_HERE"   # 👈 yahan apni API key daalo
+    api_key = "YOUR_API_KEY_HERE"   # 👈 apni API key daalo
     
-    urls = [
-        f"https://newsapi.org/v2/top-headlines?country=pk&apiKey={api_key}",
-        f"https://newsapi.org/v2/top-headlines?category=general&apiKey={api_key}"
-    ]
-    
-    headlines = []
+    url = f"https://newsapi.org/v2/top-headlines?country=pk&apiKey={api_key}"
     
     try:
-        for url in urls:
-            res = requests.get(url).json()
-            for a in res.get("articles", [])[:5]:
-                headlines.append(a["title"])
+        res = requests.get(url).json()
+        articles = res.get("articles", [])
         
-        if headlines:
-            return " 🔴 ".join(headlines[:10])
-        else:
-            return "⚠️ No news available"
+        headlines = [a["title"] for a in articles[:8]]
+        return " 🔴 ".join(headlines) if headlines else "No news found"
     
     except:
         return "⚠️ News load nahi ho saki"
 
 news_text = get_news()
+
+# ----------- REFRESH BUTTON -----------
+if st.button("🔄 Refresh News"):
+    st.cache_data.clear()
+    st.rerun()
 
 # ----------- CSS -----------
 st.markdown("""
@@ -48,17 +40,15 @@ st.markdown("""
     gap:15px;
 }
 
-/* BOX STYLE */
+/* BOX */
 .card {
     padding:25px;
     border-radius:15px;
     text-align:center;
     font-weight:bold;
-    font-size:16px;
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
     transition:0.3s;
-    box-shadow:0 5px 15px rgba(0,0,0,0.2);
 }
 
 .card:hover {
@@ -78,8 +68,7 @@ st.markdown("""
 .ticker-text {
     display:inline-block;
     padding-left:100%;
-    animation: scroll 30s linear infinite;
-    font-weight:bold;
+    animation: scroll 25s linear infinite;
 }
 
 /* ANIMATION */
@@ -108,18 +97,16 @@ link6 = "#"
 # ----------- BOXES -----------
 st.markdown(f"""
 <div class="grid">
-
 <a href="{link1}" target="_blank"><div class="card">📊 PMY Verify Data</div></a>
 <a href="{link2}" target="_blank"><div class="card">🏦 BOP Account</div></a>
 <a href="{link3}" target="_blank"><div class="card">📁 ACAG Batch Data</div></a>
 <a href="{link4}" target="_blank"><div class="card">📲 PMY Apply</div></a>
 <a href="{link5}" target="_blank"><div class="card">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card">🚧 RDC (Coming Soon)</div></a>
-
+<a href="{link6}" target="_blank"><div class="card">🚧 RDC</div></a>
 </div>
 """, unsafe_allow_html=True)
 
-# ----------- LIVE NEWS TICKER -----------
+# ----------- TICKER -----------
 st.markdown(f"""
 <div class="ticker">
     <div class="ticker-text">

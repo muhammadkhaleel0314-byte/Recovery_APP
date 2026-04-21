@@ -1,78 +1,62 @@
 import streamlit as st
 
-st.set_page_config(page_title="My Links", layout="wide")
+st.set_page_config(page_title="Smart Dashboard", layout="wide")
 
-st.title("🚀 My Smart Dashboard")
+st.title("🚀 Smart Dashboard")
 
-# ----------- ADVANCED CSS -----------
+# ----------- AOS + STYLE -----------
 st.markdown("""
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
 <style>
-
-/* 🌌 Animated Background */
 body {
-    background: linear-gradient(-45deg, #1f4037, #99f2c8, #2980b9, #6dd5fa);
-    background-size: 400% 400%;
-    animation: gradientBG 12s ease infinite;
+    background: linear-gradient(135deg, #141E30, #243B55);
+    color: white;
 }
 
-@keyframes gradientBG {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
-}
-
-/* ✨ Glass Card */
-.box {
-    padding: 25px;
+/* Card Style */
+.card {
+    padding: 30px;
     border-radius: 18px;
     text-align: center;
-    font-size: 17px;
+    font-size: 18px;
     font-weight: bold;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    
-    backdrop-filter: blur(10px);
-    background: rgba(255,255,255,0.15);
-    border: 1px solid rgba(255,255,255,0.3);
+    margin: 10px;
 
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+
+    transition: 0.3s;
 }
 
-/* 💡 Glow Hover */
-.box:hover {
-    transform: translateY(-10px) scale(1.07);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+/* Hover */
+.card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* 🎬 Animation */
-@keyframes reveal {
-    from {opacity:0; transform: translateY(40px);}
-    to {opacity:1; transform: translateY(0);}
-}
-
-/* ⏳ Stagger Delay */
-.box1 { animation: reveal 0.8s ease 0.2s forwards; opacity:0; }
-.box2 { animation: reveal 0.8s ease 0.5s forwards; opacity:0; }
-.box3 { animation: reveal 0.8s ease 0.8s forwards; opacity:0; }
-.box4 { animation: reveal 0.8s ease 1.1s forwards; opacity:0; }
-.box5 { animation: reveal 0.8s ease 1.4s forwards; opacity:0; }
-.box6 { animation: reveal 0.8s ease 1.7s forwards; opacity:0; }
-
-/* 🎨 Text Colors */
-.box1 { color:#000; background:rgba(255,255,255,0.9); }
-.box2 { color:#000; background:#FFD700; }
-.box3 { color:#fff; background:#555; }
-.box4 { color:#fff; background:linear-gradient(135deg,#11998e,#38ef7d); }
-.box5 { color:#fff; background:linear-gradient(135deg,#36d1dc,#5b86e5); }
-.box6 { color:#fff; background:linear-gradient(135deg,#ff512f,#dd2476); }
+/* Colors */
+.c1 {background:#fff; color:black;}
+.c2 {background:#FFD700; color:black;}
+.c3 {background:#777;}
+.c4 {background:linear-gradient(135deg,#11998e,#38ef7d);}
+.c5 {background:linear-gradient(135deg,#36d1dc,#5b86e5);}
+.c6 {background:linear-gradient(135deg,#ff512f,#dd2476);}
 
 /* Remove link style */
-a, a:visited {
-    text-decoration:none !important;
-    color:inherit !important;
-}
-
+a {text-decoration:none; color:inherit;}
 </style>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+setTimeout(function(){
+    AOS.init({
+        duration: 1200,
+        once: true
+    });
+}, 500);
+</script>
 """, unsafe_allow_html=True)
 
 # ----------- LINKS -----------
@@ -83,23 +67,33 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "#"
 
-# ----------- BOXES -----------
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+# ----------- GRID UI -----------
+st.markdown(f"""
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:20px;">
 
-with col1:
-    st.markdown(f'<a href="{link1}" target="_blank"><div class="box box1">📊 PMY Verify Data</div></a>', unsafe_allow_html=True)
+<a href="{link1}" target="_blank">
+<div class="card c1" data-aos="fade-right">📊 PMY Verify Data</div>
+</a>
 
-with col2:
-    st.markdown(f'<a href="{link2}" target="_blank"><div class="box box2">🏦 BOP Account Detail</div></a>', unsafe_allow_html=True)
+<a href="{link2}" target="_blank">
+<div class="card c2" data-aos="fade-left">🏦 BOP Account</div>
+</a>
 
-with col3:
-    st.markdown(f'<a href="{link3}" target="_blank"><div class="box box3">📁 ACAG Batch Data</div></a>', unsafe_allow_html=True)
+<a href="{link3}" target="_blank">
+<div class="card c3" data-aos="fade-up">📁 ACAG Batch Data</div>
+</a>
 
-with col4:
-    st.markdown(f'<a href="{link4}" target="_blank"><div class="box box4">📲 PMY Apply & Track</div></a>', unsafe_allow_html=True)
+<a href="{link4}" target="_blank">
+<div class="card c4" data-aos="zoom-in">📲 PMY Apply</div>
+</a>
 
-with col5:
-    st.markdown(f'<a href="{link5}" target="_blank"><div class="box box5">📝 ACAG Apply</div></a>', unsafe_allow_html=True)
+<a href="{link5}" target="_blank">
+<div class="card c5" data-aos="flip-left">📝 ACAG Apply</div>
+</a>
 
-with col6:
-    st.markdown(f'<a href="{link6}" target="_blank"><div class="box box6">🚧 RDC (Coming Soon)</div></a>', unsafe_allow_html=True)
+<a href="{link6}" target="_blank">
+<div class="card c6" data-aos="zoom-out">🚧 RDC</div>
+</a>
+
+</div>
+""", unsafe_allow_html=True)

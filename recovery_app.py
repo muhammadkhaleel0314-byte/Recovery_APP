@@ -31,7 +31,7 @@ st.markdown("""
     transform: translateY(-6px) scale(1.04);
 }
 
-/* SIMPLE COLORS */
+/* COLORS */
 .c1 { background:#f8f9fa; color:black; }
 .c2 { background:#ffd54f; color:black; }
 .c3 { background:#9e9e9e; color:white; }
@@ -51,7 +51,7 @@ a {
     overflow:hidden;
     background:black;
     color:white;
-    padding:10px;
+    padding:12px;
     border-radius:10px;
 }
 
@@ -59,8 +59,9 @@ a {
     display:inline-block;
     white-space:nowrap;
     padding-left:100%;
-    animation: scroll 20s linear infinite;
-    font-size:17px;
+    animation: scroll 18s linear infinite;
+    font-size:16px;
+    font-weight:500;
 }
 
 /* ANIMATION */
@@ -89,21 +90,18 @@ st.markdown(f"""
 <a href="{link3}" target="_blank"><div class="card c3">📁 ACAG Batch Data</div></a>
 <a href="{link4}" target="_blank"><div class="card c4">📲 PMY Apply & Track</div></a>
 <a href="{link5}" target="_blank"><div class="card c5">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card c6">🚧 UCT (Urdu Card Take QR)</div></a>
+<a href="{link6}" target="_blank"><div class="card c6">🚧 QR Generator</div></a>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ----------- SIMPLE TICKER -----------
+# ----------- CLEAN TICKER (FIXED) -----------
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-       Breaking News:
-
-Iranian negotiators have received permission from Supreme Leader to travel to Islamabad for US-Iran talks.
-Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
-        🇵🇰 We Love Pakistan 🇵🇰  🌙 Pakistan Our Pride |
-ایران کے سپریم لیڈر مجتبیٰ خامنہ ای نے امریکہ ایران مذاکرات کے لیے ایرانی وفد کو اسلام آباد جانے کی اجازت دے دی
-       </div>
+        🔴 BREAKING NEWS: Iran delegation may travel to Islamabad for talks | 
+        🇵🇰 Pakistan Zindabad | 💚 Pak Army Zindabad | 🕌 Unity Faith Discipline | 
+        🌍 Regional diplomatic developments ongoing | 🇵🇰 Strong Nation Strong Future |
+    </div>
 </div>
 """, unsafe_allow_html=True)

@@ -98,7 +98,11 @@ st.markdown(f"""
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
+       Breaking News:
+
+Iranian negotiators have received permission from Supreme Leader to travel to Islamabad for US-Iran talks.
+
+ایران کے سپریم لیڈر مجتبیٰ خامنہ ای نے امریکہ ایران مذاکرات کے لیے ایرانی وفد کو اسلام آباد جانے کی اجازت دے دی Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
         🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
         🇵🇰 We Love Pakistan 🇵🇰 
     </div>

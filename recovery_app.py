@@ -1,33 +1,8 @@
 import streamlit as st
-import requests
 
 st.set_page_config(page_title="Smart Dashboard", layout="wide")
 
 st.title("🚀 Smart Dashboard")
-
-# ----------- NEWS FUNCTION -----------
-@st.cache_data(ttl=60)   # 👈 60 sec baad auto refresh
-def get_news():
-    api_key = "YOUR_API_KEY_HERE"   # 👈 apni API key daalo
-    
-    url = f"https://newsapi.org/v2/top-headlines?country=pk&apiKey={api_key}"
-    
-    try:
-        res = requests.get(url).json()
-        articles = res.get("articles", [])
-        
-        headlines = [a["title"] for a in articles[:8]]
-        return " 🔴 ".join(headlines) if headlines else "No news found"
-    
-    except:
-        return "⚠️ News load nahi ho saki"
-
-news_text = get_news()
-
-# ----------- REFRESH BUTTON -----------
-if st.button("🔄 Refresh News"):
-    st.cache_data.clear()
-    st.rerun()
 
 # ----------- CSS -----------
 st.markdown("""
@@ -37,50 +12,62 @@ st.markdown("""
 .grid {
     display:grid;
     grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-    gap:15px;
+    gap:18px;
 }
 
-/* BOX */
+/* CARD STYLE */
 .card {
-    padding:25px;
-    border-radius:15px;
+    padding:28px;
+    border-radius:18px;
     text-align:center;
     font-weight:bold;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
+    font-size:17px;
     transition:0.3s;
+    box-shadow:0 6px 18px rgba(0,0,0,0.15);
 }
 
+/* HOVER */
 .card:hover {
-    transform: scale(1.05);
+    transform: translateY(-8px) scale(1.05);
+    box-shadow:0 12px 25px rgba(0,0,0,0.3);
 }
 
-/* TICKER */
+/* 🎨 IMPROVED COLORS */
+.c1 { background:#f5f5f5; color:black; }
+.c2 { background:#ffd54f; color:black; }
+.c3 { background:#757575; color:white; }
+.c4 { background:linear-gradient(135deg,#00c853,#64dd17); color:white; }
+.c5 { background:linear-gradient(135deg,#00b0ff,#2962ff); color:white; }
+.c6 { background:linear-gradient(135deg,#ff6f00,#ff1744); color:white; }
+
+/* REMOVE LINK STYLE */
+a {
+    text-decoration:none;
+    color:inherit;
+}
+
+/* 🎬 TICKER */
 .ticker {
     margin-top:30px;
     overflow:hidden;
     background:black;
     color:white;
     padding:12px;
-    border-radius:10px;
+    border-radius:12px;
 }
 
 .ticker-text {
     display:inline-block;
     padding-left:100%;
-    animation: scroll 25s linear infinite;
+    animation: scroll 20s linear infinite;
+    font-size:18px;
+    font-weight:bold;
 }
 
 /* ANIMATION */
 @keyframes scroll {
     0% { transform: translateX(0); }
     100% { transform: translateX(-100%); }
-}
-
-/* REMOVE LINK STYLE */
-a {
-    text-decoration:none;
-    color:inherit;
 }
 
 </style>
@@ -97,20 +84,24 @@ link6 = "#"
 # ----------- BOXES -----------
 st.markdown(f"""
 <div class="grid">
-<a href="{link1}" target="_blank"><div class="card">📊 PMY Verify Data</div></a>
-<a href="{link2}" target="_blank"><div class="card">🏦 BOP Account</div></a>
-<a href="{link3}" target="_blank"><div class="card">📁 ACAG Batch Data</div></a>
-<a href="{link4}" target="_blank"><div class="card">📲 PMY Apply</div></a>
-<a href="{link5}" target="_blank"><div class="card">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card">🚧 RDC</div></a>
+
+<a href="{link1}" target="_blank"><div class="card c1">📊 PMY Verify Data</div></a>
+<a href="{link2}" target="_blank"><div class="card c2">🏦 BOP Account</div></a>
+<a href="{link3}" target="_blank"><div class="card c3">📁 ACAG Batch Data</div></a>
+<a href="{link4}" target="_blank"><div class="card c4">📲 PMY Apply & Track</div></a>
+<a href="{link5}" target="_blank"><div class="card c5">📝 ACAG Apply</div></a>
+<a href="{link6}" target="_blank"><div class="card c6">🚧 RDC (Coming Soon)</div></a>
+
 </div>
 """, unsafe_allow_html=True)
 
-# ----------- TICKER -----------
-st.markdown(f"""
+# ----------- RUNNING TEXT -----------
+st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🇵🇰 BREAKING NEWS 🇵🇰 | {news_text}
+        🇵🇰 Pakistan Zindabad 🇵🇰 | 💚 Pak Army Zindabad 💚 | 🌙 Pakistan Our Pride |
+        🕌 Unity • Faith • Discipline | 🤝 Strong Nation Strong Future |
+        🇵🇰 We Love Pakistan 🇵🇰
     </div>
 </div>
 """, unsafe_allow_html=True)

@@ -17,12 +17,12 @@ st.markdown("""
 
 /* CARD */
 .card {
-    padding:50px;
+    padding:28px;
     border-radius:15px;
     text-align:center;
     font-weight:bold;
     font-size:10px;
-    transition:0.3s;
+    transition:1.9s;
     box-shadow:0 6px 15px rgba(0,0,0,0.15);
 }
 

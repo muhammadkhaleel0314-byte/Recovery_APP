@@ -21,7 +21,7 @@ st.markdown("""
     border-radius:15px;
     text-align:center;
     font-weight:bold;
-    font-size:16px;
+    font-size:30px;
     transition:0.3s;
     box-shadow:0 6px 15px rgba(0,0,0,0.15);
 }

@@ -60,8 +60,8 @@ a {
     white-space:nowrap;
     padding-left:100%;
     animation: scroll 30s linear infinite;
-    font-size:16px;
-    font-weight:500;
+    font-size:56px;
+    font-weight:1000;
 }
 
 /* ANIMATION */

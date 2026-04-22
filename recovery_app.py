@@ -17,7 +17,7 @@ st.markdown("""
 
 /* CARD */
 .card {
-    padding:28px;
+    padding:50px;
     border-radius:15px;
     text-align:center;
     font-weight:bold;

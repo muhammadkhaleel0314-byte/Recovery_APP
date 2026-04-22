@@ -60,7 +60,7 @@ a {
     white-space:nowrap;
     padding-left:100%;
     animation: scroll 30s linear infinite;
-    font-size:56px;
+    font-size:20px;
     font-weight:1000;
 }
 

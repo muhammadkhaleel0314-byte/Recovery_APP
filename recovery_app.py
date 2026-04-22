@@ -99,7 +99,7 @@ st.markdown(f"""
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🔴 BREAKING NEWS: Iran delegation may travel to Islamabad for talks | 
+        🔴  
         🇵🇰 Pakistan Zindabad | 💚 Pak Army Zindabad | 🕌 Unity Faith Discipline | 
         🌍 Regional diplomatic developments ongoing | 🇵🇰 Strong Nation Strong Future |
     </div>

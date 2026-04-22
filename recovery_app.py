@@ -59,7 +59,7 @@ a {
     display:inline-block;
     white-space:nowrap;
     padding-left:100%;
-    animation: scroll 18s linear infinite;
+    animation: scroll 30s linear infinite;
     font-size:16px;
     font-weight:500;
 }
@@ -100,8 +100,10 @@ st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
         🔴  
-        🇵🇰 Pakistan Zindabad | 💚 Pak Army Zindabad | 🕌 Unity Faith Discipline | 
-        🌍 Regional diplomatic developments ongoing | 🇵🇰 Strong Nation Strong Future |
+        You don’t realize the weight of something until it’s no longer yours.”
+“People change, not because they want to, but because life leaves them no choice.”
+“The hardest battles are fought in the mind, where no one can see.” 
+        🌍  |
     </div>
 </div>
 """, unsafe_allow_html=True)

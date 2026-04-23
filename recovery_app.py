@@ -47,7 +47,7 @@ st.markdown("""
     border-radius:15px;
     text-align:center;
     font-weight:bold;
-    font-size:10px;
+    font-size:18px;
     transition:0.09s;
     box-shadow:0 6px 15px rgba(0,0,0,0.15);
 }

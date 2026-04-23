@@ -28,8 +28,6 @@ else:
     st.success("✅ You are logged in")
 import streamlit as st
 
-st.set_page_config(page_title="My Quick Link's Dashboard", layout="wide")
-
 st.title("🚀 My Quick Link's Dashboard")
 
 # ----------- CSS -----------

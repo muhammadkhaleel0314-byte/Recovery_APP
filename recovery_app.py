@@ -77,8 +77,8 @@ a {
     overflow:hidden;
     background:black;
     color:white;
-    padding:12px;
-    border-radius:10px;
+    padding:16px;
+    border-radius:12px;
 }
 
 .ticker-text {

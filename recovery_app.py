@@ -77,7 +77,7 @@ link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5Wlxa
 link3 = "https://script.google.com/macros/s/AKfycbzTMdTGQczpfnWd76rdwhj1rr_4DCMTMITYFgJZBcGrDbBSQZIHKu3mTkaXYnB5Y9VZew/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
-link6 = "yOU cAN nOT aBLE TO SEE"
+link6 = "yOU cAN nOT aBLE tO sEE tHIS oPTION"
 
 # ----------- BOXES -----------
 st.markdown(f"""

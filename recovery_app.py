@@ -98,9 +98,8 @@ st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
         🔴  
-        You don’t realize the weight of something until it’s no longer yours.”
-“People change, not because they want to, but because life leaves them no choice.”
-“The hardest battles are fought in the mind, where no one can see.” 
+        Silence Is The Best ANswer for all Questions,
+        Smiling Is The Best Reaction in Every Situation.” 
         🌍  |
     </div>
 </div>

@@ -56,10 +56,10 @@ a {
 .ticker-text {
     display:inline-block;
     white-space:nowrap;
-    padding-left:100%;
+    padding-left:10%;
     animation: scroll 30s linear infinite;
     font-size:20px;
-    font-weight:100;
+    font-weight:1000;
 }
 
 /* ANIMATION */

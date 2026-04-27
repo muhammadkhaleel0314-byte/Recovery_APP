@@ -59,7 +59,7 @@ a {
     padding-left:100%;
     animation: scroll 30s linear infinite;
     font-size:20px;
-    font-weight:1000;
+    font-weight:100;
 }
 
 /* ANIMATION */

@@ -1,41 +1,53 @@
 import streamlit as st
 
-st.title("🚀 My Quick Link's Dashboard")
+st.set_page_config(page_title="Quick Dashboard", layout="wide")
+
+# ----------- HEADER -----------
+st.markdown("""
+<h1 style='text-align:center; font-size:42px; color:white;'>
+🚀 Quick Access Dashboard
+</h1>
+<p style='text-align:center; color:#cfcfcf; font-size:18px;'>
+All your important tools in one place
+</p>
+""", unsafe_allow_html=True)
 
 # ----------- CSS -----------
 st.markdown("""
 <style>
 
+/* BACKGROUND */
+body {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+}
+
 /* GRID */
 .grid {
     display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
-    gap:18px;
+    grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+    gap:20px;
+    margin-top:30px;
 }
 
 /* CARD */
 .card {
-    padding:28px;
-    border-radius:13px;
+    padding:30px;
+    border-radius:16px;
     text-align:center;
     font-weight:bold;
-    font-size:16px;
-    transition:0.09s;
-    box-shadow:0 6px 15px rgba(0,0,0,0.15);
+    font-size:17px;
+    transition:0.25s;
+    backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color:white;
 }
 
-/* HOVER */
+/* HOVER EFFECT */
 .card:hover {
-    transform: translateY(-6px) scale(1.04);
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
 }
-
-/* COLORS */
-.c1 { background:#f8f9fa; color:black; }
-.c2 { background:#ffd54f; color:black; }
-.c3 { background:#9e9e9e; color:white; }
-.c4 { background:#4caf50; color:white; }
-.c5 { background:#2196f3; color:white; }
-.c6 { background:#ff5722; color:white; }
 
 /* LINKS */
 a {
@@ -45,7 +57,7 @@ a {
 
 /* TICKER */
 .ticker {
-    margin-top:30px;
+    margin-top:40px;
     overflow:hidden;
     background:black;
     color:white;
@@ -56,16 +68,25 @@ a {
 .ticker-text {
     display:inline-block;
     white-space:nowrap;
-    padding-left:10%;
-    animation: scroll 30s linear infinite;
+    padding-left:100%;
+    animation: scroll 20s linear infinite;
     font-size:20px;
-    font-weight:1000;
+    font-weight:700;
+    letter-spacing:1px;
 }
 
 /* ANIMATION */
 @keyframes scroll {
     0% { transform: translateX(0); }
     100% { transform: translateX(-100%); }
+}
+
+/* FOOTER */
+.footer {
+    margin-top:40px;
+    text-align:center;
+    color:#cfcfcf;
+    font-size:14px;
 }
 
 </style>
@@ -79,28 +100,38 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# ----------- BOXES -----------
+# ----------- GRID BOXES -----------
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank"><div class="card c1">📊 PMY Verify Data</div></a>
-<a href="{link2}" target="_blank"><div class="card c2">🏦 BOP Account</div></a>
-<a href="{link3}" target="_blank"><div class="card c3">📁 ACAG Batch Data</div></a>
-<a href="{link4}" target="_blank"><div class="card c4">📲 PMY Apply & Track</div></a>
-<a href="{link5}" target="_blank"><div class="card c5">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card c6">🚧 QR Generator</div></a>
+<a href="{link1}" target="_blank"><div class="card">📊 PMY Verify Data</div></a>
+
+<a href="{link2}" target="_blank"><div class="card">🏦 BOP Account</div></a>
+
+<a href="{link3}" target="_blank"><div class="card">📁 ACAG Batch Data</div></a>
+
+<a href="{link4}" target="_blank"><div class="card">📲 PMY Apply & Track</div></a>
+
+<a href="{link5}" target="_blank"><div class="card">📝 ACAG Apply</div></a>
+
+<a href="{link6}" target="_blank"><div class="card">🚧 QR Generator</div></a>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ----------- CLEAN TICKER (FIXED) -----------
+# ----------- TICKER -----------
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🔴  
-        Silence Is The Best ANswer for all Questions,
-        Smiling Is The Best Reaction in Every Situation.” 
-        🌍  |
+        🔴 Silence is the best answer for all questions | 😊 Smiling is the best reaction in every situation 🌍
     </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ----------- FOOTER -----------
+st.markdown("""
+<div class="footer">
+    <hr>
+    Made by Khaleel 🚀
 </div>
 """, unsafe_allow_html=True)

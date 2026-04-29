@@ -22,17 +22,11 @@ st.markdown("""
     text-align:center;
     font-weight:600;
     font-size:16px;
-    transition:0.2s;
     box-shadow:0 6px 15px rgba(0,0,0,0.12);
+    opacity:0;
 }
 
-/* HOVER */
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow:0 10px 22px rgba(0,0,0,0.2);
-}
-
-/* COLORS (slightly modern tones) */
+/* COLORS */
 .c1 { background:#f1f3f5; color:#111; }
 .c2 { background:#ffe066; color:#111; }
 .c3 { background:#868e96; color:white; }
@@ -45,6 +39,41 @@ a {
     text-decoration:none;
     color:inherit;
 }
+
+/* ANIMATIONS */
+@keyframes slideLeft {
+    from { transform: translateX(-80px); opacity:0; }
+    to { transform: translateX(0); opacity:1; }
+}
+
+@keyframes slideRight {
+    from { transform: translateX(80px); opacity:0; }
+    to { transform: translateX(0); opacity:1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(80px); opacity:0; }
+    to { transform: translateY(0); opacity:1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-80px); opacity:0; }
+    to { transform: translateY(0); opacity:1; }
+}
+
+/* APPLY ANIMATION */
+.left  { animation: slideLeft 0.8s ease forwards; }
+.right { animation: slideRight 0.8s ease forwards; }
+.up    { animation: slideUp 0.8s ease forwards; }
+.down  { animation: slideDown 0.8s ease forwards; }
+
+/* DELAY (stagger effect) */
+.d1 { animation-delay:0.2s; }
+.d2 { animation-delay:0.4s; }
+.d3 { animation-delay:0.6s; }
+.d4 { animation-delay:0.8s; }
+.d5 { animation-delay:1s; }
+.d6 { animation-delay:1.2s; }
 
 /* TICKER */
 .ticker {
@@ -65,7 +94,6 @@ a {
     font-weight:600;
 }
 
-/* ANIMATION */
 @keyframes scroll {
     0% { transform: translateX(0); }
     100% { transform: translateX(-100%); }
@@ -86,12 +114,12 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank"><div class="card c1">📊 PMY Verify Data</div></a>
-<a href="{link2}" target="_blank"><div class="card c2">🏦 BOP Account</div></a>
-<a href="{link3}" target="_blank"><div class="card c3">📁 ACAG Batch Data</div></a>
-<a href="{link4}" target="_blank"><div class="card c4">📲 PMY Apply & Track</div></a>
-<a href="{link5}" target="_blank"><div class="card c5">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card c6">🚧 QR Generator</div></a>
+<a href="{link1}" target="_blank"><div class="card c1 left d1">📊 PMY Verify Data</div></a>
+<a href="{link2}" target="_blank"><div class="card c2 right d2">🏦 BOP Account</div></a>
+<a href="{link3}" target="_blank"><div class="card c3 up d3">📁 ACAG Batch Data</div></a>
+<a href="{link4}" target="_blank"><div class="card c4 down d4">📲 PMY Apply & Track</div></a>
+<a href="{link5}" target="_blank"><div class="card c5 left d5">📝 ACAG Apply</div></a>
+<a href="{link6}" target="_blank"><div class="card c6 right d6">🚧 QR Generator</div></a>
 
 </div>
 """, unsafe_allow_html=True)

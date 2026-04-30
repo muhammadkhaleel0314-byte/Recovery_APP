@@ -67,7 +67,7 @@ a {
 .up    { animation: slideUp 0.8s ease forwards; }
 .down  { animation: slideDown 0.8s ease forwards; }
 
-/* DELAY (stagger effect) */
+/* DELAY */
 .d1 { animation-delay:0.2s; }
 .d2 { animation-delay:0.4s; }
 .d3 { animation-delay:0.6s; }
@@ -108,18 +108,29 @@ link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5Wlxa
 link3 = "https://script.google.com/macros/s/AKfycbzTMdTGQczpfnWd76rdwhj1rr_4DCMTMITYFgJZBcGrDbBSQZIHKu3mTkaXYnB5Y9VZew/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
-link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
 # ----------- BOXES -----------
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank"><div class="card c1 left d1">📊 PMY Verify Data</div></a>
-<a href="{link2}" target="_blank"><div class="card c2 right d2">🏦 BOP Account</div></a>
-<a href="{link3}" target="_blank"><div class="card c3 up d3">📁 ACAG Batch Data</div></a>
-<a href="{link4}" target="_blank"><div class="card c4 down d4">📲 PMY Apply & Track</div></a>
-<a href="{link5}" target="_blank"><div class="card c5 left d5">📝 ACAG Apply</div></a>
-<a href="{link6}" target="_blank"><div class="card c6 right d6">🚧 QR Generator</div></a>
+<a href="{link1}" target="_blank">
+<div class="card c1 left d1">📊 PMY Verify Data</div></a>
+
+<a href="{link2}" target="_blank">
+<div class="card c2 right d2">🏦 BOP Account</div></a>
+
+<a href="{link3}" target="_blank">
+<div class="card c3 up d3">📁 ACAG Batch Data</div></a>
+
+<a href="{link4}" target="_blank">
+<div class="card c4 down d4">📲 PMY Apply & Track</div></a>
+
+<a href="{link5}" target="_blank">
+<div class="card c5 left d5">📝 ACAG Apply</div></a>
+
+<!-- QR DISABLED -->
+<a href="#" onclick="alert('❌ You can not use this option'); return false;">
+<div class="card c6 right d6">🚧 QR Generator</div></a>
 
 </div>
 """, unsafe_allow_html=True)

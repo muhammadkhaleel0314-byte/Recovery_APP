@@ -128,7 +128,7 @@ st.markdown(f"""
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🔴 ACAG 31 Batch Have Been Uploaded 🌍
+        🔴 ACAG 31 Batch Have Been Updated 🌍
     </div>
 </div>
 """, unsafe_allow_html=True)

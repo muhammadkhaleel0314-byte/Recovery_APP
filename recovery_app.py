@@ -128,7 +128,7 @@ st.markdown(f"""
 st.markdown("""
 <div class="ticker">
     <div class="ticker-text">
-        🔴 Silence is the best answer for all questions | 😊 Smiling is the best reaction in every situation 🌍
+        🔴 ACAG 31 Batch Have Been Uploaded 🌍
     </div>
 </div>
 """, unsafe_allow_html=True)

@@ -104,7 +104,7 @@ a {
 # ----------- LINKS -----------
 link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
 link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
-link3 = "https://script.google.com/macros/s/AKfycbzQCzOWRiYb-LqhC1ob8rqfBZAPTr8_eCl_pqR6rFwYOReG1SvW9U86NFG3qdZw4gx7wA/exec"
+link3 = "https://script.google.com/macros/s/AKfycbw8j38OLIaF9SGKSyJTT4j32UljV_H0s5YDjnTVZB1DGrsPs7IrKRQ6ezgd0ZlPpACU8g/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"

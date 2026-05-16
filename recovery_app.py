@@ -101,7 +101,7 @@ a {
 """, unsafe_allow_html=True)
 
 # ----------- LINKS -----------
-link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
+link1 = "https://pmybals.pmyp.gov.pk"
 link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
 link3 = "https://script.google.com/macros/s/AKfycbypykTVpzPIxpnY5mu3kP2wmpm5MWayqCQQpKHLYLFO74jtfPivxymuFi7f5myxhHDopg/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"

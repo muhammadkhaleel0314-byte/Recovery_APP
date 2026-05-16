@@ -112,10 +112,10 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank"><div class="card c1 left d1">📊 PMY Verify Data</div></a>
+<a href="{link1}" target="_blank"><div class="card c1 left d1">📊 PMY Apply & Track</div></a>
 <a href="{link2}" target="_blank"><div class="card c2 right d2">🏦 BOP Account</div></a>
 <a href="{link3}" target="_blank"><div class="card c3 up d3">📁 ACAG Batch Data</div></a>
-<a href="{link4}" target="_blank"><div class="card c4 down d4">📲 PMY Apply & Track</div></a>
+<a href="{link4}" target="_blank"><div class="card c4 down d4">📲 PMY Verify Data</div></a>
 <a href="{link5}" target="_blank"><div class="card c5 left d5">📝 ACAG Apply</div></a>
 <a href="{link6}" target="_blank"><div class="card c6 right d6">🚧 QR Generator</div></a>
 

@@ -1,6 +1,5 @@
 import streamlit as st
 st.set_page_config(page_title="Quick Dashboard", layout="wide")
-st.set_page_config(page_title="Quick Dashboard", layout="wide")
 st.title("🚀 My Quick Link's Dashboard")
 
 # ----------- CSS -----------

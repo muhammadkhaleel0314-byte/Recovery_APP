@@ -1,4 +1,4 @@
-import streamlit as st
+mport streamlit as st
 wi8 please
 
 st.set_page_config(page_title="Quick Dashboard", layout="wide")

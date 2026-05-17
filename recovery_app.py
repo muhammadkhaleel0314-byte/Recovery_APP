@@ -103,7 +103,7 @@ a {
 # ----------- LINKS -----------
 link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
 link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
-link3 = "https://script.google.com/macros/s/AKfycby3wB1wj00rgxa1W5x27w90_1ahzumcXGOC7aRhk_OwEtorCpKg0LmWEbLwjcjQQ3c6Gw/exec"
+link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"

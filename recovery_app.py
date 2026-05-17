@@ -101,9 +101,9 @@ a {
 """, unsafe_allow_html=True)
 
 # ----------- LINKS -----------
-link1 = "https://pmybals.pmyp.gov.pk"
+link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
 link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
-link3 = "https://script.google.com/macros/s/AKfycbypykTVpzPIxpnY5mu3kP2wmpm5MWayqCQQpKHLYLFO74jtfPivxymuFi7f5myxhHDopg/exec"
+link3 = "https://script.google.com/macros/s/AKfycby3wB1wj00rgxa1W5x27w90_1ahzumcXGOC7aRhk_OwEtorCpKg0LmWEbLwjcjQQ3c6Gw/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
@@ -112,10 +112,10 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank"><div class="card c1 left d1">📊 PMY Apply & Track</div></a>
+<a href="{link1}" target="_blank"><div class="card c1 left d1">📊 PMY Verify Data</div></a>
 <a href="{link2}" target="_blank"><div class="card c2 right d2">🏦 BOP Account</div></a>
 <a href="{link3}" target="_blank"><div class="card c3 up d3">📁 ACAG Batch Data</div></a>
-<a href="{link4}" target="_blank"><div class="card c4 down d4">📲 PMY Verify Data</div></a>
+<a href="{link4}" target="_blank"><div class="card c4 down d4">📲 PMY Apply & Track</div></a>
 <a href="{link5}" target="_blank"><div class="card c5 left d5">📝 ACAG Apply</div></a>
 <a href="{link6}" target="_blank"><div class="card c6 right d6">🚧 QR Generator</div></a>
 

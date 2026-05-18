@@ -1,324 +1,298 @@
 import streamlit as st
 
-# ---------------- PAGE CONFIG ----------------
+# ================= CONFIG =================
 st.set_page_config(
-    page_title="Ultra Modern Dashboard",
-    page_icon="🚀",
+    page_title="Neo Dashboard",
+    page_icon="⚡",
     layout="wide"
 )
 
-# ---------------- HIDE STREAMLIT ----------------
+# ================= LINKS =================
+link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
+link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
+link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
+link4 = "https://pmybals.pmyp.gov.pk/"
+link5 = "https://acag.punjab.gov.pk/"
+link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
+
+# ================= CSS =================
 st.markdown("""
 <style>
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
-</style>
-""", unsafe_allow_html=True)
 
-# ---------------- CSS ----------------
-st.markdown("""
-<style>
-
-/* =========================
-BACKGROUND
-========================= */
-.stApp{
-    background:
-    radial-gradient(circle at top left,#1e3a8a 0%,transparent 30%),
-    radial-gradient(circle at bottom right,#7c3aed 0%,transparent 30%),
-    linear-gradient(135deg,#050816,#0f172a,#111827);
-    color:white;
+/* ===== MAIN BACKGROUND ===== */
+.stApp {
+    background: #050816;
     overflow-x:hidden;
 }
 
-/* =========================
-MAIN CONTAINER
-========================= */
-.block-container{
-    padding-top:1rem;
-    padding-bottom:2rem;
-    max-width:1400px;
+/* ===== REMOVE STREAMLIT ===== */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+.block-container {
+    padding-top: 1rem;
+    max-width: 1500px;
 }
 
-/* =========================
-TOP HERO
-========================= */
-.hero{
-    position:relative;
-    overflow:hidden;
-    padding:45px;
-    border-radius:32px;
-    background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(20px);
-    box-shadow:0 20px 60px rgba(0,0,0,0.45);
-    margin-bottom:35px;
+/* ===== ANIMATED BACKGROUND ===== */
+.bg-animation {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    overflow: hidden;
 }
 
-.hero::before{
-    content:'';
-    position:absolute;
-    width:500px;
-    height:500px;
-    background:rgba(255,255,255,0.05);
-    border-radius:50%;
-    top:-250px;
-    right:-180px;
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(0,255,255,0.08);
+    animation: float 14s infinite linear;
 }
 
-.hero-title{
-    font-size:60px;
-    font-weight:900;
-    line-height:1.1;
-    margin-bottom:10px;
-    background:linear-gradient(to right,#ffffff,#60a5fa,#c084fc);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
+.circle:nth-child(1){
+    width:300px;
+    height:300px;
+    left:5%;
+    top:10%;
 }
 
-.hero-sub{
-    font-size:18px;
-    color:#d1d5db;
-    margin-bottom:25px;
+.circle:nth-child(2){
+    width:250px;
+    height:250px;
+    right:10%;
+    top:20%;
+    background: rgba(168,85,247,0.10);
 }
 
-.hero-badge{
+.circle:nth-child(3){
+    width:200px;
+    height:200px;
+    left:35%;
+    bottom:10%;
+    background: rgba(59,130,246,0.10);
+}
+
+@keyframes float {
+    0%{transform:translateY(0px) rotate(0deg);}
+    50%{transform:translateY(-40px) rotate(180deg);}
+    100%{transform:translateY(0px) rotate(360deg);}
+}
+
+/* ===== HERO ===== */
+.hero {
+    position: relative;
+    padding: 55px;
+    border-radius: 35px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 0 50px rgba(0,255,255,0.08);
+    margin-bottom: 40px;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
+    border-radius: 50%;
+    filter: blur(120px);
+    top: -200px;
+    right: -120px;
+    opacity:0.4;
+}
+
+.hero-title {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 12px;
+    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+    color: #cbd5e1;
+    font-size: 20px;
+    margin-bottom: 28px;
+}
+
+.hero-btn {
     display:inline-block;
-    padding:12px 22px;
-    border-radius:50px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.08);
-    font-weight:600;
-    color:#e5e7eb;
+    padding:14px 28px;
+    border-radius:18px;
+    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
+    color:white;
+    font-weight:700;
+    box-shadow:0 10px 30px rgba(0,229,255,0.35);
 }
 
-/* =========================
-GRID
-========================= */
-.grid{
+/* ===== GRID ===== */
+.grid {
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:25px;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:28px;
 }
 
-/* =========================
-CARD
-========================= */
-.card{
+/* ===== CARD ===== */
+.card {
     position:relative;
     overflow:hidden;
-    padding:35px 28px;
-    min-height:240px;
+    padding:35px;
     border-radius:30px;
-    transition:0.4s ease;
+    background: rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(20px);
+    backdrop-filter: blur(18px);
+    transition:0.4s ease;
+    min-height:240px;
     box-shadow:0 15px 40px rgba(0,0,0,0.35);
 }
 
-.card:hover{
-    transform:translateY(-14px) scale(1.03);
-    box-shadow:0 25px 60px rgba(0,0,0,0.5);
+.card:hover {
+    transform:translateY(-15px) scale(1.03);
+    border:1px solid rgba(0,229,255,0.45);
+    box-shadow:0 20px 60px rgba(0,229,255,0.18);
 }
 
-/* GLOW EFFECT */
-.card::before{
+.card::before {
     content:'';
     position:absolute;
-    width:220px;
-    height:220px;
+    width:180px;
+    height:180px;
     background:rgba(255,255,255,0.08);
     border-radius:50%;
-    top:-100px;
-    right:-80px;
+    top:-60px;
+    right:-60px;
 }
 
-.card::after{
-    content:'';
-    position:absolute;
-    inset:0;
-    background:linear-gradient(
-    130deg,
-    rgba(255,255,255,0.08),
-    transparent,
-    transparent
-    );
-}
-
-/* =========================
-ICON
-========================= */
-.icon{
-    width:80px;
-    height:80px;
+.card-icon {
+    width:85px;
+    height:85px;
+    border-radius:24px;
     display:flex;
     align-items:center;
     justify-content:center;
     font-size:42px;
-    border-radius:22px;
     margin-bottom:25px;
-    background:rgba(255,255,255,0.12);
+    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
     border:1px solid rgba(255,255,255,0.12);
 }
 
-/* =========================
-TEXT
-========================= */
-.card-title{
+.card-title {
     font-size:28px;
     font-weight:800;
-    margin-bottom:12px;
+    color:white;
+    margin-bottom:10px;
 }
 
-.card-desc{
-    font-size:15px;
+.card-desc {
+    color:#d1d5db;
     line-height:1.7;
-    color:#e5e7eb;
-    margin-bottom:25px;
+    font-size:15px;
+    margin-bottom:24px;
 }
 
-/* =========================
-BUTTON
-========================= */
-.btn{
+.card-btn {
     display:inline-block;
-    padding:13px 24px;
+    padding:12px 24px;
     border-radius:16px;
-    background:white;
-    color:black;
+    background:rgba(255,255,255,0.10);
+    color:white;
     font-weight:700;
     transition:0.3s ease;
-    font-size:14px;
 }
 
-.card:hover .btn{
-    transform:scale(1.08);
+.card:hover .card-btn {
+    background:white;
+    color:black;
 }
 
-/* =========================
-COLORS
-========================= */
-.c1{
-    background:linear-gradient(145deg,#2563eb,#1d4ed8);
-}
+/* ===== COLORS ===== */
+.c1{border-top:4px solid #00e5ff;}
+.c2{border-top:4px solid #f59e0b;}
+.c3{border-top:4px solid #8b5cf6;}
+.c4{border-top:4px solid #10b981;}
+.c5{border-top:4px solid #ec4899;}
+.c6{border-top:4px solid #ef4444;}
 
-.c2{
-    background:linear-gradient(145deg,#f59e0b,#ea580c);
-}
-
-.c3{
-    background:linear-gradient(145deg,#7c3aed,#6d28d9);
-}
-
-.c4{
-    background:linear-gradient(145deg,#10b981,#059669);
-}
-
-.c5{
-    background:linear-gradient(145deg,#ec4899,#db2777);
-}
-
-.c6{
-    background:linear-gradient(145deg,#ef4444,#dc2626);
-}
-
-/* =========================
-LINK
-========================= */
-a{
+/* ===== LINKS ===== */
+a {
     text-decoration:none !important;
-    color:white !important;
 }
 
-/* =========================
-FLOATING ANIMATION
-========================= */
-.float{
-    animation:float 4s ease-in-out infinite;
-}
-
-@keyframes float{
-    0%{transform:translateY(0px);}
-    50%{transform:translateY(-8px);}
-    100%{transform:translateY(0px);}
-}
-
-/* =========================
-SCROLL TICKER
-========================= */
-.ticker-wrap{
-    margin-top:35px;
+/* ===== TICKER ===== */
+.ticker-wrap {
+    margin-top:40px;
     overflow:hidden;
-    border-radius:22px;
+    border-radius:24px;
+    padding:18px 0;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
     backdrop-filter:blur(10px);
-    padding:18px 0;
 }
 
-.ticker{
-    white-space:nowrap;
+.ticker {
     display:inline-block;
+    white-space:nowrap;
     padding-left:100%;
-    animation:scroll 22s linear infinite;
+    animation:scroll 18s linear infinite;
     font-size:20px;
     font-weight:700;
-    color:#facc15;
+    color:#00e5ff;
 }
 
-@keyframes scroll{
-    0%{
-        transform:translateX(0);
-    }
-    100%{
-        transform:translateX(-100%);
-    }
+@keyframes scroll {
+    0% {transform:translateX(0);}
+    100% {transform:translateX(-100%);}
 }
 
-/* =========================
-BOTTOM STATS
-========================= */
-.stats{
+/* ===== STATS ===== */
+.stats {
     margin-top:35px;
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
+    gap:22px;
 }
 
-.stat-box{
-    padding:28px;
-    border-radius:24px;
+.stat {
+    padding:30px;
+    border-radius:25px;
+    text-align:center;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(10px);
-    text-align:center;
+    backdrop-filter:blur(12px);
 }
 
-.stat-num{
-    font-size:40px;
-    font-weight:900;
+.stat h1 {
+    font-size:48px;
+    color:white;
+    margin:0;
 }
 
-.stat-text{
-    color:#d1d5db;
-    margin-top:5px;
+.stat p {
+    color:#cbd5e1;
+    margin-top:8px;
 }
 
-/* =========================
-MOBILE
-========================= */
+/* ===== MOBILE ===== */
 @media(max-width:768px){
 
-.hero{
-    padding:28px;
+.hero {
+    padding:30px;
 }
 
-.hero-title{
-    font-size:38px;
+.hero-title {
+    font-size:42px;
 }
 
-.card-title{
+.card-title {
     font-size:24px;
 }
 
@@ -327,137 +301,138 @@ MOBILE
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HERO ----------------
+# ================= BACKGROUND =================
 st.markdown("""
-<div class="hero float">
+<div class="bg-animation">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+</div>
+""", unsafe_allow_html=True)
+
+# ================= HERO =================
+st.markdown("""
+<div class="hero">
 
 <div class="hero-title">
-Ultra Modern <br>Dashboard
+Neo Digital <br>Dashboard
 </div>
 
 <div class="hero-sub">
-Premium Glassmorphism UI • Smooth Animations • Fast Access System
+Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
 </div>
 
-<div class="hero-badge">
-⚡ All Services Online
+<div class="hero-btn">
+⚡ SYSTEM ONLINE
 </div>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- LINKS ----------------
-link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
-link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
-link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
-link4 = "https://pmybals.pmyp.gov.pk/"
-link5 = "https://acag.punjab.gov.pk/"
-link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
-
-# ---------------- CARDS ----------------
+# ================= CARDS =================
 st.markdown(f"""
 <div class="grid">
 
 <a href="{link1}" target="_blank">
 <div class="card c1">
-<div class="icon">📊</div>
+<div class="card-icon">📊</div>
 <div class="card-title">PMY Verify</div>
 <div class="card-desc">
-Secure verification system with fast processing and instant access.
+Advanced PMY verification system with secure instant access.
 </div>
-<div class="btn">Launch Portal →</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link2}" target="_blank">
 <div class="card c2">
-<div class="icon">🏦</div>
+<div class="card-icon">🏦</div>
 <div class="card-title">BOP Account</div>
 <div class="card-desc">
-Access banking tools, account details and management services.
+Manage banking details and services with smart access.
 </div>
-<div class="btn">Launch Portal →</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link3}" target="_blank">
 <div class="card c3">
-<div class="icon">📁</div>
+<div class="card-icon">📁</div>
 <div class="card-title">ACAG Batch</div>
 <div class="card-desc">
-Check latest uploaded batches with complete processing data.
+Track and monitor latest ACAG batch processing data.
 </div>
-<div class="btn">Launch Portal →</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link4}" target="_blank">
 <div class="card c4">
-<div class="icon">📲</div>
+<div class="card-icon">📲</div>
 <div class="card-title">PMY Apply</div>
 <div class="card-desc">
-Apply online and track PMY application progress in real time.
+Apply online and track PMY applications instantly.
 </div>
-<div class="btn">Launch Portal →</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link5}" target="_blank">
 <div class="card c5">
-<div class="icon">📝</div>
+<div class="card-icon">📝</div>
 <div class="card-title">ACAG Apply</div>
 <div class="card-desc">
-Complete ACAG applications with smart modern workflow system.
+Smart ACAG application workflow with modern interface.
 </div>
-<div class="btn">Launch Portal →</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link6}" target="_blank">
 <div class="card c6">
-<div class="icon">🚧</div>
+<div class="card-icon">🚀</div>
 <div class="card-title">QR Generator</div>
 <div class="card-desc">
-Create advanced QR codes instantly with modern QR engine tools.
+Generate stylish QR codes with advanced functionality.
 </div>
-<div class="btn">Launch Portal →</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- TICKER ----------------
+# ================= TICKER =================
 st.markdown("""
 <div class="ticker-wrap">
 <div class="ticker">
-🔥 ACAG Batch 31 Updated • PMY Verification Running • Modern Dashboard Active • All Systems Operational 🚀
+⚡ ACAG Batch 31 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
 </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- STATS ----------------
+# ================= STATS =================
 st.markdown("""
 <div class="stats">
 
-<div class="stat-box">
-<div class="stat-num">06</div>
-<div class="stat-text">Quick Services</div>
+<div class="stat">
+<h1>06</h1>
+<p>Quick Services</p>
 </div>
 
-<div class="stat-box">
-<div class="stat-num">24/7</div>
-<div class="stat-text">Availability</div>
+<div class="stat">
+<h1>24/7</h1>
+<p>Availability</p>
 </div>
 
-<div class="stat-box">
-<div class="stat-num">100%</div>
-<div class="stat-text">Responsive UI</div>
+<div class="stat">
+<h1>99%</h1>
+<p>Fast Performance</p>
 </div>
 
-<div class="stat-box">
-<div class="stat-num">⚡</div>
-<div class="stat-text">Fast Performance</div>
+<div class="stat">
+<h1>⚡</h1>
+<p>Premium UI</p>
 </div>
 
 </div>

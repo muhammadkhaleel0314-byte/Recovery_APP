@@ -2,7 +2,10 @@ import streamlit as st
 
 # ================= CONFIG =================
 st.set_page_config(
-  )
+    page_title="Neo Dashboard",
+    page_icon="⚡",
+    layout="wide"
+)
 
 # ================= LINKS =================
 link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"

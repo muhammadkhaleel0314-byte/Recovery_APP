@@ -2,251 +2,347 @@ import streamlit as st
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Modern Quick Dashboard",
+    page_title="Ultra Modern Dashboard",
     page_icon="🚀",
     layout="wide"
 )
 
-# ---------------- PAGE TITLE ----------------
+# ---------------- HIDE STREAMLIT ----------------
 st.markdown("""
-<h1 style='text-align:center;
-           font-size:48px;
-           font-weight:800;
-           margin-bottom:5px;'>
-🚀 Modern Quick Dashboard
-</h1>
-
-<p style='text-align:center;
-          color:gray;
-          font-size:18px;
-          margin-top:0;'>
-Fast Access Portal • Stylish • Responsive • Animated
-</p>
+<style>
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+</style>
 """, unsafe_allow_html=True)
 
-# ---------------- CUSTOM CSS ----------------
+# ---------------- CSS ----------------
 st.markdown("""
 <style>
 
-/* ---------------- MAIN ---------------- */
-html, body, [class*="css"] {
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* REMOVE STREAMLIT EXTRA SPACE */
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 1rem;
-}
-
-/* ---------------- BACKGROUND ---------------- */
-.stApp {
-    background: linear-gradient(135deg,#0f172a,#111827,#1e293b);
+/* =========================
+BACKGROUND
+========================= */
+.stApp{
+    background:
+    radial-gradient(circle at top left,#1e3a8a 0%,transparent 30%),
+    radial-gradient(circle at bottom right,#7c3aed 0%,transparent 30%),
+    linear-gradient(135deg,#050816,#0f172a,#111827);
     color:white;
+    overflow-x:hidden;
 }
 
-/* ---------------- TOP BAR ---------------- */
-.top-bar{
-    width:100%;
-    padding:18px 25px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.08);
-    backdrop-filter: blur(12px);
-    border:1px solid rgba(255,255,255,0.1);
-    margin-bottom:25px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    box-shadow:0 8px 30px rgba(0,0,0,0.25);
+/* =========================
+MAIN CONTAINER
+========================= */
+.block-container{
+    padding-top:1rem;
+    padding-bottom:2rem;
+    max-width:1400px;
 }
 
-.top-left{
-    font-size:22px;
-    font-weight:700;
-}
-
-.top-right{
-    font-size:15px;
-    color:#d1d5db;
-}
-
-/* ---------------- GRID ---------------- */
-.grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-    gap:24px;
-    margin-top:10px;
-}
-
-/* ---------------- CARD ---------------- */
-.card {
+/* =========================
+TOP HERO
+========================= */
+.hero{
     position:relative;
     overflow:hidden;
-    padding:30px 25px;
-    border-radius:24px;
-    color:white;
-    text-align:center;
-    transition:0.35s ease;
-    cursor:pointer;
-    min-height:170px;
+    padding:45px;
+    border-radius:32px;
+    background:rgba(255,255,255,0.06);
     border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    box-shadow:0 8px 25px rgba(0,0,0,0.25);
+    backdrop-filter:blur(20px);
+    box-shadow:0 20px 60px rgba(0,0,0,0.45);
+    margin-bottom:35px;
 }
 
-/* Hover Effect */
+.hero::before{
+    content:'';
+    position:absolute;
+    width:500px;
+    height:500px;
+    background:rgba(255,255,255,0.05);
+    border-radius:50%;
+    top:-250px;
+    right:-180px;
+}
+
+.hero-title{
+    font-size:60px;
+    font-weight:900;
+    line-height:1.1;
+    margin-bottom:10px;
+    background:linear-gradient(to right,#ffffff,#60a5fa,#c084fc);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.hero-sub{
+    font-size:18px;
+    color:#d1d5db;
+    margin-bottom:25px;
+}
+
+.hero-badge{
+    display:inline-block;
+    padding:12px 22px;
+    border-radius:50px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.08);
+    font-weight:600;
+    color:#e5e7eb;
+}
+
+/* =========================
+GRID
+========================= */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:25px;
+}
+
+/* =========================
+CARD
+========================= */
+.card{
+    position:relative;
+    overflow:hidden;
+    padding:35px 28px;
+    min-height:240px;
+    border-radius:30px;
+    transition:0.4s ease;
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(20px);
+    box-shadow:0 15px 40px rgba(0,0,0,0.35);
+}
+
 .card:hover{
-    transform:translateY(-10px) scale(1.03);
-    box-shadow:0 15px 35px rgba(0,0,0,0.35);
+    transform:translateY(-14px) scale(1.03);
+    box-shadow:0 25px 60px rgba(0,0,0,0.5);
 }
 
-/* Glow Circle */
+/* GLOW EFFECT */
 .card::before{
     content:'';
     position:absolute;
-    width:180px;
-    height:180px;
+    width:220px;
+    height:220px;
     background:rgba(255,255,255,0.08);
     border-radius:50%;
-    top:-70px;
-    right:-70px;
+    top:-100px;
+    right:-80px;
 }
 
-/* ICON */
+.card::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+    130deg,
+    rgba(255,255,255,0.08),
+    transparent,
+    transparent
+    );
+}
+
+/* =========================
+ICON
+========================= */
 .icon{
-    font-size:50px;
-    margin-bottom:18px;
+    width:80px;
+    height:80px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    border-radius:22px;
+    margin-bottom:25px;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.12);
 }
 
-/* TITLE */
+/* =========================
+TEXT
+========================= */
 .card-title{
-    font-size:22px;
-    font-weight:700;
-    margin-bottom:8px;
+    font-size:28px;
+    font-weight:800;
+    margin-bottom:12px;
 }
 
-/* DESC */
 .card-desc{
-    font-size:14px;
-    opacity:0.9;
-    line-height:1.6;
+    font-size:15px;
+    line-height:1.7;
+    color:#e5e7eb;
+    margin-bottom:25px;
 }
 
-/* BUTTON */
-.open-btn{
-    margin-top:20px;
+/* =========================
+BUTTON
+========================= */
+.btn{
     display:inline-block;
-    padding:10px 22px;
-    border-radius:12px;
-    background:rgba(255,255,255,0.15);
-    color:white;
-    font-size:14px;
-    font-weight:600;
-    transition:0.3s;
-}
-
-.card:hover .open-btn{
+    padding:13px 24px;
+    border-radius:16px;
     background:white;
     color:black;
+    font-weight:700;
+    transition:0.3s ease;
+    font-size:14px;
 }
 
-/* ---------------- COLORS ---------------- */
+.card:hover .btn{
+    transform:scale(1.08);
+}
+
+/* =========================
+COLORS
+========================= */
 .c1{
-    background:linear-gradient(135deg,#3b82f6,#2563eb);
+    background:linear-gradient(145deg,#2563eb,#1d4ed8);
 }
 
 .c2{
-    background:linear-gradient(135deg,#f59e0b,#d97706);
+    background:linear-gradient(145deg,#f59e0b,#ea580c);
 }
 
 .c3{
-    background:linear-gradient(135deg,#6366f1,#4f46e5);
+    background:linear-gradient(145deg,#7c3aed,#6d28d9);
 }
 
 .c4{
-    background:linear-gradient(135deg,#10b981,#059669);
+    background:linear-gradient(145deg,#10b981,#059669);
 }
 
 .c5{
-    background:linear-gradient(135deg,#ec4899,#db2777);
+    background:linear-gradient(145deg,#ec4899,#db2777);
 }
 
 .c6{
-    background:linear-gradient(135deg,#ef4444,#dc2626);
+    background:linear-gradient(145deg,#ef4444,#dc2626);
 }
 
-/* ---------------- LINKS ---------------- */
+/* =========================
+LINK
+========================= */
 a{
     text-decoration:none !important;
+    color:white !important;
 }
 
-/* ---------------- ANIMATION ---------------- */
-.card{
-    opacity:0;
-    animation:fadeUp 0.8s ease forwards;
+/* =========================
+FLOATING ANIMATION
+========================= */
+.float{
+    animation:float 4s ease-in-out infinite;
 }
 
-.d1{animation-delay:0.1s;}
-.d2{animation-delay:0.2s;}
-.d3{animation-delay:0.3s;}
-.d4{animation-delay:0.4s;}
-.d5{animation-delay:0.5s;}
-.d6{animation-delay:0.6s;}
-
-@keyframes fadeUp{
-    from{
-        opacity:0;
-        transform:translateY(40px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
+@keyframes float{
+    0%{transform:translateY(0px);}
+    50%{transform:translateY(-8px);}
+    100%{transform:translateY(0px);}
 }
 
-/* ---------------- TICKER ---------------- */
-.ticker {
+/* =========================
+SCROLL TICKER
+========================= */
+.ticker-wrap{
     margin-top:35px;
-    width:100%;
     overflow:hidden;
-    border-radius:16px;
-    background:linear-gradient(90deg,#111827,#1f2937);
+    border-radius:22px;
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
-    padding:16px 0;
-    box-shadow:0 5px 20px rgba(0,0,0,0.25);
+    backdrop-filter:blur(10px);
+    padding:18px 0;
 }
 
-.ticker-text {
-    display:inline-block;
+.ticker{
     white-space:nowrap;
+    display:inline-block;
     padding-left:100%;
     animation:scroll 22s linear infinite;
-    font-size:18px;
+    font-size:20px;
     font-weight:700;
     color:#facc15;
 }
 
 @keyframes scroll{
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
+    0%{
+        transform:translateX(0);
+    }
+    100%{
+        transform:translateX(-100%);
+    }
 }
 
-/* ---------------- FOOTER ---------------- */
-.footer{
+/* =========================
+BOTTOM STATS
+========================= */
+.stats{
+    margin-top:35px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.stat-box{
+    padding:28px;
+    border-radius:24px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px);
     text-align:center;
-    margin-top:30px;
-    color:#9ca3af;
-    font-size:14px;
+}
+
+.stat-num{
+    font-size:40px;
+    font-weight:900;
+}
+
+.stat-text{
+    color:#d1d5db;
+    margin-top:5px;
+}
+
+/* =========================
+MOBILE
+========================= */
+@media(max-width:768px){
+
+.hero{
+    padding:28px;
+}
+
+.hero-title{
+    font-size:38px;
+}
+
+.card-title{
+    font-size:24px;
+}
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- TOP BAR ----------------
+# ---------------- HERO ----------------
 st.markdown("""
-<div class="top-bar">
-    <div class="top-left">⚡ Quick Access Panel</div>
-    <div class="top-right">Modern UI Dashboard</div>
+<div class="hero float">
+
+<div class="hero-title">
+Ultra Modern <br>Dashboard
+</div>
+
+<div class="hero-sub">
+Premium Glassmorphism UI • Smooth Animations • Fast Access System
+</div>
+
+<div class="hero-badge">
+⚡ All Services Online
+</div>
+
 </div>
 """, unsafe_allow_html=True)
 
@@ -263,68 +359,68 @@ st.markdown(f"""
 <div class="grid">
 
 <a href="{link1}" target="_blank">
-<div class="card c1 d1">
-    <div class="icon">📊</div>
-    <div class="card-title">PMY Verify Data</div>
-    <div class="card-desc">
-        Verify PMY records quickly and securely.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<div class="card c1">
+<div class="icon">📊</div>
+<div class="card-title">PMY Verify</div>
+<div class="card-desc">
+Secure verification system with fast processing and instant access.
+</div>
+<div class="btn">Launch Portal →</div>
 </div>
 </a>
 
 <a href="{link2}" target="_blank">
-<div class="card c2 d2">
-    <div class="icon">🏦</div>
-    <div class="card-title">BOP Account</div>
-    <div class="card-desc">
-        Access and manage BOP account services.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<div class="card c2">
+<div class="icon">🏦</div>
+<div class="card-title">BOP Account</div>
+<div class="card-desc">
+Access banking tools, account details and management services.
+</div>
+<div class="btn">Launch Portal →</div>
 </div>
 </a>
 
 <a href="{link3}" target="_blank">
-<div class="card c3 d3">
-    <div class="icon">📁</div>
-    <div class="card-title">ACAG Batch Data</div>
-    <div class="card-desc">
-        Check latest ACAG uploaded batch records.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<div class="card c3">
+<div class="icon">📁</div>
+<div class="card-title">ACAG Batch</div>
+<div class="card-desc">
+Check latest uploaded batches with complete processing data.
+</div>
+<div class="btn">Launch Portal →</div>
 </div>
 </a>
 
 <a href="{link4}" target="_blank">
-<div class="card c4 d4">
-    <div class="icon">📲</div>
-    <div class="card-title">PMY Apply & Track</div>
-    <div class="card-desc">
-        Submit and track PMY applications online.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<div class="card c4">
+<div class="icon">📲</div>
+<div class="card-title">PMY Apply</div>
+<div class="card-desc">
+Apply online and track PMY application progress in real time.
+</div>
+<div class="btn">Launch Portal →</div>
 </div>
 </a>
 
 <a href="{link5}" target="_blank">
-<div class="card c5 d5">
-    <div class="icon">📝</div>
-    <div class="card-title">ACAG Apply</div>
-    <div class="card-desc">
-        Apply online for ACAG scheme instantly.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<div class="card c5">
+<div class="icon">📝</div>
+<div class="card-title">ACAG Apply</div>
+<div class="card-desc">
+Complete ACAG applications with smart modern workflow system.
+</div>
+<div class="btn">Launch Portal →</div>
 </div>
 </a>
 
 <a href="{link6}" target="_blank">
-<div class="card c6 d6">
-    <div class="icon">🚧</div>
-    <div class="card-title">QR Generator</div>
-    <div class="card-desc">
-        Generate QR codes with advanced features.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<div class="card c6">
+<div class="icon">🚧</div>
+<div class="card-title">QR Generator</div>
+<div class="card-desc">
+Create advanced QR codes instantly with modern QR engine tools.
+</div>
+<div class="btn">Launch Portal →</div>
 </div>
 </a>
 
@@ -333,16 +429,36 @@ st.markdown(f"""
 
 # ---------------- TICKER ----------------
 st.markdown("""
+<div class="ticker-wrap">
 <div class="ticker">
-    <div class="ticker-text">
-        🔴 ACAG 31 Batch Updated Successfully • PMY Verification Active • Modern Dashboard Running Smoothly 🚀
-    </div>
+🔥 ACAG Batch 31 Updated • PMY Verification Running • Modern Dashboard Active • All Systems Operational 🚀
+</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- FOOTER ----------------
+# ---------------- STATS ----------------
 st.markdown("""
-<div class="footer">
-    Developed with ❤️ using Streamlit
+<div class="stats">
+
+<div class="stat-box">
+<div class="stat-num">06</div>
+<div class="stat-text">Quick Services</div>
+</div>
+
+<div class="stat-box">
+<div class="stat-num">24/7</div>
+<div class="stat-text">Availability</div>
+</div>
+
+<div class="stat-box">
+<div class="stat-num">100%</div>
+<div class="stat-text">Responsive UI</div>
+</div>
+
+<div class="stat-box">
+<div class="stat-num">⚡</div>
+<div class="stat-text">Fast Performance</div>
+</div>
+
 </div>
 """, unsafe_allow_html=True)

@@ -2,7 +2,7 @@ import streamlit as st
 
 # ================= CONFIG =================
 st.set_page_config(
-    page_title="VISION X Dashboard",
+    page_title="Quantum Dashboard",
     page_icon="⚡",
     layout="wide"
 )
@@ -74,7 +74,7 @@ header {visibility:hidden;}
     overflow:hidden;
     padding:65px;
     border-radius:40px;
-    background:rgba(10,14,25,0.72);
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.10);
     backdrop-filter:blur(20px);
     box-shadow:
@@ -135,17 +135,17 @@ header {visibility:hidden;}
     position:relative;
     overflow:hidden;
     padding:38px;
-    border-radius:40px;
-    background:rgba(10,14,25,0.72);
+    border-radius:34px;
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
     backdrop-filter:blur(18px);
     transition:0.45s ease;
     min-height:260px;
-    box-shadow:0 25px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow:0 15px 45px rgba(0,0,0,0.35);
 }
 
 .card:hover{
-    transform:translateY(-18px) scale(1.04);
+    transform:translateY(-16px) scale(1.03) rotate(-1deg);
     border:1px solid rgba(0,229,255,0.45);
     box-shadow:
     0 0 35px rgba(0,229,255,0.25),
@@ -202,7 +202,7 @@ header {visibility:hidden;}
     display:inline-block;
     padding:14px 26px;
     border-radius:18px;
-    background:linear-gradient(135deg,#ffffff,#dbeafe,#c4b5fd); color:#050816;
+    background:linear-gradient(90deg,#00e5ff,#8b5cf6);
     color:white;
     font-weight:800;
     font-size:14px;
@@ -232,7 +232,7 @@ a{
     margin-top:45px;
     overflow:hidden;
     border-radius:28px;
-    background:rgba(10,14,25,0.72);
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
     padding:20px 0;
     backdrop-filter:blur(10px);
@@ -265,7 +265,7 @@ a{
     padding:35px;
     border-radius:28px;
     text-align:center;
-    background:rgba(10,14,25,0.72);
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
     backdrop-filter:blur(12px);
     transition:0.3s ease;
@@ -309,14 +309,14 @@ st.markdown("""
 <div class='hero'>
 
 <div class='hero-title'>
-VISION X <br>CONTROL HUB
+Quantum <br>Dashboard
 </div>
 
 <div class='hero-sub'>
-Apple-Level Luxury UI • Animated Aurora Effects • Premium Floating Interface
+Ultra Premium Futuristic Interface • Neon Glassmorphism • Luxury Modern Experience
 </div>
 
-<div class='hero-chip'>✦ PREMIUM CONTROL CENTER</div>
+<div class='hero-chip'>⚡ SYSTEM ACTIVE</div>
 
 </div>
 """, unsafe_allow_html=True)
@@ -328,7 +328,7 @@ st.markdown(f"""
 <a href='{link1}' target='_blank'>
 <div class='card c1'>
 <div class='icon'>📊</div>
-<div class='title'>Verify Center</div>
+<div class='title'>PMY Verify</div>
 <div class='desc'>
 Secure PMY verification portal with instant smart processing.
 </div>
@@ -339,7 +339,7 @@ Secure PMY verification portal with instant smart processing.
 <a href='{link2}' target='_blank'>
 <div class='card c2'>
 <div class='icon'>🏦</div>
-<div class='title'>Banking Hub</div>
+<div class='title'>BOP Account</div>
 <div class='desc'>
 Modern banking access system with advanced management tools.
 </div>
@@ -350,7 +350,7 @@ Modern banking access system with advanced management tools.
 <a href='{link3}' target='_blank'>
 <div class='card c3'>
 <div class='icon'>📁</div>
-<div class='title'>Batch Studio</div>
+<div class='title'>ACAG Batch</div>
 <div class='desc'>
 Track and monitor ACAG batch uploads with futuristic UI.
 </div>
@@ -361,7 +361,7 @@ Track and monitor ACAG batch uploads with futuristic UI.
 <a href='{link4}' target='_blank'>
 <div class='card c4'>
 <div class='icon'>📲</div>
-<div class='title'>Apply Portal</div>
+<div class='title'>PMY Apply</div>
 <div class='desc'>
 Apply online and monitor PMY applications instantly.
 </div>
@@ -372,7 +372,7 @@ Apply online and monitor PMY applications instantly.
 <a href='{link5}' target='_blank'>
 <div class='card c5'>
 <div class='icon'>📝</div>
-<div class='title'>Smart Forms</div>
+<div class='title'>ACAG Apply</div>
 <div class='desc'>
 Advanced ACAG application workflow with smooth interface.
 </div>
@@ -383,7 +383,7 @@ Advanced ACAG application workflow with smooth interface.
 <a href='{link6}' target='_blank'>
 <div class='card c6'>
 <div class='icon'>🚀</div>
-<div class='title'>QR Engine</div>
+<div class='title'>QR Generator</div>
 <div class='desc'>
 Create beautiful QR codes with premium generation engine.
 </div>
@@ -397,7 +397,9 @@ Create beautiful QR codes with premium generation engine.
 # ================= TICKER =================
 st.markdown("""
 <div class='ticker-wrap'>
-<div class='ticker'>✦ Welcome To Vision X • Ultra Luxury Interface Loaded • Premium Services Active • Futuristic Experience Enabled ✦</div>
+<div class='ticker'>
+⚡ ACAG Batch 31 Updated • PMY Verification Running • Quantum Dashboard Online • Premium UI Experience 🚀
+</div>
 </div>
 """, unsafe_allow_html=True)
 

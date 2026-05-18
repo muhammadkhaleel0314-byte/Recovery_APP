@@ -1,256 +1,13 @@
 import streamlit as st
 
-# ---------------- PAGE CONFIG ----------------
+# ================= CONFIG =================
 st.set_page_config(
-    page_title="Modern Quick Dashboard",
-    page_icon="🚀",
+    page_title="VISION X Dashboard",
+    page_icon="⚡",
     layout="wide"
 )
 
-# ---------------- PAGE TITLE ----------------
-st.markdown("""
-<h1 style='text-align:center;
-           font-size:48px;
-           font-weight:800;
-           margin-bottom:5px;'>
-🚀 Modern Quick Dashboard
-</h1>
-
-<p style='text-align:center;
-          color:gray;
-          font-size:18px;
-          margin-top:0;'>
-Fast Access Portal • Stylish • Responsive • Animated
-</p>
-""", unsafe_allow_html=True)
-
-# ---------------- CUSTOM CSS ----------------
-st.markdown("""
-<style>
-
-/* ---------------- MAIN ---------------- */
-html, body, [class*="css"] {
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* REMOVE STREAMLIT EXTRA SPACE */
-.block-container {
-    padding-top: 2rem;
-    padding-bottom: 1rem;
-}
-
-/* ---------------- BACKGROUND ---------------- */
-.stApp {
-    background: linear-gradient(135deg,#0f172a,#111827,#1e293b);
-    color:white;
-}
-
-/* ---------------- TOP BAR ---------------- */
-.top-bar{
-    width:100%;
-    padding:18px 25px;
-    border-radius:18px;
-    background:rgba(255,255,255,0.08);
-    backdrop-filter: blur(12px);
-    border:1px solid rgba(255,255,255,0.1);
-    margin-bottom:25px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    box-shadow:0 8px 30px rgba(0,0,0,0.25);
-}
-
-.top-left{
-    font-size:22px;
-    font-weight:700;
-}
-
-.top-right{
-    font-size:15px;
-    color:#d1d5db;
-}
-
-/* ---------------- GRID ---------------- */
-.grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-    gap:24px;
-    margin-top:10px;
-}
-
-/* ---------------- CARD ---------------- */
-.card {
-    position:relative;
-    overflow:hidden;
-    padding:30px 25px;
-    border-radius:24px;
-    color:white;
-    text-align:center;
-    transition:0.35s ease;
-    cursor:pointer;
-    min-height:170px;
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    box-shadow:0 8px 25px rgba(0,0,0,0.25);
-}
-
-/* Hover Effect */
-.card:hover{
-    transform:translateY(-10px) scale(1.03);
-    box-shadow:0 15px 35px rgba(0,0,0,0.35);
-}
-
-/* Glow Circle */
-.card::before{
-    content:'';
-    position:absolute;
-    width:180px;
-    height:180px;
-    background:rgba(255,255,255,0.08);
-    border-radius:50%;
-    top:-70px;
-    right:-70px;
-}
-
-/* ICON */
-.icon{
-    font-size:50px;
-    margin-bottom:18px;
-}
-
-/* TITLE */
-.card-title{
-    font-size:22px;
-    font-weight:700;
-    margin-bottom:8px;
-}
-
-/* DESC */
-.card-desc{
-    font-size:14px;
-    opacity:0.9;
-    line-height:1.6;
-}
-
-/* BUTTON */
-.open-btn{
-    margin-top:20px;
-    display:inline-block;
-    padding:10px 22px;
-    border-radius:12px;
-    background:rgba(255,255,255,0.15);
-    color:white;
-    font-size:14px;
-    font-weight:600;
-    transition:0.3s;
-}
-
-.card:hover .open-btn{
-    background:white;
-    color:black;
-}
-
-/* ---------------- COLORS ---------------- */
-.c1{
-    background:linear-gradient(135deg,#3b82f6,#2563eb);
-}
-
-.c2{
-    background:linear-gradient(135deg,#f59e0b,#d97706);
-}
-
-.c3{
-    background:linear-gradient(135deg,#6366f1,#4f46e5);
-}
-
-.c4{
-    background:linear-gradient(135deg,#10b981,#059669);
-}
-
-.c5{
-    background:linear-gradient(135deg,#ec4899,#db2777);
-}
-
-.c6{
-    background:linear-gradient(135deg,#ef4444,#dc2626);
-}
-
-/* ---------------- LINKS ---------------- */
-a{
-    text-decoration:none !important;
-}
-
-/* ---------------- ANIMATION ---------------- */
-.card{
-    opacity:0;
-    animation:fadeUp 0.8s ease forwards;
-}
-
-.d1{animation-delay:0.1s;}
-.d2{animation-delay:0.2s;}
-.d3{animation-delay:0.3s;}
-.d4{animation-delay:0.4s;}
-.d5{animation-delay:0.5s;}
-.d6{animation-delay:0.6s;}
-
-@keyframes fadeUp{
-    from{
-        opacity:0;
-        transform:translateY(40px);
-    }
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-}
-
-/* ---------------- TICKER ---------------- */
-.ticker {
-    margin-top:35px;
-    width:100%;
-    overflow:hidden;
-    border-radius:16px;
-    background:linear-gradient(90deg,#111827,#1f2937);
-    border:1px solid rgba(255,255,255,0.08);
-    padding:16px 0;
-    box-shadow:0 5px 20px rgba(0,0,0,0.25);
-}
-
-.ticker-text {
-    display:inline-block;
-    white-space:nowrap;
-    padding-left:100%;
-    animation:scroll 22s linear infinite;
-    font-size:18px;
-    font-weight:700;
-    color:#facc15;
-}
-
-@keyframes scroll{
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-}
-
-/* ---------------- FOOTER ---------------- */
-.footer{
-    text-align:center;
-    margin-top:30px;
-    color:#9ca3af;
-    font-size:14px;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# ---------------- TOP BAR ----------------
-st.markdown("""
-<div class="top-bar">
-    <div class="top-left">⚡ Quick Access Panel</div>
-    <div class="top-right">Modern UI Dashboard</div>
-</div>
-""", unsafe_allow_html=True)
-
-# ---------------- LINKS ----------------
+# ================= LINKS =================
 link1 = "https://script.google.com/macros/s/AKfycbyCr-KxEdrWdLhHXYWMLcDdK1Viciar6yJtQsaQNPFuY-X9IK41GkOiRvkV64PbatE9Kg/exec"
 link2 = "https://script.google.com/macros/s/AKfycbzPaNIURbCJLA8iNRm3RA6v2OS5WlxaMURw0IIjcwLnLvBPlVJ9DJG7KxihITJ6g6mb/exec"
 link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
@@ -258,91 +15,415 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# ---------------- CARDS ----------------
+# ================= STYLE =================
+st.markdown("""
+<style>
+
+/* ===== MAIN ===== */
+.stApp {
+    background:
+    radial-gradient(circle at top left,#00f5ff22,transparent 25%),
+    radial-gradient(circle at bottom right,#8b5cf622,transparent 25%),
+    linear-gradient(135deg,#020617,#050816,#0f172a);
+    overflow-x:hidden;
+}
+
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
+
+.block-container{
+    max-width:1500px;
+    padding-top:1rem;
+}
+
+/* ===== FLOATING LIGHTS ===== */
+.light{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(90px);
+    z-index:-1;
+    animation:float 12s infinite ease-in-out;
+}
+
+.l1{
+    width:350px;
+    height:350px;
+    background:#00e5ff33;
+    top:-80px;
+    left:-50px;
+}
+
+.l2{
+    width:300px;
+    height:300px;
+    background:#8b5cf633;
+    bottom:-80px;
+    right:-50px;
+}
+
+@keyframes float{
+0%{transform:translateY(0px);} 
+50%{transform:translateY(-35px);} 
+100%{transform:translateY(0px);} 
+}
+
+/* ===== HERO ===== */
+.hero{
+    position:relative;
+    overflow:hidden;
+    padding:65px;
+    border-radius:40px;
+    background:rgba(10,14,25,0.72);
+    border:1px solid rgba(255,255,255,0.10);
+    backdrop-filter:blur(20px);
+    box-shadow:
+    0 0 60px rgba(0,229,255,0.10),
+    0 0 120px rgba(139,92,246,0.10);
+    margin-bottom:40px;
+}
+
+.hero::before{
+    content:'';
+    position:absolute;
+    width:500px;
+    height:500px;
+    background:linear-gradient(45deg,#00e5ff,#8b5cf6);
+    filter:blur(140px);
+    border-radius:50%;
+    top:-250px;
+    right:-100px;
+    opacity:0.4;
+}
+
+.hero-title{
+    font-size:85px;
+    font-weight:1000;
+    line-height:0.95;
+    margin-bottom:18px;
+    background:linear-gradient(to right,#ffffff,#00e5ff,#a855f7);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.hero-sub{
+    font-size:22px;
+    color:#d1d5db;
+    margin-bottom:28px;
+}
+
+.hero-chip{
+    display:inline-block;
+    padding:14px 26px;
+    border-radius:18px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.08);
+    color:white;
+    font-weight:700;
+    box-shadow:0 0 25px rgba(0,229,255,0.15);
+}
+
+/* ===== GRID ===== */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:30px;
+}
+
+/* ===== CARD ===== */
+.card{
+    position:relative;
+    overflow:hidden;
+    padding:38px;
+    border-radius:40px;
+    background:rgba(10,14,25,0.72);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(18px);
+    transition:0.45s ease;
+    min-height:260px;
+    box-shadow:0 25px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.card:hover{
+    transform:translateY(-18px) scale(1.04);
+    border:1px solid rgba(0,229,255,0.45);
+    box-shadow:
+    0 0 35px rgba(0,229,255,0.25),
+    0 0 70px rgba(139,92,246,0.15);
+}
+
+.card::before{
+    content:'';
+    position:absolute;
+    width:220px;
+    height:220px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.08);
+    top:-70px;
+    right:-70px;
+}
+
+.card::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(130deg,rgba(255,255,255,0.10),transparent,transparent);
+}
+
+.icon{
+    width:90px;
+    height:90px;
+    border-radius:26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:45px;
+    margin-bottom:25px;
+    background:rgba(255,255,255,0.10);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 0 25px rgba(255,255,255,0.08);
+}
+
+.title{
+    font-size:30px;
+    font-weight:900;
+    color:white;
+    margin-bottom:12px;
+}
+
+.desc{
+    color:#d1d5db;
+    line-height:1.8;
+    font-size:15px;
+    margin-bottom:25px;
+}
+
+.btn{
+    display:inline-block;
+    padding:14px 26px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#ffffff,#dbeafe,#c4b5fd); color:#050816;
+    color:white;
+    font-weight:800;
+    font-size:14px;
+    box-shadow:0 10px 30px rgba(0,229,255,0.25);
+    transition:0.3s ease;
+}
+
+.card:hover .btn{
+    transform:scale(1.08);
+}
+
+/* ===== COLORS ===== */
+.c1{border-top:5px solid #00e5ff;}
+.c2{border-top:5px solid #f59e0b;}
+.c3{border-top:5px solid #8b5cf6;}
+.c4{border-top:5px solid #10b981;}
+.c5{border-top:5px solid #ec4899;}
+.c6{border-top:5px solid #ef4444;}
+
+/* ===== LINKS ===== */
+a{
+    text-decoration:none !important;
+}
+
+/* ===== TICKER ===== */
+.ticker-wrap{
+    margin-top:45px;
+    overflow:hidden;
+    border-radius:28px;
+    background:rgba(10,14,25,0.72);
+    border:1px solid rgba(255,255,255,0.08);
+    padding:20px 0;
+    backdrop-filter:blur(10px);
+}
+
+.ticker{
+    display:inline-block;
+    white-space:nowrap;
+    padding-left:100%;
+    animation:scroll 18s linear infinite;
+    font-size:22px;
+    font-weight:800;
+    color:#00e5ff;
+}
+
+@keyframes scroll{
+0%{transform:translateX(0);} 
+100%{transform:translateX(-100%);} 
+}
+
+/* ===== FOOTER STATS ===== */
+.stats{
+    margin-top:40px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:24px;
+}
+
+.stat{
+    padding:35px;
+    border-radius:28px;
+    text-align:center;
+    background:rgba(10,14,25,0.72);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+    transition:0.3s ease;
+}
+
+.stat:hover{
+    transform:translateY(-10px);
+    box-shadow:0 0 30px rgba(0,229,255,0.15);
+}
+
+.stat h1{
+    color:white;
+    font-size:52px;
+    margin:0;
+}
+
+.stat p{
+    color:#cbd5e1;
+    margin-top:10px;
+    font-size:15px;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+.hero{padding:35px;}
+.hero-title{font-size:48px;}
+.title{font-size:25px;}
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ================= FLOATING LIGHTS =================
+st.markdown("""
+<div class='light l1'></div>
+<div class='light l2'></div>
+""", unsafe_allow_html=True)
+
+# ================= HERO =================
+st.markdown("""
+<div class='hero'>
+
+<div class='hero-title'>
+VISION X <br>CONTROL HUB
+</div>
+
+<div class='hero-sub'>
+Apple-Level Luxury UI • Animated Aurora Effects • Premium Floating Interface
+</div>
+
+<div class='hero-chip'>✦ PREMIUM CONTROL CENTER</div>
+
+</div>
+""", unsafe_allow_html=True)
+
+# ================= CARDS =================
 st.markdown(f"""
-<div class="grid">
+<div class='grid'>
 
-<a href="{link1}" target="_blank">
-<div class="card c1 d1">
-    <div class="icon">📊</div>
-    <div class="card-title">PMY Verify Data</div>
-    <div class="card-desc">
-        Verify PMY records quickly and securely.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<a href='{link1}' target='_blank'>
+<div class='card c1'>
+<div class='icon'>📊</div>
+<div class='title'>Verify Center</div>
+<div class='desc'>
+Secure PMY verification portal with instant smart processing.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link2}" target="_blank">
-<div class="card c2 d2">
-    <div class="icon">🏦</div>
-    <div class="card-title">BOP Account</div>
-    <div class="card-desc">
-        Access and manage BOP account services.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<a href='{link2}' target='_blank'>
+<div class='card c2'>
+<div class='icon'>🏦</div>
+<div class='title'>Banking Hub</div>
+<div class='desc'>
+Modern banking access system with advanced management tools.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link3}" target="_blank">
-<div class="card c3 d3">
-    <div class="icon">📁</div>
-    <div class="card-title">ACAG Batch Data</div>
-    <div class="card-desc">
-        Check latest ACAG uploaded batch records.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<a href='{link3}' target='_blank'>
+<div class='card c3'>
+<div class='icon'>📁</div>
+<div class='title'>Batch Studio</div>
+<div class='desc'>
+Track and monitor ACAG batch uploads with futuristic UI.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link4}" target="_blank">
-<div class="card c4 d4">
-    <div class="icon">📲</div>
-    <div class="card-title">PMY Apply & Track</div>
-    <div class="card-desc">
-        Submit and track PMY applications online.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<a href='{link4}' target='_blank'>
+<div class='card c4'>
+<div class='icon'>📲</div>
+<div class='title'>Apply Portal</div>
+<div class='desc'>
+Apply online and monitor PMY applications instantly.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link5}" target="_blank">
-<div class="card c5 d5">
-    <div class="icon">📝</div>
-    <div class="card-title">ACAG Apply</div>
-    <div class="card-desc">
-        Apply online for ACAG scheme instantly.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<a href='{link5}' target='_blank'>
+<div class='card c5'>
+<div class='icon'>📝</div>
+<div class='title'>Smart Forms</div>
+<div class='desc'>
+Advanced ACAG application workflow with smooth interface.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link6}" target="_blank">
-<div class="card c6 d6">
-    <div class="icon">🚧</div>
-    <div class="card-title">QR Generator</div>
-    <div class="card-desc">
-        Generate QR codes with advanced features.
-    </div>
-    <div class="open-btn">Open Portal</div>
+<a href='{link6}' target='_blank'>
+<div class='card c6'>
+<div class='icon'>🚀</div>
+<div class='title'>QR Engine</div>
+<div class='desc'>
+Create beautiful QR codes with premium generation engine.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- TICKER ----------------
+# ================= TICKER =================
 st.markdown("""
-<div class="ticker">
-    <div class="ticker-text">
-        🔴 ACAG 31 Batch Updated Successfully •  🚀
-    </div>
+<div class='ticker-wrap'>
+<div class='ticker'>✦ Welcome To Vision X • Ultra Luxury Interface Loaded • Premium Services Active • Futuristic Experience Enabled ✦</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- FOOTER ----------------
+# ================= STATS =================
 st.markdown("""
-<div class="footer">
-    Developed with ❤️ Khaleel
+<div class='stats'>
+
+<div class='stat'>
+<h1>06</h1>
+<p>Smart Services</p>
+</div>
+
+<div class='stat'>
+<h1>24/7</h1>
+<p>Availability</p>
+</div>
+
+<div class='stat'>
+<h1>⚡</h1>
+<p>Ultra Fast</p>
+</div>
+
+<div class='stat'>
+<h1>100%</h1>
+<p>Modern UI</p>
+</div>
+
 </div>
 """, unsafe_allow_html=True)

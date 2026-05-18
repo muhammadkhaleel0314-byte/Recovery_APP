@@ -2,7 +2,7 @@ import streamlit as st
 
 # ================= CONFIG =================
 st.set_page_config(
-    page_title="Neo Dashboard",
+    page_title="Quantum Dashboard",
     page_icon="⚡",
     layout="wide"
 )
@@ -15,387 +15,379 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# ================= CSS =================
+# ================= STYLE =================
 st.markdown("""
 <style>
 
-/* ===== MAIN BACKGROUND ===== */
+/* ===== MAIN ===== */
 .stApp {
-    background: #050816;
+    background:
+    radial-gradient(circle at top left,#00f5ff22,transparent 25%),
+    radial-gradient(circle at bottom right,#8b5cf622,transparent 25%),
+    linear-gradient(135deg,#020617,#050816,#0f172a);
     overflow-x:hidden;
 }
 
-/* ===== REMOVE STREAMLIT ===== */
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
 header {visibility:hidden;}
 
-.block-container {
-    padding-top: 1rem;
-    max-width: 1500px;
+.block-container{
+    max-width:1500px;
+    padding-top:1rem;
 }
 
-/* ===== ANIMATED BACKGROUND ===== */
-.bg-animation {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    overflow: hidden;
+/* ===== FLOATING LIGHTS ===== */
+.light{
+    position:fixed;
+    border-radius:50%;
+    filter:blur(90px);
+    z-index:-1;
+    animation:float 12s infinite ease-in-out;
 }
 
-.circle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(0,255,255,0.08);
-    animation: float 14s infinite linear;
+.l1{
+    width:350px;
+    height:350px;
+    background:#00e5ff33;
+    top:-80px;
+    left:-50px;
 }
 
-.circle:nth-child(1){
+.l2{
     width:300px;
     height:300px;
-    left:5%;
-    top:10%;
+    background:#8b5cf633;
+    bottom:-80px;
+    right:-50px;
 }
 
-.circle:nth-child(2){
-    width:250px;
-    height:250px;
-    right:10%;
-    top:20%;
-    background: rgba(168,85,247,0.10);
-}
-
-.circle:nth-child(3){
-    width:200px;
-    height:200px;
-    left:35%;
-    bottom:10%;
-    background: rgba(59,130,246,0.10);
-}
-
-@keyframes float {
-    0%{transform:translateY(0px) rotate(0deg);}
-    50%{transform:translateY(-40px) rotate(180deg);}
-    100%{transform:translateY(0px) rotate(360deg);}
+@keyframes float{
+0%{transform:translateY(0px);} 
+50%{transform:translateY(-35px);} 
+100%{transform:translateY(0px);} 
 }
 
 /* ===== HERO ===== */
-.hero {
-    position: relative;
-    padding: 55px;
-    border-radius: 35px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    box-shadow: 0 0 50px rgba(0,255,255,0.08);
-    margin-bottom: 40px;
+.hero{
+    position:relative;
+    overflow:hidden;
+    padding:65px;
+    border-radius:40px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.10);
+    backdrop-filter:blur(20px);
+    box-shadow:
+    0 0 60px rgba(0,229,255,0.10),
+    0 0 120px rgba(139,92,246,0.10);
+    margin-bottom:40px;
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 450px;
-    height: 450px;
-    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
-    border-radius: 50%;
-    filter: blur(120px);
-    top: -200px;
-    right: -120px;
+.hero::before{
+    content:'';
+    position:absolute;
+    width:500px;
+    height:500px;
+    background:linear-gradient(45deg,#00e5ff,#8b5cf6);
+    filter:blur(140px);
+    border-radius:50%;
+    top:-250px;
+    right:-100px;
     opacity:0.4;
 }
 
-.hero-title {
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 12px;
-    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.hero-title{
+    font-size:85px;
+    font-weight:1000;
+    line-height:0.95;
+    margin-bottom:18px;
+    background:linear-gradient(to right,#ffffff,#00e5ff,#a855f7);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
 }
 
-.hero-sub {
-    color: #cbd5e1;
-    font-size: 20px;
-    margin-bottom: 28px;
+.hero-sub{
+    font-size:22px;
+    color:#d1d5db;
+    margin-bottom:28px;
 }
 
-.hero-btn {
+.hero-chip{
     display:inline-block;
-    padding:14px 28px;
+    padding:14px 26px;
     border-radius:18px;
-    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.08);
     color:white;
     font-weight:700;
-    box-shadow:0 10px 30px rgba(0,229,255,0.35);
+    box-shadow:0 0 25px rgba(0,229,255,0.15);
 }
 
 /* ===== GRID ===== */
-.grid {
+.grid{
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-    gap:28px;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:30px;
 }
 
 /* ===== CARD ===== */
-.card {
+.card{
     position:relative;
     overflow:hidden;
-    padding:35px;
-    border-radius:30px;
-    background: rgba(255,255,255,0.05);
+    padding:38px;
+    border-radius:34px;
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    transition:0.4s ease;
-    min-height:240px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.35);
+    backdrop-filter:blur(18px);
+    transition:0.45s ease;
+    min-height:260px;
+    box-shadow:0 15px 45px rgba(0,0,0,0.35);
 }
 
-.card:hover {
-    transform:translateY(-15px) scale(1.03);
+.card:hover{
+    transform:translateY(-16px) scale(1.03) rotate(-1deg);
     border:1px solid rgba(0,229,255,0.45);
-    box-shadow:0 20px 60px rgba(0,229,255,0.18);
+    box-shadow:
+    0 0 35px rgba(0,229,255,0.25),
+    0 0 70px rgba(139,92,246,0.15);
 }
 
-.card::before {
+.card::before{
     content:'';
     position:absolute;
-    width:180px;
-    height:180px;
-    background:rgba(255,255,255,0.08);
+    width:220px;
+    height:220px;
     border-radius:50%;
-    top:-60px;
-    right:-60px;
+    background:rgba(255,255,255,0.08);
+    top:-70px;
+    right:-70px;
 }
 
-.card-icon {
-    width:85px;
-    height:85px;
-    border-radius:24px;
+.card::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(130deg,rgba(255,255,255,0.10),transparent,transparent);
+}
+
+.icon{
+    width:90px;
+    height:90px;
+    border-radius:26px;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:42px;
+    font-size:45px;
     margin-bottom:25px;
-    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
-    border:1px solid rgba(255,255,255,0.12);
-}
-
-.card-title {
-    font-size:28px;
-    font-weight:800;
-    color:white;
-    margin-bottom:10px;
-}
-
-.card-desc {
-    color:#d1d5db;
-    line-height:1.7;
-    font-size:15px;
-    margin-bottom:24px;
-}
-
-.card-btn {
-    display:inline-block;
-    padding:12px 24px;
-    border-radius:16px;
     background:rgba(255,255,255,0.10);
+    border:1px solid rgba(255,255,255,0.12);
+    box-shadow:0 0 25px rgba(255,255,255,0.08);
+}
+
+.title{
+    font-size:30px;
+    font-weight:900;
     color:white;
-    font-weight:700;
+    margin-bottom:12px;
+}
+
+.desc{
+    color:#d1d5db;
+    line-height:1.8;
+    font-size:15px;
+    margin-bottom:25px;
+}
+
+.btn{
+    display:inline-block;
+    padding:14px 26px;
+    border-radius:18px;
+    background:linear-gradient(90deg,#00e5ff,#8b5cf6);
+    color:white;
+    font-weight:800;
+    font-size:14px;
+    box-shadow:0 10px 30px rgba(0,229,255,0.25);
     transition:0.3s ease;
 }
 
-.card:hover .card-btn {
-    background:white;
-    color:black;
+.card:hover .btn{
+    transform:scale(1.08);
 }
 
 /* ===== COLORS ===== */
-.c1{border-top:4px solid #00e5ff;}
-.c2{border-top:4px solid #f59e0b;}
-.c3{border-top:4px solid #8b5cf6;}
-.c4{border-top:4px solid #10b981;}
-.c5{border-top:4px solid #ec4899;}
-.c6{border-top:4px solid #ef4444;}
+.c1{border-top:5px solid #00e5ff;}
+.c2{border-top:5px solid #f59e0b;}
+.c3{border-top:5px solid #8b5cf6;}
+.c4{border-top:5px solid #10b981;}
+.c5{border-top:5px solid #ec4899;}
+.c6{border-top:5px solid #ef4444;}
 
 /* ===== LINKS ===== */
-a {
+a{
     text-decoration:none !important;
 }
 
 /* ===== TICKER ===== */
-.ticker-wrap {
-    margin-top:40px;
+.ticker-wrap{
+    margin-top:45px;
     overflow:hidden;
-    border-radius:24px;
-    padding:18px 0;
+    border-radius:28px;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
+    padding:20px 0;
     backdrop-filter:blur(10px);
 }
 
-.ticker {
+.ticker{
     display:inline-block;
     white-space:nowrap;
     padding-left:100%;
     animation:scroll 18s linear infinite;
-    font-size:20px;
-    font-weight:700;
+    font-size:22px;
+    font-weight:800;
     color:#00e5ff;
 }
 
-@keyframes scroll {
-    0% {transform:translateX(0);}
-    100% {transform:translateX(-100%);}
+@keyframes scroll{
+0%{transform:translateX(0);} 
+100%{transform:translateX(-100%);} 
 }
 
-/* ===== STATS ===== */
-.stats {
-    margin-top:35px;
+/* ===== FOOTER STATS ===== */
+.stats{
+    margin-top:40px;
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:22px;
+    gap:24px;
 }
 
-.stat {
-    padding:30px;
-    border-radius:25px;
+.stat{
+    padding:35px;
+    border-radius:28px;
     text-align:center;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
     backdrop-filter:blur(12px);
+    transition:0.3s ease;
 }
 
-.stat h1 {
-    font-size:48px;
+.stat:hover{
+    transform:translateY(-10px);
+    box-shadow:0 0 30px rgba(0,229,255,0.15);
+}
+
+.stat h1{
     color:white;
+    font-size:52px;
     margin:0;
 }
 
-.stat p {
+.stat p{
     color:#cbd5e1;
-    margin-top:8px;
+    margin-top:10px;
+    font-size:15px;
 }
 
 /* ===== MOBILE ===== */
 @media(max-width:768px){
-
-.hero {
-    padding:30px;
-}
-
-.hero-title {
-    font-size:42px;
-}
-
-.card-title {
-    font-size:24px;
-}
-
+.hero{padding:35px;}
+.hero-title{font-size:48px;}
+.title{font-size:25px;}
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ================= BACKGROUND =================
+# ================= FLOATING LIGHTS =================
 st.markdown("""
-<div class="bg-animation">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-</div>
+<div class='light l1'></div>
+<div class='light l2'></div>
 """, unsafe_allow_html=True)
 
 # ================= HERO =================
 st.markdown("""
-<div class="hero">
+<div class='hero'>
 
-<div class="hero-title">
-Neo Digital <br>Dashboard
+<div class='hero-title'>
+Quantum <br>Dashboard
 </div>
 
-<div class="hero-sub">
-Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
+<div class='hero-sub'>
+Ultra Premium Futuristic Interface • Neon Glassmorphism • Luxury Modern Experience
 </div>
 
-<div class="hero-btn">
-⚡ SYSTEM ONLINE
-</div>
+<div class='hero-chip'>⚡ SYSTEM ACTIVE</div>
 
 </div>
 """, unsafe_allow_html=True)
 
 # ================= CARDS =================
 st.markdown(f"""
-<div class="grid">
+<div class='grid'>
 
-<a href="{link1}" target="_blank">
-<div class="card c1">
-<div class="card-icon">📊</div>
-<div class="card-title">PMY Verify</div>
-<div class="card-desc">
-Advanced PMY verification system with secure instant access.
+<a href='{link1}' target='_blank'>
+<div class='card c1'>
+<div class='icon'>📊</div>
+<div class='title'>PMY Verify</div>
+<div class='desc'>
+Secure PMY verification portal with instant smart processing.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link2}" target="_blank">
-<div class="card c2">
-<div class="card-icon">🏦</div>
-<div class="card-title">BOP Account</div>
-<div class="card-desc">
-Manage banking details and services with smart access.
+<a href='{link2}' target='_blank'>
+<div class='card c2'>
+<div class='icon'>🏦</div>
+<div class='title'>BOP Account</div>
+<div class='desc'>
+Modern banking access system with advanced management tools.
 </div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link3}" target="_blank">
-<div class="card c3">
-<div class="card-icon">📁</div>
-<div class="card-title">ACAG Batch</div>
-<div class="card-desc">
-Track and monitor latest ACAG batch processing data.
-</div>
-<div class="card-btn">Open Portal →</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link4}" target="_blank">
-<div class="card c4">
-<div class="card-icon">📲</div>
-<div class="card-title">PMY Apply</div>
-<div class="card-desc">
-Apply online and track PMY applications instantly.
+<a href='{link3}' target='_blank'>
+<div class='card c3'>
+<div class='icon'>📁</div>
+<div class='title'>ACAG Batch</div>
+<div class='desc'>
+Track and monitor ACAG batch uploads with futuristic UI.
 </div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link5}" target="_blank">
-<div class="card c5">
-<div class="card-icon">📝</div>
-<div class="card-title">ACAG Apply</div>
-<div class="card-desc">
-Smart ACAG application workflow with modern interface.
-</div>
-<div class="card-btn">Open Portal →</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
-<a href="{link6}" target="_blank">
-<div class="card c6">
-<div class="card-icon">🚀</div>
-<div class="card-title">QR Generator</div>
-<div class="card-desc">
-Generate stylish QR codes with advanced functionality.
+<a href='{link4}' target='_blank'>
+<div class='card c4'>
+<div class='icon'>📲</div>
+<div class='title'>PMY Apply</div>
+<div class='desc'>
+Apply online and monitor PMY applications instantly.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class='btn'>Launch Portal →</div>
+</div>
+</a>
+
+<a href='{link5}' target='_blank'>
+<div class='card c5'>
+<div class='icon'>📝</div>
+<div class='title'>ACAG Apply</div>
+<div class='desc'>
+Advanced ACAG application workflow with smooth interface.
+</div>
+<div class='btn'>Launch Portal →</div>
+</div>
+</a>
+
+<a href='{link6}' target='_blank'>
+<div class='card c6'>
+<div class='icon'>🚀</div>
+<div class='title'>QR Generator</div>
+<div class='desc'>
+Create beautiful QR codes with premium generation engine.
+</div>
+<div class='btn'>Launch Portal →</div>
 </div>
 </a>
 
@@ -404,35 +396,35 @@ Generate stylish QR codes with advanced functionality.
 
 # ================= TICKER =================
 st.markdown("""
-<div class="ticker-wrap">
-<div class="ticker">
-⚡ ACAG Batch 31 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
+<div class='ticker-wrap'>
+<div class='ticker'>
+⚡ ACAG Batch 31 Updated • PMY Verification Running • Quantum Dashboard Online • Premium UI Experience 🚀
 </div>
 </div>
 """, unsafe_allow_html=True)
 
 # ================= STATS =================
 st.markdown("""
-<div class="stats">
+<div class='stats'>
 
-<div class="stat">
+<div class='stat'>
 <h1>06</h1>
-<p>Quick Services</p>
+<p>Smart Services</p>
 </div>
 
-<div class="stat">
+<div class='stat'>
 <h1>24/7</h1>
 <p>Availability</p>
 </div>
 
-<div class="stat">
-<h1>99%</h1>
-<p>Fast Performance</p>
+<div class='stat'>
+<h1>⚡</h1>
+<p>Ultra Fast</p>
 </div>
 
-<div class="stat">
-<h1>⚡</h1>
-<p>Premium UI</p>
+<div class='stat'>
+<h1>100%</h1>
+<p>Modern UI</p>
 </div>
 
 </div>

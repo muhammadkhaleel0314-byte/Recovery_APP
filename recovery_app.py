@@ -47,18 +47,16 @@ overflow-x:hidden;
 background:#050816;
 }}
 
+st.markdown("""
+<style>
+
+.stApp{
+    background:
+    linear-gradient(135deg,#030712,#050816,#0f172a);
+}
+
 </style>
 """, unsafe_allow_html=True)
-.stApp{{
-background:
-radial-gradient(circle at 10% 20%, rgba(0,255,255,.12), transparent 25%),
-radial-gradient(circle at 90% 10%, rgba(168,85,247,.12), transparent 25%),
-radial-gradient(circle at 50% 90%, rgba(236,72,153,.10), transparent 30%),
-linear-gradient(135deg,#030712,#050816,#0f172a);
-
-background-size:200% 200%;
-animation:bgMove 18s ease infinite;
-}}
 
 @keyframes bgMove{{
 0%{{background-position:0% 50%;}}

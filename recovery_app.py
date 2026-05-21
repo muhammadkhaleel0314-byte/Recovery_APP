@@ -3,17 +3,17 @@ import streamlit as st
 # =========================
 # PAGE CONFIG
 # =========================
-st.set_page_config(...)
-
-compact = st.toggle("⚡ Compact Mode")   # MUST be first UI element
-
-CARD_PADDING = "22px" if compact else "35px"
-TITLE_SIZE = "58px" if compact else "82px"
+st.set_page_config(
+    page_title="Neo Dashboard",
+    page_icon="⚡",
+    layout="wide"
 )
 
 # =========================
 # COMPACT MODE
 # =========================
+compact = st.toggle("⚡ Compact Mode")
+
 CARD_PADDING = "22px" if compact else "35px"
 TITLE_SIZE = "58px" if compact else "82px"
 
@@ -25,12 +25,11 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================
-# PREMIUM CSS
+# PREMIUM CSS START
 # =========================
 st.markdown(f"""
 <style>
 
-/* Hide Streamlit */
 #MainMenu{{visibility:hidden;}}
 footer{{visibility:hidden;}}
 header{{visibility:hidden;}}
@@ -44,10 +43,12 @@ html,body{{
 overflow-x:hidden;
 }}
 
-/* =========================
-BACKGROUND
-========================= */
+.stApp{{
+background:#050816;
+}}
 
+</style>
+""", unsafe_allow_html=True)
 .stApp{{
 background:
 radial-gradient(circle at 10% 20%, rgba(0,255,255,.12), transparent 25%),

@@ -1,32 +1,13 @@
 import streamlit as st
 
-# =========================
-# PAGE CONFIG
-# =========================
+# ================= CONFIG =================
 st.set_page_config(
-    page_title="Vision X Dashboard",
+    page_title="Neo Dashboard",
     page_icon="⚡",
     layout="wide"
 )
 
-# =========================
-# MODE TOGGLE
-# =========================
-compact = st.toggle("⚡ Compact Mode")
-
-CARD_PADDING = "22px" if compact else "35px"
-TITLE_SIZE = "60px" if compact else "80px"
-
-# =========================
-# FONTS
-# =========================
-st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-""", unsafe_allow_html=True)
-
-# =========================
-# LINKS
-# =========================
+# ================= LINKS =================
 link1 = "https://script.google.com/macros/s/AKfycbzlyx-OPgSTo-FsevohLyr9UfVSyWsVZk6tUGTVQgIFCNWxw0G6PuvnrqBnj1OPkCGq8g/exec"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
 link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
@@ -34,244 +15,424 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# =========================
-# CSS
-# =========================
-st.markdown(f"""
+# ================= CSS =================
+st.markdown("""
 <style>
 
-/* Hide Streamlit */
-#MainMenu, footer, header {{
-visibility:hidden;
-}}
+/* ===== MAIN BACKGROUND ===== */
+.stApp {
+    background: #050816;
+    overflow-x:hidden;
+}
 
-.block-container {{
-max-width:1500px;
-padding-top:1rem;
-}}
+/* ===== REMOVE STREAMLIT ===== */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
 
-/* BACKGROUND */
-.stApp {{
-background:
-radial-gradient(circle at 10% 20%, rgba(0,255,255,0.15), transparent 25%),
-radial-gradient(circle at 80% 30%, rgba(139,92,246,0.15), transparent 25%),
-linear-gradient(135deg,#050816,#070b14,#0a0f1f);
-overflow-x:hidden;
-}}
+.block-container {
+    padding-top: 1rem;
+    max-width: 1500px;
+}
 
-/* HERO */
-.hero {{
-padding:60px;
-border-radius:35px;
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(20px);
-border:1px solid rgba(255,255,255,0.08);
-margin-bottom:40px;
-}}
+/* ===== ANIMATED BACKGROUND ===== */
+.bg-animation {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    overflow: hidden;
+}
 
-.hero-title {{
-font-family:'Orbitron',sans-serif;
-font-size:{TITLE_SIZE};
-font-weight:900;
-background:linear-gradient(90deg,#fff,#00e5ff,#8b5cf6);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-}}
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(0,255,255,0.08);
+    animation: float 14s infinite linear;
+}
 
-.hero-sub {{
-font-family:'Rajdhani',sans-serif;
-color:#cbd5e1;
-font-size:20px;
-}}
+.circle:nth-child(1){
+    width:300px;
+    height:300px;
+    left:5%;
+    top:10%;
+}
 
-/* GRID */
-.grid {{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-gap:25px;
-}}
+.circle:nth-child(2){
+    width:250px;
+    height:250px;
+    right:10%;
+    top:20%;
+    background: rgba(168,85,247,0.10);
+}
 
-/* CARD */
-.card {{
-padding:{CARD_PADDING};
-border-radius:30px;
-background:rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.08);
-backdrop-filter:blur(20px);
-transition:0.4s;
-text-decoration:none;
-color:white;
-}}
+.circle:nth-child(3){
+    width:200px;
+    height:200px;
+    left:35%;
+    bottom:10%;
+    background: rgba(59,130,246,0.10);
+}
 
-.card:hover {{
-transform:translateY(-12px) scale(1.03);
-box-shadow:0 0 25px rgba(0,255,255,0.25);
-}}
+@keyframes float {
+    0%{transform:translateY(0px) rotate(0deg);}
+    50%{transform:translateY(-40px) rotate(180deg);}
+    100%{transform:translateY(0px) rotate(360deg);}
+}
 
-.card-icon {{
-font-size:40px;
-margin-bottom:15px;
-}}
+/* ===== HERO ===== */
+.hero {
+    position: relative;
+    padding: 55px;
+    border-radius: 35px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 0 50px rgba(0,255,255,0.08);
+    margin-bottom: 40px;
+}
 
-.card-title {{
-font-family:'Orbitron',sans-serif;
-font-size:24px;
-font-weight:700;
-}}
+.hero::before {
+    content: '';
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
+    border-radius: 50%;
+    filter: blur(120px);
+    top: -200px;
+    right: -120px;
+    opacity:0.4;
+}
 
-.card-desc {{
-font-family:'Rajdhani',sans-serif;
-color:#cbd5e1;
-margin-top:10px;
-}}
+.hero-title {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 12px;
+    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-.card-btn {{
-margin-top:15px;
-display:inline-block;
-padding:10px 18px;
-border-radius:12px;
-background:rgba(255,255,255,0.1);
-}}
+.hero-sub {
+    color: #cbd5e1;
+    font-size: 20px;
+    margin-bottom: 28px;
+}
 
-/* TICKER */
-.ticker {{
-margin-top:30px;
-padding:15px;
-border-radius:20px;
-background:rgba(255,255,255,0.05);
-overflow:hidden;
-white-space:nowrap;
-animation:move 15s linear infinite;
-color:#00e5ff;
-}}
+.hero-btn {
+    display:inline-block;
+    padding:14px 28px;
+    border-radius:18px;
+    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
+    color:white;
+    font-weight:700;
+    box-shadow:0 10px 30px rgba(0,229,255,0.35);
+}
 
-@keyframes move {{
-0% {{transform:translateX(100%);}}
-100% {{transform:translateX(-100%);}}
-}}
+/* ===== GRID ===== */
+.grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:28px;
+}
 
-/* STATS */
-.stats {{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:20px;
-margin-top:40px;
-}}
+/* ===== CARD ===== */
+.card {
+    position:relative;
+    overflow:hidden;
+    padding:35px;
+    border-radius:30px;
+    background: rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+    transition:0.4s ease;
+    min-height:240px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.35);
+}
 
-.stat {{
-padding:25px;
-border-radius:20px;
-background:rgba(255,255,255,0.05);
-text-align:center;
-}}
+.card:hover {
+    transform:translateY(-15px) scale(1.03);
+    border:1px solid rgba(0,229,255,0.45);
+    box-shadow:0 20px 60px rgba(0,229,255,0.18);
+}
 
-.stat h1 {{
-font-family:'Orbitron';
-font-size:40px;
-color:white;
-}}
+.card::before {
+    content:'';
+    position:absolute;
+    width:180px;
+    height:180px;
+    background:rgba(255,255,255,0.08);
+    border-radius:50%;
+    top:-60px;
+    right:-60px;
+}
 
-.stat p {{
-color:#cbd5e1;
-}}
+.card-icon {
+    width:85px;
+    height:85px;
+    border-radius:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    margin-bottom:25px;
+    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
+    border:1px solid rgba(255,255,255,0.12);
+}
+
+.card-title {
+    font-size:28px;
+    font-weight:800;
+    color:white;
+    margin-bottom:10px;
+}
+
+.card-desc {
+    color:#d1d5db;
+    line-height:1.7;
+    font-size:15px;
+    margin-bottom:24px;
+}
+
+.card-btn {
+    display:inline-block;
+    padding:12px 24px;
+    border-radius:16px;
+    background:rgba(255,255,255,0.10);
+    color:white;
+    font-weight:700;
+    transition:0.3s ease;
+}
+
+.card:hover .card-btn {
+    background:white;
+    color:black;
+}
+
+/* ===== COLORS ===== */
+.c1{border-top:4px solid #00e5ff;}
+.c2{border-top:4px solid #f59e0b;}
+.c3{border-top:4px solid #8b5cf6;}
+.c4{border-top:4px solid #10b981;}
+.c5{border-top:4px solid #ec4899;}
+.c6{border-top:4px solid #ef4444;}
+
+/* ===== LINKS ===== */
+a {
+    text-decoration:none !important;
+}
+
+/* ===== TICKER ===== */
+.ticker-wrap {
+    margin-top:40px;
+    overflow:hidden;
+    border-radius:24px;
+    padding:18px 0;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px);
+}
+
+.ticker {
+    display:inline-block;
+    white-space:nowrap;
+    padding-left:100%;
+    animation:scroll 18s linear infinite;
+    font-size:20px;
+    font-weight:700;
+    color:#00e5ff;
+}
+
+@keyframes scroll {
+    0% {transform:translateX(0);}
+    100% {transform:translateX(-100%);}
+}
+
+/* ===== STATS ===== */
+.stats {
+    margin-top:35px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:22px;
+}
+
+.stat {
+    padding:30px;
+    border-radius:25px;
+    text-align:center;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+}
+
+.stat h1 {
+    font-size:48px;
+    color:white;
+    margin:0;
+}
+
+.stat p {
+    color:#cbd5e1;
+    margin-top:8px;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+
+.hero {
+    padding:30px;
+}
+
+.hero-title {
+    font-size:42px;
+}
+
+.card-title {
+    font-size:24px;
+}
+
+}
 
 </style>
 """, unsafe_allow_html=True)
 
-# =========================
-# HERO
-# =========================
-st.markdown(f"""
-<div class="hero">
-<div class="hero-title">VISION X DASHBOARD</div>
-<div class="hero-sub">Ultra Clean • Neon Modern UI • Streamlit Powered</div>
+# ================= BACKGROUND =================
+st.markdown("""
+<div class="bg-animation">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
 </div>
 """, unsafe_allow_html=True)
 
-# =========================
-# CARDS
-# =========================
+# ================= HERO =================
+st.markdown("""
+<div class="hero">
+
+<div class="hero-title">
+Neo Digital <br>Dashboard
+</div>
+
+<div class="hero-sub">
+Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
+</div>
+
+<div class="hero-btn">
+⚡ SYSTEM ONLINE
+</div>
+
+</div>
+""", unsafe_allow_html=True)
+
+# ================= CARDS =================
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank" class="card">
+<a href="{link1}" target="_blank">
+<div class="card c1">
 <div class="card-icon">📊</div>
 <div class="card-title">PMY Verify</div>
-<div class="card-desc">Verification System</div>
-<div class="card-btn">Open</div>
+<div class="card-desc">
+Advanced PMY verification system with secure instant access.
+</div>
+<div class="card-btn">Open Portal →</div>
+</div>
 </a>
 
-<a href="{link2}" target="_blank" class="card">
+<a href="{link2}" target="_blank">
+<div class="card c2">
 <div class="card-icon">🏦</div>
 <div class="card-title">BOP Account</div>
-<div class="card-desc">Banking Access</div>
-<div class="card-btn">Open</div>
+<div class="card-desc">
+Manage banking details and services with smart access.
+</div>
+<div class="card-btn">Open Portal →</div>
+</div>
 </a>
 
-<a href="{link3}" target="_blank" class="card">
+<a href="{link3}" target="_blank">
+<div class="card c3">
 <div class="card-icon">📁</div>
 <div class="card-title">ACAG Batch</div>
-<div class="card-desc">Batch Tracking</div>
-<div class="card-btn">Open</div>
+<div class="card-desc">
+Track and monitor latest ACAG batch processing data.
+</div>
+<div class="card-btn">Open Portal →</div>
+</div>
 </a>
 
-<a href="{link4}" target="_blank" class="card">
+<a href="{link4}" target="_blank">
+<div class="card c4">
 <div class="card-icon">📲</div>
 <div class="card-title">PMY Apply</div>
-<div class="card-desc">Application Portal</div>
-<div class="card-btn">Open</div>
+<div class="card-desc">
+Apply online and track PMY applications instantly.
+</div>
+<div class="card-btn">Open Portal →</div>
+</div>
 </a>
 
-<a href="{link5}" target="_blank" class="card">
+<a href="{link5}" target="_blank">
+<div class="card c5">
 <div class="card-icon">📝</div>
 <div class="card-title">ACAG Apply</div>
-<div class="card-desc">Form System</div>
-<div class="card-btn">Open</div>
+<div class="card-desc">
+Smart ACAG application workflow with modern interface.
+</div>
+<div class="card-btn">Open Portal →</div>
+</div>
 </a>
 
-<a href="{link6}" target="_blank" class="card">
+<a href="{link6}" target="_blank">
+<div class="card c6">
 <div class="card-icon">🚀</div>
 <div class="card-title">QR Generator</div>
-<div class="card-desc">QR Tools</div>
-<div class="card-btn">Open</div>
+<div class="card-desc">
+Generate stylish QR codes with advanced functionality.
+</div>
+<div class="card-btn">Open Portal →</div>
+</div>
 </a>
 
 </div>
 """, unsafe_allow_html=True)
 
-# =========================
-# TICKER
-# =========================
+# ================= TICKER =================
 st.markdown("""
+<div class="ticker-wrap">
 <div class="ticker">
-⚡ SYSTEM ACTIVE • ALL SERVICES ONLINE • DASHBOARD RUNNING SMOOTHLY 🚀
+⚡ ACAG Batch 31 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
+</div>
 </div>
 """, unsafe_allow_html=True)
 
-# =========================
-# STATS
-# =========================
+# ================= STATS =================
 st.markdown("""
 <div class="stats">
 
 <div class="stat">
 <h1>06</h1>
-<p>Services</p>
+<p>Quick Services</p>
 </div>
 
 <div class="stat">
 <h1>24/7</h1>
-<p>Active</p>
+<p>Availability</p>
 </div>
 
 <div class="stat">
 <h1>99%</h1>
-<p>Fast</p>
+<p>Fast Performance</p>
 </div>
 
 <div class="stat">
 <h1>⚡</h1>
-<p>Premium</p>
+<p>Premium UI</p>
 </div>
 
 </div>

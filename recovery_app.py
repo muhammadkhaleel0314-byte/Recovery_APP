@@ -3,10 +3,12 @@ import streamlit as st
 # =========================
 # PAGE CONFIG
 # =========================
-st.set_page_config(
-    page_title="Vision X Control Hub",
-    page_icon="⚡",
-    layout="wide"
+st.set_page_config(...)
+
+compact = st.toggle("⚡ Compact Mode")   # MUST be first UI element
+
+CARD_PADDING = "22px" if compact else "35px"
+TITLE_SIZE = "58px" if compact else "82px"
 )
 
 # =========================

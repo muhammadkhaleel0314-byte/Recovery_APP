@@ -1,13 +1,282 @@
 import streamlit as st
 
-# ================= CONFIG =================
+# =========================
+# PAGE CONFIG
+# =========================
 st.set_page_config(
-    page_title="Neo Dashboard",
+    page_title="Vision X Control Hub",
     page_icon="⚡",
     layout="wide"
 )
 
-# ================= LINKS =================
+# =========================
+# COMPACT MODE
+# =========================
+compact = st.toggle("⚡ Compact Mode")
+
+CARD_PADDING = "22px" if compact else "35px"
+TITLE_SIZE = "58px" if compact else "82px"
+
+# =========================
+# GOOGLE FONTS
+# =========================
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+""", unsafe_allow_html=True)
+
+# =========================
+# PREMIUM CSS
+# =========================
+st.markdown(f"""
+<style>
+
+/* Hide Streamlit */
+#MainMenu{{visibility:hidden;}}
+footer{{visibility:hidden;}}
+header{{visibility:hidden;}}
+
+.block-container{{
+max-width:1600px;
+padding-top:1rem;
+}}
+
+html,body{{
+overflow-x:hidden;
+}}
+
+/* =========================
+BACKGROUND
+========================= */
+
+.stApp{{
+background:
+radial-gradient(circle at 10% 20%, rgba(0,255,255,.12), transparent 25%),
+radial-gradient(circle at 90% 10%, rgba(168,85,247,.12), transparent 25%),
+radial-gradient(circle at 50% 90%, rgba(236,72,153,.10), transparent 30%),
+linear-gradient(135deg,#030712,#050816,#0f172a);
+
+background-size:200% 200%;
+animation:bgMove 18s ease infinite;
+}}
+
+@keyframes bgMove{{
+0%{{background-position:0% 50%;}}
+50%{{background-position:100% 50%;}}
+100%{{background-position:0% 50%;}}
+}}
+
+/* =========================
+PARTICLES
+========================= */
+
+.particles{{
+position:fixed;
+inset:0;
+pointer-events:none;
+z-index:-1;
+
+background-image:
+radial-gradient(#00f5ff 1px, transparent 1px);
+
+background-size:80px 80px;
+
+opacity:.08;
+
+animation:particleMove 60s linear infinite;
+}}
+
+@keyframes particleMove{{
+from{{transform:translateY(0);}}
+to{{transform:translateY(-1200px);}}
+}}
+
+/* =========================
+FLOATING LIGHTS
+========================= */
+
+.light{{
+position:fixed;
+border-radius:50%;
+filter:blur(120px);
+z-index:-1;
+animation:float 12s ease-in-out infinite;
+}}
+
+.light1{{
+width:350px;
+height:350px;
+background:#00f5ff33;
+left:-100px;
+top:-50px;
+}}
+
+.light2{{
+width:300px;
+height:300px;
+background:#8b5cf633;
+right:-80px;
+bottom:-80px;
+}}
+
+.light3{{
+width:250px;
+height:250px;
+background:#ec489933;
+left:40%;
+bottom:-100px;
+}}
+
+@keyframes float{{
+0%{{transform:translateY(0px);}}
+50%{{transform:translateY(-40px);}}
+100%{{transform:translateY(0px);}}
+}}
+
+/* =========================
+HERO
+========================= */
+
+.hero{{
+position:relative;
+overflow:hidden;
+
+padding:70px;
+
+border-radius:40px;
+
+background:rgba(255,255,255,.05);
+
+backdrop-filter:blur(25px);
+
+border:1px solid rgba(255,255,255,.08);
+
+box-shadow:
+0 0 50px rgba(0,255,255,.08),
+0 0 120px rgba(168,85,247,.08);
+
+margin-bottom:45px;
+}}
+
+.hero::before{{
+content:'';
+
+position:absolute;
+
+width:500px;
+height:500px;
+
+background:
+linear-gradient(
+45deg,
+#00f5ff,
+#8b5cf6,
+#ff4fd8
+);
+
+border-radius:50%;
+
+filter:blur(150px);
+
+right:-180px;
+top:-180px;
+
+opacity:.35;
+}}
+
+.hero-title{{
+font-family:'Orbitron',sans-serif;
+
+font-size:{TITLE_SIZE};
+
+font-weight:900;
+
+line-height:.95;
+
+letter-spacing:2px;
+
+margin-bottom:15px;
+
+background:
+linear-gradient(
+90deg,
+#ffffff,
+#00f5ff,
+#a855f7
+);
+
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}}
+
+.hero-sub{{
+font-family:'Rajdhani',sans-serif;
+
+font-size:22px;
+
+color:#cbd5e1;
+
+margin-bottom:30px;
+}}
+
+.hero-chip{{
+display:inline-block;
+
+padding:14px 28px;
+
+border-radius:18px;
+
+font-weight:700;
+
+font-family:'Rajdhani',sans-serif;
+
+background:
+linear-gradient(
+90deg,
+#00f5ff,
+#8b5cf6
+);
+
+color:white;
+
+box-shadow:
+0 10px 30px rgba(0,245,255,.35);
+}}
+
+</style>
+""", unsafe_allow_html=True)
+
+# Background Elements
+st.markdown("""
+<div class="particles"></div>
+
+<div class="light light1"></div>
+<div class="light light2"></div>
+<div class="light light3"></div>
+""", unsafe_allow_html=True)
+
+# Hero Section
+st.markdown("""
+<div class="hero">
+
+<div class="hero-title">
+VISION X<br>
+CONTROL HUB
+</div>
+
+<div class="hero-sub">
+Apple-Level Luxury UI • Cyberpunk Neon Effects • Premium Dashboard Experience
+</div>
+
+<div class="hero-chip">
+⚡ ALL SYSTEMS ONLINE
+</div>
+
+</div>
+""", unsafe_allow_html=True)
+# =========================
+# LINKS
+# =========================
+
 link1 = "https://script.google.com/macros/s/AKfycbzlyx-OPgSTo-FsevohLyr9UfVSyWsVZk6tUGTVQgIFCNWxw0G6PuvnrqBnj1OPkCGq8g/exec"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
 link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
@@ -15,285 +284,631 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# ================= CSS =================
+# =========================
+# CARD CSS
+# =========================
+
+st.markdown(f"""
+<style>
+
+.grid {{
+display:grid;
+grid-template-columns:
+repeat(auto-fit,minmax(320px,1fr));
+gap:30px;
+margin-top:20px;
+}}
+
+.card {{
+position:relative;
+overflow:hidden;
+
+padding:{CARD_PADDING};
+
+border-radius:34px;
+
+background:
+rgba(255,255,255,.05);
+
+backdrop-filter:blur(20px);
+
+min-height:270px;
+
+transition:.45s ease;
+
+text-decoration:none;
+
+border:1px solid rgba(255,255,255,.06);
+}}
+
+.card::before {{
+content:'';
+
+position:absolute;
+
+inset:-2px;
+
+border-radius:34px;
+
+background:
+linear-gradient(
+90deg,
+#00f5ff,
+#8b5cf6,
+#ff4fd8,
+#00f5ff
+);
+
+background-size:400% 400%;
+
+animation:borderMove 8s linear infinite;
+
+z-index:-2;
+}}
+
+.card::after {{
+content:'';
+
+position:absolute;
+
+inset:2px;
+
+background:#0b1220;
+
+border-radius:32px;
+
+z-index:-1;
+}}
+
+@keyframes borderMove {{
+
+0% {{
+background-position:0% 50%;
+}}
+
+100% {{
+background-position:400% 50%;
+}}
+
+}}
+
+.card:hover {{
+
+transform:
+translateY(-15px)
+scale(1.04);
+
+box-shadow:
+0 0 15px #00ffcc,
+0 0 35px rgba(0,255,204,.45),
+0 0 65px rgba(139,92,246,.30);
+
+}}
+
+.card-icon {{
+
+width:90px;
+height:90px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:45px;
+
+border-radius:26px;
+
+margin-bottom:25px;
+
+background:
+linear-gradient(
+145deg,
+rgba(255,255,255,.15),
+rgba(255,255,255,.05)
+);
+
+border:
+1px solid rgba(255,255,255,.12);
+
+box-shadow:
+0 0 25px rgba(255,255,255,.08);
+
+}}
+
+.card-title {{
+
+font-family:'Orbitron',sans-serif;
+
+font-size:30px;
+
+font-weight:700;
+
+color:white;
+
+margin-bottom:12px;
+
+}}
+
+.card-desc {{
+
+font-family:'Rajdhani',sans-serif;
+
+font-size:17px;
+
+line-height:1.8;
+
+color:#cbd5e1;
+
+margin-bottom:25px;
+
+}}
+
+.card-btn {{
+
+display:inline-flex;
+
+align-items:center;
+
+gap:10px;
+
+padding:14px 24px;
+
+border-radius:16px;
+
+font-family:'Rajdhani',sans-serif;
+
+font-weight:700;
+
+background:
+rgba(255,255,255,.08);
+
+color:white;
+
+transition:.3s;
+
+}}
+
+.card:hover .card-btn {{
+
+background:white;
+color:black;
+
+}}
+
+.card-btn span {{
+
+display:inline-block;
+
+}}
+
+.card:hover .card-btn span {{
+
+animation:
+arrowMove .8s infinite;
+
+}}
+
+@keyframes arrowMove {{
+
+0% {{
+transform:translateX(0);
+}}
+
+50% {{
+transform:translateX(8px);
+}}
+
+100% {{
+transform:translateX(0);
+}}
+
+}}
+
+.card-link {{
+text-decoration:none !important;
+}}
+
+</style>
+""", unsafe_allow_html=True)
+
+# =========================
+# CARDS
+# =========================
+
+st.markdown(f"""
+
+<div class="grid">
+
+<a href="{link1}" target="_blank" class="card-link">
+
+<div class="card">
+
+<div class="card-icon">📊</div>
+
+<div class="card-title">
+PMY Verify
+</div>
+
+<div class="card-desc">
+Advanced PMY verification portal with secure access,
+fast processing and premium dashboard experience.
+</div>
+
+<div class="card-btn">
+Open Portal <span>→</span>
+</div>
+
+</div>
+
+</a>
+
+
+<a href="{link2}" target="_blank" class="card-link">
+
+<div class="card">
+
+<div class="card-icon">🏦</div>
+
+<div class="card-title">
+BOP Account
+</div>
+
+<div class="card-desc">
+Manage banking services, customer information
+and account related operations quickly.
+</div>
+
+<div class="card-btn">
+Open Portal <span>→</span>
+</div>
+
+</div>
+
+</a>
+
+
+<a href="{link3}" target="_blank" class="card-link">
+
+<div class="card">
+
+<div class="card-icon">📁</div>
+
+<div class="card-title">
+ACAG Batch
+</div>
+
+<div class="card-desc">
+Monitor uploaded batches, processing updates
+and workflow tracking in real time.
+</div>
+
+<div class="card-btn">
+Open Portal <span>→</span>
+</div>
+
+</div>
+
+</a>
+
+
+<a href="{link4}" target="_blank" class="card-link">
+
+<div class="card">
+
+<div class="card-icon">📲</div>
+
+<div class="card-title">
+PMY Apply
+</div>
+
+<div class="card-desc">
+Apply online and track your application
+through the complete digital journey.
+</div>
+
+<div class="card-btn">
+Open Portal <span>→</span>
+</div>
+
+</div>
+
+</a>
+
+
+<a href="{link5}" target="_blank" class="card-link">
+
+<div class="card">
+
+<div class="card-icon">📝</div>
+
+<div class="card-title">
+ACAG Apply
+</div>
+
+<div class="card-desc">
+Modern application workflow with
+simplified forms and smart processing.
+</div>
+
+<div class="card-btn">
+Open Portal <span>→</span>
+</div>
+
+</div>
+
+</a>
+
+
+<a href="{link6}" target="_blank" class="card-link">
+
+<div class="card">
+
+<div class="card-icon">🚀</div>
+
+<div class="card-title">
+QR Generator
+</div>
+
+<div class="card-desc">
+Generate professional QR codes with
+advanced options and instant results.
+</div>
+
+<div class="card-btn">
+Open Portal <span>→</span>
+</div>
+
+</div>
+
+</a>
+
+</div>
+
+""", unsafe_allow_html=True)
+# =========================
+# FINAL CSS
+# =========================
+
 st.markdown("""
 <style>
 
-/* ===== MAIN BACKGROUND ===== */
-.stApp {
-    background: #050816;
-    overflow-x:hidden;
+/* =========================
+LUXURY TICKER
+========================= */
+
+.ticker-wrap{
+
+margin-top:45px;
+
+overflow:hidden;
+
+border-radius:28px;
+
+padding:20px 0;
+
+background:
+rgba(255,255,255,.05);
+
+border:
+1px solid rgba(255,255,255,.08);
+
+backdrop-filter:blur(20px);
+
+box-shadow:
+0 0 40px rgba(0,255,255,.08);
+
 }
 
-/* ===== REMOVE STREAMLIT ===== */
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
+.ticker{
 
-.block-container {
-    padding-top: 1rem;
-    max-width: 1500px;
+display:inline-block;
+
+white-space:nowrap;
+
+padding-left:100%;
+
+font-family:'Rajdhani',sans-serif;
+
+font-size:22px;
+
+font-weight:700;
+
+letter-spacing:1px;
+
+color:#00f5ff;
+
+animation:
+tickerMove 18s linear infinite;
+
 }
 
-/* ===== ANIMATED BACKGROUND ===== */
-.bg-animation {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    overflow: hidden;
+@keyframes tickerMove{
+
+0%{
+transform:translateX(0);
 }
 
-.circle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(0,255,255,0.08);
-    animation: float 14s infinite linear;
+100%{
+transform:translateX(-100%);
 }
 
-.circle:nth-child(1){
-    width:300px;
-    height:300px;
-    left:5%;
-    top:10%;
 }
 
-.circle:nth-child(2){
-    width:250px;
-    height:250px;
-    right:10%;
-    top:20%;
-    background: rgba(168,85,247,0.10);
+/* =========================
+STATS SECTION
+========================= */
+
+.stats{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fit,minmax(230px,1fr));
+
+gap:25px;
+
+margin-top:40px;
+
 }
 
-.circle:nth-child(3){
-    width:200px;
-    height:200px;
-    left:35%;
-    bottom:10%;
-    background: rgba(59,130,246,0.10);
+.stat{
+
+position:relative;
+
+overflow:hidden;
+
+padding:35px;
+
+border-radius:28px;
+
+background:
+rgba(255,255,255,.05);
+
+border:
+1px solid rgba(255,255,255,.08);
+
+backdrop-filter:blur(20px);
+
+transition:.4s ease;
+
 }
 
-@keyframes float {
-    0%{transform:translateY(0px) rotate(0deg);}
-    50%{transform:translateY(-40px) rotate(180deg);}
-    100%{transform:translateY(0px) rotate(360deg);}
+.stat::before{
+
+content:'';
+
+position:absolute;
+
+width:180px;
+height:180px;
+
+border-radius:50%;
+
+background:
+rgba(255,255,255,.05);
+
+top:-80px;
+right:-80px;
+
 }
 
-/* ===== HERO ===== */
-.hero {
-    position: relative;
-    padding: 55px;
-    border-radius: 35px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    box-shadow: 0 0 50px rgba(0,255,255,0.08);
-    margin-bottom: 40px;
+.stat:hover{
+
+transform:
+translateY(-10px);
+
+box-shadow:
+0 0 20px rgba(0,255,255,.20),
+0 0 45px rgba(139,92,246,.15);
+
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 450px;
-    height: 450px;
-    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
-    border-radius: 50%;
-    filter: blur(120px);
-    top: -200px;
-    right: -120px;
-    opacity:0.4;
+.stat h1{
+
+font-family:'Orbitron',sans-serif;
+
+font-size:64px;
+
+font-weight:900;
+
+color:white;
+
+margin:0;
+
 }
 
-.hero-title {
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 12px;
-    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.stat p{
+
+font-family:'Rajdhani',sans-serif;
+
+font-size:15px;
+
+font-weight:300;
+
+letter-spacing:1px;
+
+color:#cbd5e1;
+
+margin-top:10px;
+
 }
 
-.hero-sub {
-    color: #cbd5e1;
-    font-size: 20px;
-    margin-bottom: 28px;
+/* =========================
+FOOTER
+========================= */
+
+.footer{
+
+margin-top:60px;
+
+padding:25px;
+
+text-align:center;
+
+border-radius:22px;
+
+background:
+rgba(255,255,255,.04);
+
+border:
+1px solid rgba(255,255,255,.08);
+
+backdrop-filter:blur(15px);
+
+font-family:'Rajdhani',sans-serif;
+
+color:#94a3b8;
+
+font-size:15px;
+
 }
 
-.hero-btn {
-    display:inline-block;
-    padding:14px 28px;
-    border-radius:18px;
-    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
-    color:white;
-    font-weight:700;
-    box-shadow:0 10px 30px rgba(0,229,255,0.35);
+/* =========================
+HOVER GLOW
+========================= */
+
+.hero:hover{
+
+box-shadow:
+0 0 60px rgba(0,255,255,.12),
+0 0 140px rgba(139,92,246,.12);
+
 }
 
-/* ===== GRID ===== */
-.grid {
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-    gap:28px;
-}
+/* =========================
+RESPONSIVE
+========================= */
 
-/* ===== CARD ===== */
-.card {
-    position:relative;
-    overflow:hidden;
-    padding:35px;
-    border-radius:30px;
-    background: rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    transition:0.4s ease;
-    min-height:240px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.35);
-}
-
-.card:hover {
-    transform:translateY(-15px) scale(1.03);
-    border:1px solid rgba(0,229,255,0.45);
-    box-shadow:0 20px 60px rgba(0,229,255,0.18);
-}
-
-.card::before {
-    content:'';
-    position:absolute;
-    width:180px;
-    height:180px;
-    background:rgba(255,255,255,0.08);
-    border-radius:50%;
-    top:-60px;
-    right:-60px;
-}
-
-.card-icon {
-    width:85px;
-    height:85px;
-    border-radius:24px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:42px;
-    margin-bottom:25px;
-    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
-    border:1px solid rgba(255,255,255,0.12);
-}
-
-.card-title {
-    font-size:28px;
-    font-weight:800;
-    color:white;
-    margin-bottom:10px;
-}
-
-.card-desc {
-    color:#d1d5db;
-    line-height:1.7;
-    font-size:15px;
-    margin-bottom:24px;
-}
-
-.card-btn {
-    display:inline-block;
-    padding:12px 24px;
-    border-radius:16px;
-    background:rgba(255,255,255,0.10);
-    color:white;
-    font-weight:700;
-    transition:0.3s ease;
-}
-
-.card:hover .card-btn {
-    background:white;
-    color:black;
-}
-
-/* ===== COLORS ===== */
-.c1{border-top:4px solid #00e5ff;}
-.c2{border-top:4px solid #f59e0b;}
-.c3{border-top:4px solid #8b5cf6;}
-.c4{border-top:4px solid #10b981;}
-.c5{border-top:4px solid #ec4899;}
-.c6{border-top:4px solid #ef4444;}
-
-/* ===== LINKS ===== */
-a {
-    text-decoration:none !important;
-}
-
-/* ===== TICKER ===== */
-.ticker-wrap {
-    margin-top:40px;
-    overflow:hidden;
-    border-radius:24px;
-    padding:18px 0;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(10px);
-}
-
-.ticker {
-    display:inline-block;
-    white-space:nowrap;
-    padding-left:100%;
-    animation:scroll 18s linear infinite;
-    font-size:20px;
-    font-weight:700;
-    color:#00e5ff;
-}
-
-@keyframes scroll {
-    0% {transform:translateX(0);}
-    100% {transform:translateX(-100%);}
-}
-
-/* ===== STATS ===== */
-.stats {
-    margin-top:35px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:22px;
-}
-
-.stat {
-    padding:30px;
-    border-radius:25px;
-    text-align:center;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(12px);
-}
-
-.stat h1 {
-    font-size:48px;
-    color:white;
-    margin:0;
-}
-
-.stat p {
-    color:#cbd5e1;
-    margin-top:8px;
-}
-
-/* ===== MOBILE ===== */
 @media(max-width:768px){
 
-.hero {
-    padding:30px;
+.hero{
+padding:35px;
 }
 
-.hero-title {
-    font-size:42px;
+.hero-title{
+font-size:48px !important;
 }
 
-.card-title {
-    font-size:24px;
+.hero-sub{
+font-size:18px;
+}
+
+.card-title{
+font-size:24px;
+}
+
+.card-icon{
+width:75px;
+height:75px;
+font-size:38px;
+}
+
+.stat h1{
+font-size:46px;
+}
+
+.ticker{
+font-size:18px;
 }
 
 }
@@ -301,139 +916,51 @@ a {
 </style>
 """, unsafe_allow_html=True)
 
-# ================= BACKGROUND =================
-st.markdown("""
-<div class="bg-animation">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-</div>
-""", unsafe_allow_html=True)
+# =========================
+# PREMIUM TICKER
+# =========================
 
-# ================= HERO =================
-st.markdown("""
-<div class="hero">
-
-<div class="hero-title">
-Neo Digital <br>Dashboard
-</div>
-
-<div class="hero-sub">
-Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
-</div>
-
-<div class="hero-btn">
-⚡ SYSTEM ONLINE
-</div>
-
-</div>
-""", unsafe_allow_html=True)
-
-# ================= CARDS =================
-st.markdown(f"""
-<div class="grid">
-
-<a href="{link1}" target="_blank">
-<div class="card c1">
-<div class="card-icon">📊</div>
-<div class="card-title">PMY Verify</div>
-<div class="card-desc">
-Advanced PMY verification system with secure instant access.
-</div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link2}" target="_blank">
-<div class="card c2">
-<div class="card-icon">🏦</div>
-<div class="card-title">BOP Account</div>
-<div class="card-desc">
-Manage banking details and services with smart access.
-</div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link3}" target="_blank">
-<div class="card c3">
-<div class="card-icon">📁</div>
-<div class="card-title">ACAG Batch</div>
-<div class="card-desc">
-Track and monitor latest ACAG batch processing data.
-</div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link4}" target="_blank">
-<div class="card c4">
-<div class="card-icon">📲</div>
-<div class="card-title">PMY Apply</div>
-<div class="card-desc">
-Apply online and track PMY applications instantly.
-</div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link5}" target="_blank">
-<div class="card c5">
-<div class="card-icon">📝</div>
-<div class="card-title">ACAG Apply</div>
-<div class="card-desc">
-Smart ACAG application workflow with modern interface.
-</div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-<a href="{link6}" target="_blank">
-<div class="card c6">
-<div class="card-icon">🚀</div>
-<div class="card-title">QR Generator</div>
-<div class="card-desc">
-Generate stylish QR codes with advanced functionality.
-</div>
-<div class="card-btn">Open Portal →</div>
-</div>
-</a>
-
-</div>
-""", unsafe_allow_html=True)
-
-# ================= TICKER =================
 st.markdown("""
 <div class="ticker-wrap">
+
 <div class="ticker">
-⚡ ACAG Batch 31 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
+
+⚡ ACAG Batch 31 Updated • PMY Services Active •
+Secure Dashboard Online • All Systems Operational •
+Premium Cyber Dashboard Running • QR Generator Ready •
+Banking Services Available • Vision X Control Hub Live 🚀
+
 </div>
+
 </div>
 """, unsafe_allow_html=True)
 
-# ================= STATS =================
+# =========================
+# STATS
+# =========================
+
 st.markdown("""
+
 <div class="stats">
 
 <div class="stat">
 <h1>06</h1>
-<p>Quick Services</p>
+<p>QUICK SERVICES</p>
 </div>
 
 <div class="stat">
 <h1>24/7</h1>
-<p>Availability</p>
+<p>AVAILABILITY</p>
 </div>
 
 <div class="stat">
 <h1>99%</h1>
-<p>Fast Performance</p>
+<p>FAST PERFORMANCE</p>
 </div>
 
 <div class="stat">
 <h1>⚡</h1>
-<p>Premium UI</p>
+<p>PREMIUM EXPERIENCE</p>
 </div>
 
 </div>
-""", unsafe_allow_html=True)

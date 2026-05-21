@@ -938,7 +938,6 @@ Banking Services Available • Vision X Control Hub Live 🚀
 # =========================
 # STATS
 # =========================
-
 st.markdown("""
 
 <div class="stats">
@@ -963,3 +962,6 @@ st.markdown("""
 <p>PREMIUM EXPERIENCE</p>
 </div>
 
+</div>
+
+""", unsafe_allow_html=True)

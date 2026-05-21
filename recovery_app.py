@@ -12,8 +12,6 @@ st.set_page_config(
 # =========================
 # COMPACT MODE
 # =========================
-compact = st.toggle("⚡ Compact Mode")
-
 CARD_PADDING = "22px" if compact else "35px"
 TITLE_SIZE = "58px" if compact else "82px"
 

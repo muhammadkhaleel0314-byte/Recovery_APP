@@ -200,18 +200,53 @@ header {visibility:hidden;}
 }
 
 .card-btn {
-    display:inline-block;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+
     padding:12px 24px;
     border-radius:16px;
     background:rgba(255,255,255,0.10);
     color:white;
     font-weight:700;
     transition:0.3s ease;
+    position:relative;
 }
 
 .card:hover .card-btn {
     background:white;
     color:black;
+}
+
+/* ===== BUTTON SPINNER ===== */
+
+.loader{
+    width:16px;
+    height:16px;
+
+    border:2px solid rgba(255,255,255,0.4);
+    border-top:2px solid white;
+
+    border-radius:50%;
+
+    display:none;
+
+    animation:spin 0.7s linear infinite;
+}
+
+.loading .loader{
+    display:block;
+}
+
+.loading .btn-text{
+    opacity:0.7;
+}
+
+@keyframes spin{
+    100%{
+        transform:rotate(360deg);
+    }
 }
 
 /* ===== COLORS ===== */
@@ -301,6 +336,19 @@ a {
 </style>
 """, unsafe_allow_html=True)
 
+# ================= JS =================
+st.markdown("""
+<script>
+
+function startLoader(btn){
+
+    btn.classList.add("loading");
+
+}
+
+</script>
+""", unsafe_allow_html=True)
+
 # ================= BACKGROUND =================
 st.markdown("""
 <div class="bg-animation">
@@ -340,7 +388,10 @@ st.markdown(f"""
 <div class="card-desc">
 Advanced PMY verification system with secure instant access.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
 </div>
 </a>
 
@@ -351,7 +402,10 @@ Advanced PMY verification system with secure instant access.
 <div class="card-desc">
 Manage banking details and services with smart access.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
 </div>
 </a>
 
@@ -362,7 +416,10 @@ Manage banking details and services with smart access.
 <div class="card-desc">
 Track and monitor latest ACAG batch processing data.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
 </div>
 </a>
 
@@ -373,7 +430,10 @@ Track and monitor latest ACAG batch processing data.
 <div class="card-desc">
 Apply online and track PMY applications instantly.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
 </div>
 </a>
 
@@ -384,7 +444,10 @@ Apply online and track PMY applications instantly.
 <div class="card-desc">
 Smart ACAG application workflow with modern interface.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
 </div>
 </a>
 
@@ -395,7 +458,10 @@ Smart ACAG application workflow with modern interface.
 <div class="card-desc">
 Generate stylish QR codes with advanced functionality.
 </div>
-<div class="card-btn">Open Portal →</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
 </div>
 </a>
 

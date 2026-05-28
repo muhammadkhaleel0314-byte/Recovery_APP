@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 # ================= CONFIG =================
 st.set_page_config(
@@ -15,241 +16,435 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
+# ================= HEART PARTICLE ANIMATION =================
+components.html("""
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<style>
+
+html,body{
+margin:0;
+padding:0;
+overflow:hidden;
+background:#050816;
+}
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:-1;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="heart"></canvas>
+
+<script>
+
+const canvas =
+document.getElementById("heart");
+
+const ctx =
+canvas.getContext("2d");
+
+canvas.width =
+window.innerWidth;
+
+canvas.height =
+window.innerHeight;
+
+let particles = [];
+
+function heart(t){
+
+return {
+
+x:16*Math.pow(Math.sin(t),3),
+
+y:-(13*Math.cos(t)
+-5*Math.cos(2*t)
+-2*Math.cos(3*t)
+-Math.cos(4*t))
+
+};
+
+}
+
+for(let i=0;i<1600;i++){
+
+let t =
+Math.random()*Math.PI*2;
+
+let h =
+heart(t);
+
+particles.push({
+
+x:
+canvas.width/2 + h.x*18 +
+(Math.random()-0.5)*25,
+
+y:
+canvas.height/2 + h.y*18 +
+(Math.random()-0.5)*25,
+
+size:
+Math.random()*2+1,
+
+dx:
+(Math.random()-0.5)*0.7,
+
+dy:
+(Math.random()-0.5)*0.7
+
+});
+
+}
+
+function animate(){
+
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
+
+particles.forEach(p=>{
+
+p.x += p.dx;
+p.y += p.dy;
+
+ctx.beginPath();
+
+ctx.arc(
+p.x,
+p.y,
+p.size,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle =
+"rgba(255,0,80,0.8)";
+
+ctx.fill();
+
+});
+
+requestAnimationFrame(
+animate
+);
+
+}
+
+animate();
+
+window.addEventListener(
+"resize",
+()=>{
+
+canvas.width =
+window.innerWidth;
+
+canvas.height =
+window.innerHeight;
+
+});
+
+</script>
+
+</body>
+</html>
+
+""", height=0)
+
 # ================= CSS =================
 st.markdown("""
 <style>
 
-/* ===== MAIN BACKGROUND ===== */
-.stApp {
-    background: #050816;
+/* ===== MAIN ===== */
+
+.stApp{
+    background:transparent;
     overflow-x:hidden;
 }
 
 /* ===== REMOVE STREAMLIT ===== */
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
 
-.block-container {
-    padding-top: 1rem;
-    max-width: 1500px;
+#MainMenu{
+    visibility:hidden;
 }
 
-/* ===== ANIMATED BACKGROUND ===== */
-.bg-animation {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    overflow: hidden;
+footer{
+    visibility:hidden;
 }
 
-.circle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(0,255,255,0.08);
-    animation: float 14s infinite linear;
+header{
+    visibility:hidden;
 }
 
-.circle:nth-child(1){
-    width:300px;
-    height:300px;
-    left:5%;
-    top:10%;
-}
+/* ===== CONTAINER ===== */
 
-.circle:nth-child(2){
-    width:250px;
-    height:250px;
-    right:10%;
-    top:20%;
-    background: rgba(168,85,247,0.10);
-}
-
-.circle:nth-child(3){
-    width:200px;
-    height:200px;
-    left:35%;
-    bottom:10%;
-    background: rgba(59,130,246,0.10);
-}
-
-@keyframes float {
-    0%{transform:translateY(0px) rotate(0deg);}
-    50%{transform:translateY(-40px) rotate(180deg);}
-    100%{transform:translateY(0px) rotate(360deg);}
+.block-container{
+    padding-top:1rem;
+    max-width:1500px;
 }
 
 /* ===== HERO ===== */
-.hero {
-    position: relative;
-    padding: 55px;
-    border-radius: 35px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    box-shadow: 0 0 50px rgba(0,255,255,0.08);
-    margin-bottom: 40px;
+
+.hero{
+    position:relative;
+
+    padding:55px;
+
+    border-radius:35px;
+
+    overflow:hidden;
+
+    background:
+    rgba(255,255,255,0.05);
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    backdrop-filter:blur(18px);
+
+    box-shadow:
+    0 0 50px rgba(255,0,80,0.15);
+
+    margin-bottom:40px;
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 450px;
-    height: 450px;
-    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
-    border-radius: 50%;
-    filter: blur(120px);
-    top: -200px;
-    right: -120px;
-    opacity:0.4;
+.hero-title{
+
+    font-size:72px;
+
+    font-weight:900;
+
+    line-height:1;
+
+    margin-bottom:12px;
+
+    background:
+    linear-gradient(
+    to right,
+    #ffffff,
+    #ff4d8d,
+    #ff0066
+    );
+
+    -webkit-background-clip:text;
+
+    -webkit-text-fill-color:transparent;
 }
 
-.hero-title {
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 12px;
-    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.hero-sub{
+
+    color:#fbcfe8;
+
+    font-size:20px;
+
+    margin-bottom:28px;
 }
 
-.hero-sub {
-    color: #cbd5e1;
-    font-size: 20px;
-    margin-bottom: 28px;
-}
+.hero-btn{
 
-.hero-btn {
     display:inline-block;
+
     padding:14px 28px;
+
     border-radius:18px;
-    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
+
+    background:
+    linear-gradient(
+    90deg,
+    #ff0066,
+    #ff4d8d
+    );
+
     color:white;
+
     font-weight:700;
-    box-shadow:0 10px 30px rgba(0,229,255,0.35);
+
+    box-shadow:
+    0 10px 30px
+    rgba(255,0,100,0.35);
 }
 
 /* ===== GRID ===== */
-.grid {
+
+.grid{
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(300px,1fr));
+
     gap:28px;
 }
 
 /* ===== CARD ===== */
-.card {
+
+.card{
+
     position:relative;
+
     overflow:hidden;
+
     padding:35px;
+
     border-radius:30px;
-    background: rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
+
+    background:
+    rgba(255,255,255,0.05);
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
+    backdrop-filter:blur(18px);
+
     transition:0.4s ease;
+
     min-height:240px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.35);
+
+    box-shadow:
+    0 15px 40px rgba(0,0,0,0.35);
 }
 
-.card:hover {
-    transform:translateY(-15px) scale(1.03);
-    border:1px solid rgba(0,229,255,0.45);
-    box-shadow:0 20px 60px rgba(0,229,255,0.18);
+.card:hover{
+
+    transform:
+    translateY(-15px)
+    scale(1.03);
+
+    border:
+    1px solid rgba(255,0,100,0.5);
+
+    box-shadow:
+    0 20px 60px
+    rgba(255,0,100,0.20);
 }
 
-.card::before {
+.card::before{
+
     content:'';
+
     position:absolute;
+
     width:180px;
+
     height:180px;
-    background:rgba(255,255,255,0.08);
+
+    background:
+    rgba(255,255,255,0.08);
+
     border-radius:50%;
+
     top:-60px;
+
     right:-60px;
 }
 
-.card-icon {
+/* ===== ICON ===== */
+
+.card-icon{
+
     width:85px;
+
     height:85px;
+
     border-radius:24px;
+
     display:flex;
+
     align-items:center;
+
     justify-content:center;
+
     font-size:42px;
+
     margin-bottom:25px;
-    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
-    border:1px solid rgba(255,255,255,0.12);
+
+    background:
+    linear-gradient(
+    145deg,
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0.05)
+    );
+
+    border:
+    1px solid rgba(255,255,255,0.12);
 }
 
-.card-title {
+/* ===== TITLE ===== */
+
+.card-title{
+
     font-size:28px;
+
     font-weight:800;
+
     color:white;
+
     margin-bottom:10px;
 }
 
-.card-desc {
-    color:#d1d5db;
+.card-desc{
+
+    color:#f1f5f9;
+
     line-height:1.7;
+
     font-size:15px;
+
     margin-bottom:24px;
 }
 
-.card-btn {
+/* ===== BUTTON ===== */
+
+.card-btn{
+
     display:inline-flex;
+
     align-items:center;
+
     justify-content:center;
+
     gap:10px;
 
     padding:12px 24px;
+
     border-radius:16px;
-    background:rgba(255,255,255,0.10);
+
+    background:
+    rgba(255,255,255,0.10);
+
     color:white;
+
     font-weight:700;
+
     transition:0.3s ease;
-    position:relative;
 }
 
-.card:hover .card-btn {
+.card:hover .card-btn{
+
     background:white;
+
     color:black;
 }
 
-/* ===== BUTTON SPINNER ===== */
-
-.loader{
-    width:16px;
-    height:16px;
-
-    border:2px solid rgba(255,255,255,0.4);
-    border-top:2px solid white;
-
-    border-radius:50%;
-
-    display:none;
-
-    animation:spin 0.7s linear infinite;
-}
-
-.loading .loader{
-    display:block;
-}
-
-.loading .btn-text{
-    opacity:0.7;
-}
-
-@keyframes spin{
-    100%{
-        transform:rotate(360deg);
-    }
-}
-
 /* ===== COLORS ===== */
+
 .c1{border-top:4px solid #00e5ff;}
 .c2{border-top:4px solid #f59e0b;}
 .c3{border-top:4px solid #8b5cf6;}
@@ -258,104 +453,128 @@ header {visibility:hidden;}
 .c6{border-top:4px solid #ef4444;}
 
 /* ===== LINKS ===== */
-a {
+
+a{
     text-decoration:none !important;
 }
 
 /* ===== TICKER ===== */
-.ticker-wrap {
+
+.ticker-wrap{
+
     margin-top:40px;
+
     overflow:hidden;
+
     border-radius:24px;
+
     padding:18px 0;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
+
+    background:
+    rgba(255,255,255,0.05);
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
     backdrop-filter:blur(10px);
 }
 
-.ticker {
+.ticker{
+
     display:inline-block;
+
     white-space:nowrap;
+
     padding-left:100%;
-    animation:scroll 18s linear infinite;
+
+    animation:
+    scroll 18s linear infinite;
+
     font-size:20px;
+
     font-weight:700;
-    color:#00e5ff;
+
+    color:#ff4d8d;
 }
 
-@keyframes scroll {
-    0% {transform:translateX(0);}
-    100% {transform:translateX(-100%);}
+@keyframes scroll{
+
+0%{
+transform:translateX(0);
+}
+
+100%{
+transform:translateX(-100%);
+}
+
 }
 
 /* ===== STATS ===== */
-.stats {
+
+.stats{
+
     margin-top:35px;
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+
+    grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+
     gap:22px;
 }
 
-.stat {
+.stat{
+
     padding:30px;
+
     border-radius:25px;
+
     text-align:center;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
+
+    background:
+    rgba(255,255,255,0.05);
+
+    border:
+    1px solid rgba(255,255,255,0.08);
+
     backdrop-filter:blur(12px);
 }
 
-.stat h1 {
+.stat h1{
+
     font-size:48px;
+
     color:white;
+
     margin:0;
 }
 
-.stat p {
-    color:#cbd5e1;
+.stat p{
+
+    color:#fbcfe8;
+
     margin-top:8px;
 }
 
 /* ===== MOBILE ===== */
+
 @media(max-width:768px){
 
-.hero {
-    padding:30px;
+.hero{
+padding:30px;
 }
 
-.hero-title {
-    font-size:42px;
+.hero-title{
+font-size:42px;
 }
 
-.card-title {
-    font-size:24px;
+.card-title{
+font-size:24px;
 }
 
 }
 
 </style>
-""", unsafe_allow_html=True)
-
-# ================= JS =================
-st.markdown("""
-<script>
-
-function startLoader(btn){
-
-    btn.classList.add("loading");
-
-}
-
-</script>
-""", unsafe_allow_html=True)
-
-# ================= BACKGROUND =================
-st.markdown("""
-<div class="bg-animation">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-</div>
 """, unsafe_allow_html=True)
 
 # ================= HERO =================
@@ -367,11 +586,11 @@ Neo Digital <br>Dashboard
 </div>
 
 <div class="hero-sub">
-Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
+Heart Particle Animation • Premium Neon UI • Smooth Experience
 </div>
 
 <div class="hero-btn">
-⚡ SYSTEM ONLINE
+❤️ SYSTEM ONLINE
 </div>
 
 </div>
@@ -379,6 +598,7 @@ Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
 
 # ================= CARDS =================
 st.markdown(f"""
+
 <div class="grid">
 
 <a href="{link1}" target="_blank">
@@ -388,9 +608,8 @@ st.markdown(f"""
 <div class="card-desc">
 Advanced PMY verification system with secure instant access.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+<div class="card-btn">
+Open Portal →
 </div>
 </div>
 </a>
@@ -402,9 +621,8 @@ Advanced PMY verification system with secure instant access.
 <div class="card-desc">
 Manage banking details and services with smart access.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+<div class="card-btn">
+Open Portal →
 </div>
 </div>
 </a>
@@ -416,9 +634,8 @@ Manage banking details and services with smart access.
 <div class="card-desc">
 Track and monitor latest ACAG batch processing data.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+<div class="card-btn">
+Open Portal →
 </div>
 </div>
 </a>
@@ -430,9 +647,8 @@ Track and monitor latest ACAG batch processing data.
 <div class="card-desc">
 Apply online and track PMY applications instantly.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+<div class="card-btn">
+Open Portal →
 </div>
 </div>
 </a>
@@ -444,9 +660,8 @@ Apply online and track PMY applications instantly.
 <div class="card-desc">
 Smart ACAG application workflow with modern interface.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+<div class="card-btn">
+Open Portal →
 </div>
 </div>
 </a>
@@ -458,27 +673,32 @@ Smart ACAG application workflow with modern interface.
 <div class="card-desc">
 Generate stylish QR codes with advanced functionality.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+<div class="card-btn">
+Open Portal →
 </div>
 </div>
 </a>
 
 </div>
+
 """, unsafe_allow_html=True)
 
 # ================= TICKER =================
 st.markdown("""
+
 <div class="ticker-wrap">
+
 <div class="ticker">
-⚡ ACAG Batch 31 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
+❤️ ACAG Batch Updated • PMY Services Active • Heart Animation Enabled • Premium Dashboard Online 🚀
 </div>
+
 </div>
+
 """, unsafe_allow_html=True)
 
 # ================= STATS =================
 st.markdown("""
+
 <div class="stats">
 
 <div class="stat">
@@ -497,9 +717,10 @@ st.markdown("""
 </div>
 
 <div class="stat">
-<h1>⚡</h1>
-<p>Premium UI</p>
+<h1>❤️</h1>
+<p>Animated UI</p>
 </div>
 
 </div>
+
 """, unsafe_allow_html=True)

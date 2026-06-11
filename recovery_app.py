@@ -472,7 +472,7 @@ Generate stylish QR codes with advanced functionality.
 st.markdown("""
 <div class="ticker-wrap">
 <div class="ticker">
-⚡ ACAG Batch 31 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
+⚡ ACAG Batch 32 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
 </div>
 </div>
 """, unsafe_allow_html=True)

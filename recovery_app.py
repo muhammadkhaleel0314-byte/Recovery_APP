@@ -1,8 +1,10 @@
 import streamlit as st
+from datetime import datetime
+import random
 
 # ================= CONFIG =================
 st.set_page_config(
-    page_title="Neo Dashboard",
+    page_title="NEXUS CONTROL CENTER",
     page_icon="⚡",
     layout="wide"
 )
@@ -15,47 +17,61 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
+# ================= VISITOR COUNTER =================
+if "visits" not in st.session_state:
+    st.session_state.visits = 0
+
+st.session_state.visits += 1
+
+# ================= QUOTES =================
+quotes = [
+    "Success comes from consistency.",
+    "Stay focused and keep growing.",
+    "Innovation starts with action.",
+    "Small progress is still progress.",
+    "Dream big. Execute bigger."
+]
+
 # ================= CSS =================
 st.markdown("""
 <style>
 
-/* ===== MAIN BACKGROUND ===== */
-.stApp {
-    background: #050816;
+.stApp{
+    background:#050816;
     overflow-x:hidden;
 }
 
-/* ===== REMOVE STREAMLIT ===== */
-#MainMenu {visibility:hidden;}
-footer {visibility:hidden;}
-header {visibility:hidden;}
+#MainMenu{visibility:hidden;}
+footer{visibility:hidden;}
+header{visibility:hidden;}
 
-.block-container {
-    padding-top: 1rem;
-    max-width: 1500px;
+.block-container{
+    padding-top:1rem;
+    max-width:1500px;
 }
 
-/* ===== ANIMATED BACKGROUND ===== */
-.bg-animation {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    overflow: hidden;
+/* ===== Animated Background ===== */
+
+.bg-animation{
+    position:fixed;
+    width:100%;
+    height:100%;
+    top:0;
+    left:0;
+    z-index:-1;
+    overflow:hidden;
 }
 
-.circle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(0,255,255,0.08);
-    animation: float 14s infinite linear;
+.circle{
+    position:absolute;
+    border-radius:50%;
+    animation:float 14s infinite linear;
 }
 
 .circle:nth-child(1){
     width:300px;
     height:300px;
+    background:rgba(0,229,255,0.08);
     left:5%;
     top:10%;
 }
@@ -63,116 +79,270 @@ header {visibility:hidden;}
 .circle:nth-child(2){
     width:250px;
     height:250px;
+    background:rgba(139,92,246,0.08);
     right:10%;
     top:20%;
-    background: rgba(168,85,247,0.10);
 }
 
 .circle:nth-child(3){
-    width:200px;
-    height:200px;
-    left:35%;
+    width:220px;
+    height:220px;
+    background:rgba(16,185,129,0.08);
+    left:40%;
     bottom:10%;
-    background: rgba(59,130,246,0.10);
 }
 
-@keyframes float {
-    0%{transform:translateY(0px) rotate(0deg);}
-    50%{transform:translateY(-40px) rotate(180deg);}
-    100%{transform:translateY(0px) rotate(360deg);}
+@keyframes float{
+0%{transform:translateY(0) rotate(0deg);}
+50%{transform:translateY(-40px) rotate(180deg);}
+100%{transform:translateY(0) rotate(360deg);}
+}
+
+/* ===== TOP INFO BAR ===== */
+
+.info-bar{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(15px);
+    border-radius:20px;
+    padding:15px;
+    margin-bottom:20px;
+    text-align:center;
+    color:white;
+    font-size:18px;
+    font-weight:700;
+}
+
+/* ===== GREETING ===== */
+
+.greet{
+    background:linear-gradient(90deg,#00e5ff,#8b5cf6);
+    padding:18px;
+    border-radius:20px;
+    text-align:center;
+    color:white;
+    font-size:28px;
+    font-weight:900;
+    margin-bottom:25px;
+    box-shadow:0 10px 30px rgba(0,229,255,.25);
 }
 
 /* ===== HERO ===== */
-.hero {
-    position: relative;
-    padding: 55px;
-    border-radius: 35px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
-    box-shadow: 0 0 50px rgba(0,255,255,0.08);
-    margin-bottom: 40px;
+
+.hero{
+    position:relative;
+    overflow:hidden;
+    padding:60px;
+    border-radius:35px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(18px);
+    margin-bottom:35px;
 }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 450px;
-    height: 450px;
-    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
-    border-radius: 50%;
-    filter: blur(120px);
-    top: -200px;
-    right: -120px;
-    opacity:0.4;
+.hero:before{
+    content:'';
+    position:absolute;
+    width:450px;
+    height:450px;
+    border-radius:50%;
+    background:linear-gradient(45deg,#00e5ff,#8b5cf6);
+    filter:blur(120px);
+    right:-150px;
+    top:-200px;
+    opacity:.35;
 }
 
-.hero-title {
-    font-size: 72px;
-    font-weight: 900;
-    line-height: 1;
-    margin-bottom: 12px;
-    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.hero-title{
+    font-size:72px;
+    font-weight:900;
+    background:linear-gradient(to right,#fff,#00e5ff,#8b5cf6);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
 }
 
-.hero-sub {
-    color: #cbd5e1;
-    font-size: 20px;
-    margin-bottom: 28px;
+.hero-sub{
+    color:#cbd5e1;
+    font-size:20px;
+    margin-top:10px;
 }
 
-.hero-btn {
+.hero-btn{
     display:inline-block;
+    margin-top:25px;
     padding:14px 28px;
     border-radius:18px;
-    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
+    background:linear-gradient(90deg,#00e5ff,#8b5cf6);
     color:white;
-    font-weight:700;
-    box-shadow:0 10px 30px rgba(0,229,255,0.35);
+    font-weight:800;
 }
 
-/* ===== GRID ===== */
-.grid {
+/* ===== SEARCH ===== */
+
+.search-box{
+    margin-top:25px;
+}
+
+/* ===== STATS ===== */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-top:30px;
+}
+
+.stat{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:25px;
+    padding:25px;
+    text-align:center;
+    backdrop-filter:blur(15px);
+}
+
+.stat h1{
+    color:white;
+    font-size:45px;
+    margin:0;
+}
+
+.stat p{
+    color:#cbd5e1;
+}
+
+@media(max-width:768px){
+
+.hero{
+padding:30px;
+}
+
+.hero-title{
+font-size:42px;
+}
+
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ================= BACKGROUND =================
+
+st.markdown("""
+<div class="bg-animation">
+<div class="circle"></div>
+<div class="circle"></div>
+<div class="circle"></div>
+</div>
+""", unsafe_allow_html=True)
+
+# ================= CLOCK =================
+
+now = datetime.now()
+
+st.markdown(f"""
+<div class="info-bar">
+🕒 {now.strftime("%d %B %Y | %I:%M:%S %p")}
+</div>
+""", unsafe_allow_html=True)
+
+# ================= GREETING =================
+
+hour = now.hour
+
+if hour < 12:
+    greet = "🌅 Good Morning"
+elif hour < 18:
+    greet = "☀️ Good Afternoon"
+else:
+    greet = "🌙 Good Evening"
+
+st.markdown(f"""
+<div class="greet">
+{greet}
+</div>
+""", unsafe_allow_html=True)
+
+# ================= HERO =================
+
+st.markdown("""
+<div class="hero">
+
+<div class="hero-title">
+NEXUS CONTROL CENTER
+</div>
+
+<div class="hero-sub">
+AI Powered • Futuristic Glass UI • Premium Experience
+</div>
+
+<div class="hero-btn">
+⚡ ALL SYSTEMS OPERATIONAL
+</div>
+
+</div>
+""", unsafe_allow_html=True)
+
+# ================= SEARCH =================
+
+search = st.text_input(
+    "🔍 Search Service",
+    placeholder="PMY, BOP, ACAG..."
+)
+
+if search:
+    st.success(f"Searching: {search}")
+
+# ================= QUOTE =================
+
+st.info("💡 " + random.choice(quotes))
+# ================= EXTRA CSS FOR CARDS =================
+
+st.markdown("""
+<style>
+
+.grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
     gap:28px;
+    margin-top:30px;
 }
 
-/* ===== CARD ===== */
-.card {
+.card{
     position:relative;
     overflow:hidden;
     padding:35px;
     border-radius:30px;
-    background: rgba(255,255,255,0.05);
+    background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
+    backdrop-filter:blur(18px);
     transition:0.4s ease;
     min-height:240px;
     box-shadow:0 15px 40px rgba(0,0,0,0.35);
 }
 
-.card:hover {
+.card:hover{
     transform:translateY(-15px) scale(1.03);
-    border:1px solid rgba(0,229,255,0.45);
-    box-shadow:0 20px 60px rgba(0,229,255,0.18);
+    border:1px solid rgba(0,229,255,0.5);
+
+    box-shadow:
+    0 0 20px #00e5ff,
+    0 0 40px #00e5ff,
+    0 0 80px #8b5cf6;
 }
 
-.card::before {
+.card:before{
     content:'';
     position:absolute;
     width:180px;
     height:180px;
-    background:rgba(255,255,255,0.08);
     border-radius:50%;
     top:-60px;
     right:-60px;
+    background:rgba(255,255,255,0.06);
 }
 
-.card-icon {
+.card-icon{
     width:85px;
     height:85px;
     border-radius:24px;
@@ -181,75 +351,45 @@ header {visibility:hidden;}
     justify-content:center;
     font-size:42px;
     margin-bottom:25px;
-    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
+
+    background:linear-gradient(
+    145deg,
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0.05)
+    );
+
     border:1px solid rgba(255,255,255,0.12);
 }
 
-.card-title {
+.card-title{
     font-size:28px;
     font-weight:800;
     color:white;
     margin-bottom:10px;
 }
 
-.card-desc {
+.card-desc{
     color:#d1d5db;
     line-height:1.7;
     font-size:15px;
-    margin-bottom:24px;
+    margin-bottom:25px;
 }
 
-.card-btn {
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:10px;
-
+.card-btn{
+    display:inline-block;
     padding:12px 24px;
     border-radius:16px;
     background:rgba(255,255,255,0.10);
     color:white;
     font-weight:700;
     transition:0.3s ease;
-    position:relative;
 }
 
-.card:hover .card-btn {
+.card:hover .card-btn{
     background:white;
     color:black;
 }
 
-/* ===== BUTTON SPINNER ===== */
-
-.loader{
-    width:16px;
-    height:16px;
-
-    border:2px solid rgba(255,255,255,0.4);
-    border-top:2px solid white;
-
-    border-radius:50%;
-
-    display:none;
-
-    animation:spin 0.7s linear infinite;
-}
-
-.loading .loader{
-    display:block;
-}
-
-.loading .btn-text{
-    opacity:0.7;
-}
-
-@keyframes spin{
-    100%{
-        transform:rotate(360deg);
-    }
-}
-
-/* ===== COLORS ===== */
 .c1{border-top:4px solid #00e5ff;}
 .c2{border-top:4px solid #f59e0b;}
 .c3{border-top:4px solid #8b5cf6;}
@@ -257,249 +397,282 @@ header {visibility:hidden;}
 .c5{border-top:4px solid #ec4899;}
 .c6{border-top:4px solid #ef4444;}
 
-/* ===== LINKS ===== */
-a {
+a{
     text-decoration:none !important;
-}
-
-/* ===== TICKER ===== */
-.ticker-wrap {
-    margin-top:40px;
-    overflow:hidden;
-    border-radius:24px;
-    padding:18px 0;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(10px);
-}
-
-.ticker {
-    display:inline-block;
-    white-space:nowrap;
-    padding-left:100%;
-    animation:scroll 18s linear infinite;
-    font-size:20px;
-    font-weight:700;
-    color:#00e5ff;
-}
-
-@keyframes scroll {
-    0% {transform:translateX(0);}
-    100% {transform:translateX(-100%);}
-}
-
-/* ===== STATS ===== */
-.stats {
-    margin-top:35px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:22px;
-}
-
-.stat {
-    padding:30px;
-    border-radius:25px;
-    text-align:center;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(12px);
-}
-
-.stat h1 {
-    font-size:48px;
-    color:white;
-    margin:0;
-}
-
-.stat p {
-    color:#cbd5e1;
-    margin-top:8px;
-}
-
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-
-.hero {
-    padding:30px;
-}
-
-.hero-title {
-    font-size:42px;
-}
-
-.card-title {
-    font-size:24px;
-}
-
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ================= JS =================
+# ================= SERVICES TITLE =================
+
 st.markdown("""
-<script>
-
-function startLoader(btn){
-
-    btn.classList.add("loading");
-
-}
-
-</script>
-""", unsafe_allow_html=True)
-
-# ================= BACKGROUND =================
-st.markdown("""
-<div class="bg-animation">
-    <div class="circle"></div>
-    <div class="circle"></div>
-    <div class="circle"></div>
-</div>
-""", unsafe_allow_html=True)
-
-# ================= HERO =================
-st.markdown("""
-<div class="hero">
-
-<div class="hero-title">
-Neo Digital <br>Dashboard
-</div>
-
-<div class="hero-sub">
-Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
-</div>
-
-<div class="hero-btn">
-⚡ SYSTEM ONLINE
-</div>
-
-</div>
+<h2 style="
+color:white;
+margin-top:20px;
+margin-bottom:20px;">
+🚀 Quick Access Services
+</h2>
 """, unsafe_allow_html=True)
 
 # ================= CARDS =================
+
 st.markdown(f"""
+
 <div class="grid">
 
 <a href="{link1}" target="_blank">
 <div class="card c1">
+
 <div class="card-icon">📊</div>
-<div class="card-title">PMY Verify</div>
+
+<div class="card-title">
+PMY Verify
+</div>
+
 <div class="card-desc">
 Advanced PMY verification system with secure instant access.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+
+<div class="card-btn">
+Open Portal →
 </div>
+
 </div>
 </a>
 
 <a href="{link2}" target="_blank">
 <div class="card c2">
+
 <div class="card-icon">🏦</div>
-<div class="card-title">BOP Account</div>
+
+<div class="card-title">
+BOP Account
+</div>
+
 <div class="card-desc">
 Manage banking details and services with smart access.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+
+<div class="card-btn">
+Open Portal →
 </div>
+
 </div>
 </a>
 
 <a href="{link3}" target="_blank">
 <div class="card c3">
+
 <div class="card-icon">📁</div>
-<div class="card-title">ACAG Batch</div>
+
+<div class="card-title">
+ACAG Batch
+</div>
+
 <div class="card-desc">
 Track and monitor latest ACAG batch processing data.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+
+<div class="card-btn">
+Open Portal →
 </div>
+
 </div>
 </a>
 
 <a href="{link4}" target="_blank">
 <div class="card c4">
+
 <div class="card-icon">📲</div>
-<div class="card-title">PMY Apply</div>
+
+<div class="card-title">
+PMY Apply
+</div>
+
 <div class="card-desc">
 Apply online and track PMY applications instantly.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+
+<div class="card-btn">
+Open Portal →
 </div>
+
 </div>
 </a>
 
 <a href="{link5}" target="_blank">
 <div class="card c5">
+
 <div class="card-icon">📝</div>
-<div class="card-title">ACAG Apply</div>
+
+<div class="card-title">
+ACAG Apply
+</div>
+
 <div class="card-desc">
 Smart ACAG application workflow with modern interface.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+
+<div class="card-btn">
+Open Portal →
 </div>
+
 </div>
 </a>
 
 <a href="{link6}" target="_blank">
 <div class="card c6">
+
 <div class="card-icon">🚀</div>
-<div class="card-title">QR Generator</div>
+
+<div class="card-title">
+Recovery Dashboard
+</div>
+
 <div class="card-desc">
-Generate stylish QR codes with advanced functionality.
+Recovery reports, overdue analysis and smart tracking.
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
+
+<div class="card-btn">
+Open Portal →
 </div>
+
 </div>
 </a>
 
 </div>
+
+""", unsafe_allow_html=True)
+
+# ================= SYSTEM HEALTH =================
+
+st.markdown("""
+<br>
+<h3 style="color:white;">
+⚡ System Health
+</h3>
+""", unsafe_allow_html=True)
+
+st.progress(99)
+
+st.success("All Systems Operational")
+# ================= VISITOR COUNTER DISPLAY =================
+
+st.markdown(f"""
+<div style="
+margin-top:25px;
+padding:18px;
+border-radius:20px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;
+color:white;
+font-size:18px;
+font-weight:700;">
+👥 Page Visits (Session): {st.session_state.visits}
+</div>
 """, unsafe_allow_html=True)
 
 # ================= TICKER =================
+
 st.markdown("""
-<div class="ticker-wrap">
-<div class="ticker">
-⚡ ACAG Batch 32 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
+<div style="
+margin-top:35px;
+overflow:hidden;
+border-radius:24px;
+padding:15px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);">
+
+<div style="
+display:inline-block;
+white-space:nowrap;
+padding-left:100%;
+animation:scroll 18s linear infinite;
+color:#00e5ff;
+font-weight:800;
+font-size:18px;">
+
+⚡ ACAG Batch Updated • PMY Services Active • Recovery Dashboard Live • Secure System Running • AI Optimization Enabled 🚀
+
 </div>
+
 </div>
+
+<style>
+@keyframes scroll {
+0% {transform:translateX(0);}
+100% {transform:translateX(-100%);}
+}
+</style>
 """, unsafe_allow_html=True)
 
 # ================= STATS =================
+
 st.markdown("""
-<div class="stats">
+<div style="
+margin-top:35px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;">
 
-<div class="stat">
-<h1>06</h1>
-<p>Quick Services</p>
+<div style="
+padding:25px;
+border-radius:25px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;
+backdrop-filter:blur(12px);">
+<h1 style="color:white;font-size:45px;margin:0;">06</h1>
+<p style="color:#cbd5e1;">Quick Services</p>
 </div>
 
-<div class="stat">
-<h1>24/7</h1>
-<p>Availability</p>
+<div style="
+padding:25px;
+border-radius:25px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;">
+<h1 style="color:white;font-size:45px;margin:0;">24/7</h1>
+<p style="color:#cbd5e1;">Availability</p>
 </div>
 
-<div class="stat">
-<h1>99%</h1>
-<p>Fast Performance</p>
+<div style="
+padding:25px;
+border-radius:25px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;">
+<h1 style="color:white;font-size:45px;margin:0;">99%</h1>
+<p style="color:#cbd5e1;">Performance</p>
 </div>
 
-<div class="stat">
-<h1>⚡</h1>
-<p>Premium UI</p>
+<div style="
+padding:25px;
+border-radius:25px;
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+text-align:center;">
+<h1 style="color:white;font-size:45px;margin:0;">⚡</h1>
+<p style="color:#cbd5e1;">Neon UI</p>
 </div>
+
+</div>
+""", unsafe_allow_html=True)
+
+# ================= FOOTER =================
+
+st.markdown("""
+<br><br>
+<div style="
+text-align:center;
+padding:25px;
+color:#94a3b8;
+font-size:14px;
+border-top:1px solid rgba(255,255,255,0.08);">
+
+⚡ NEXUS CONTROL CENTER • Built with Streamlit • Premium Glass UI • 2026
 
 </div>
 """, unsafe_allow_html=True)

@@ -1,10 +1,8 @@
 import streamlit as st
-from datetime import datetime
-import random
 
 # ================= CONFIG =================
 st.set_page_config(
-    page_title="NEXUS CONTROL CENTER",
+    page_title="Neo Dashboard",
     page_icon="⚡",
     layout="wide"
 )
@@ -17,324 +15,491 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# ================= VISITOR COUNTER =================
-if "visits" not in st.session_state:
-    st.session_state.visits = 0
-
-st.session_state.visits += 1
-
-# ================= QUOTES =================
-quotes = [
-    "Success comes from consistency.",
-    "Stay focused and keep growing.",
-    "Innovation starts with action.",
-    "Small progress is still progress.",
-    "Dream big. Execute bigger."
-]
-
 # ================= CSS =================
 st.markdown("""
 <style>
 
-.stApp{
-    background:#050816;
+/* ===== MAIN BACKGROUND ===== */
+.stApp {
+    background: #050816;
+    overflow-x:hidden;
 }
 
-/* hide streamlit UI */
-#MainMenu, footer, header {visibility:hidden;}
+/* ===== REMOVE STREAMLIT ===== */
+#MainMenu {visibility:hidden;}
+footer {visibility:hidden;}
+header {visibility:hidden;}
 
-.block-container{
-    padding-top:1rem;
-    max-width:1500px;
+.block-container {
+    padding-top: 1rem;
+    max-width: 1500px;
 }
 
-/* ===== BACKGROUND ===== */
-.bg{
-    position:fixed;
-    width:100%;
-    height:100%;
-    z-index:-1;
+/* ===== ANIMATED BACKGROUND ===== */
+.bg-animation {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    overflow: hidden;
 }
 
-.circle{
-    position:absolute;
-    border-radius:50%;
-    animation:float 12s infinite linear;
+.circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(0,255,255,0.08);
+    animation: float 14s infinite linear;
 }
 
 .circle:nth-child(1){
-    width:300px;height:300px;
-    background:rgba(0,229,255,0.08);
-    left:5%;top:10%;
+    width:300px;
+    height:300px;
+    left:5%;
+    top:10%;
 }
 
 .circle:nth-child(2){
-    width:250px;height:250px;
-    background:rgba(139,92,246,0.08);
-    right:10%;top:20%;
+    width:250px;
+    height:250px;
+    right:10%;
+    top:20%;
+    background: rgba(168,85,247,0.10);
 }
 
 .circle:nth-child(3){
-    width:220px;height:220px;
-    background:rgba(16,185,129,0.08);
-    left:40%;bottom:10%;
+    width:200px;
+    height:200px;
+    left:35%;
+    bottom:10%;
+    background: rgba(59,130,246,0.10);
 }
 
-@keyframes float{
-0%{transform:translateY(0);}
-50%{transform:translateY(-40px);}
-100%{transform:translateY(0);}
-}
-
-/* ===== TOP BAR ===== */
-.topbar{
-    padding:15px;
-    border-radius:20px;
-    background:rgba(255,255,255,0.05);
-    text-align:center;
-    color:white;
-    font-weight:700;
-    margin-bottom:15px;
-}
-
-/* ===== GREETING ===== */
-.greet{
-    text-align:center;
-    padding:18px;
-    border-radius:20px;
-    background:linear-gradient(90deg,#00e5ff,#8b5cf6);
-    color:white;
-    font-size:26px;
-    font-weight:900;
-    margin-bottom:25px;
+@keyframes float {
+    0%{transform:translateY(0px) rotate(0deg);}
+    50%{transform:translateY(-40px) rotate(180deg);}
+    100%{transform:translateY(0px) rotate(360deg);}
 }
 
 /* ===== HERO ===== */
-.hero{
-    padding:55px;
-    border-radius:30px;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(15px);
-    margin-bottom:30px;
+.hero {
+    position: relative;
+    padding: 55px;
+    border-radius: 35px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 0 50px rgba(0,255,255,0.08);
+    margin-bottom: 40px;
 }
 
-.hero-title{
-    font-size:60px;
-    font-weight:900;
-    background:linear-gradient(to right,#fff,#00e5ff,#8b5cf6);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
+.hero::before {
+    content: '';
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
+    border-radius: 50%;
+    filter: blur(120px);
+    top: -200px;
+    right: -120px;
+    opacity:0.4;
 }
 
-.hero-sub{
-    color:#cbd5e1;
-    font-size:18px;
+.hero-title {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 12px;
+    background: linear-gradient(to right,#ffffff,#00e5ff,#8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* ===== SEARCH ===== */
-input{
-    border-radius:12px !important;
+.hero-sub {
+    color: #cbd5e1;
+    font-size: 20px;
+    margin-bottom: 28px;
 }
 
-/* ===== CARDS ===== */
-.grid{
+.hero-btn {
+    display:inline-block;
+    padding:14px 28px;
+    border-radius:18px;
+    background: linear-gradient(90deg,#00e5ff,#8b5cf6);
+    color:white;
+    font-weight:700;
+    box-shadow:0 10px 30px rgba(0,229,255,0.35);
+}
+
+/* ===== GRID ===== */
+.grid {
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:20px;
-    margin-top:25px;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+    gap:28px;
 }
 
-.card{
-    padding:30px;
-    border-radius:25px;
-    background:rgba(255,255,255,0.05);
+/* ===== CARD ===== */
+.card {
+    position:relative;
+    overflow:hidden;
+    padding:35px;
+    border-radius:30px;
+    background: rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(15px);
-    transition:0.3s;
-    text-align:center;
+    backdrop-filter: blur(18px);
+    transition:0.4s ease;
+    min-height:240px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.35);
 }
 
-.card:hover{
-    transform:translateY(-10px);
-    box-shadow:0 0 25px rgba(0,229,255,0.3);
+.card:hover {
+    transform:translateY(-15px) scale(1.03);
+    border:1px solid rgba(0,229,255,0.45);
+    box-shadow:0 20px 60px rgba(0,229,255,0.18);
 }
 
-.icon{
-    font-size:40px;
+.card::before {
+    content:'';
+    position:absolute;
+    width:180px;
+    height:180px;
+    background:rgba(255,255,255,0.08);
+    border-radius:50%;
+    top:-60px;
+    right:-60px;
+}
+
+.card-icon {
+    width:85px;
+    height:85px;
+    border-radius:24px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    margin-bottom:25px;
+    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
+    border:1px solid rgba(255,255,255,0.12);
+}
+
+.card-title {
+    font-size:28px;
+    font-weight:800;
+    color:white;
     margin-bottom:10px;
 }
 
-.title{
-    font-size:22px;
-    font-weight:800;
-    color:white;
+.card-desc {
+    color:#d1d5db;
+    line-height:1.7;
+    font-size:15px;
+    margin-bottom:24px;
 }
 
-.desc{
-    color:#cbd5e1;
-    font-size:14px;
-    margin:10px 0;
-}
+.card-btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
 
-.btn{
-    display:inline-block;
-    padding:10px 18px;
-    border-radius:12px;
-    background:rgba(255,255,255,0.1);
+    padding:12px 24px;
+    border-radius:16px;
+    background:rgba(255,255,255,0.10);
     color:white;
     font-weight:700;
+    transition:0.3s ease;
+    position:relative;
 }
 
-/* ===== ULTRA CARDS ===== */
-.ultra{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
-    margin-top:35px;
+.card:hover .card-btn {
+    background:white;
+    color:black;
 }
 
-.ucard{
-    padding:25px;
-    border-radius:20px;
-    text-align:center;
-    background:rgba(255,255,255,0.04);
-    border:1px solid rgba(255,255,255,0.08);
+/* ===== BUTTON SPINNER ===== */
+
+.loader{
+    width:16px;
+    height:16px;
+
+    border:2px solid rgba(255,255,255,0.4);
+    border-top:2px solid white;
+
+    border-radius:50%;
+
+    display:none;
+
+    animation:spin 0.7s linear infinite;
 }
 
-.num{
-    font-size:40px;
-    font-weight:900;
-    color:white;
+.loading .loader{
+    display:block;
+}
+
+.loading .btn-text{
+    opacity:0.7;
+}
+
+@keyframes spin{
+    100%{
+        transform:rotate(360deg);
+    }
+}
+
+/* ===== COLORS ===== */
+.c1{border-top:4px solid #00e5ff;}
+.c2{border-top:4px solid #f59e0b;}
+.c3{border-top:4px solid #8b5cf6;}
+.c4{border-top:4px solid #10b981;}
+.c5{border-top:4px solid #ec4899;}
+.c6{border-top:4px solid #ef4444;}
+
+/* ===== LINKS ===== */
+a {
+    text-decoration:none !important;
 }
 
 /* ===== TICKER ===== */
-.ticker{
-    margin-top:30px;
-    padding:15px;
-    border-radius:20px;
-    overflow:hidden;
-    background:rgba(255,255,255,0.05);
-}
-
-.scroll{
-    white-space:nowrap;
-    display:inline-block;
-    animation:scroll 15s linear infinite;
-    color:#00e5ff;
-    font-weight:800;
-}
-
-@keyframes scroll{
-0%{transform:translateX(0);}
-100%{transform:translateX(-100%);}
-}
-
-/* ===== FOOTER ===== */
-.footer{
+.ticker-wrap {
     margin-top:40px;
+    overflow:hidden;
+    border-radius:24px;
+    padding:18px 0;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(10px);
+}
+
+.ticker {
+    display:inline-block;
+    white-space:nowrap;
+    padding-left:100%;
+    animation:scroll 18s linear infinite;
+    font-size:20px;
+    font-weight:700;
+    color:#00e5ff;
+}
+
+@keyframes scroll {
+    0% {transform:translateX(0);}
+    100% {transform:translateX(-100%);}
+}
+
+/* ===== STATS ===== */
+.stats {
+    margin-top:35px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:22px;
+}
+
+.stat {
+    padding:30px;
+    border-radius:25px;
     text-align:center;
-    color:#94a3b8;
-    padding:20px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+}
+
+.stat h1 {
+    font-size:48px;
+    color:white;
+    margin:0;
+}
+
+.stat p {
+    color:#cbd5e1;
+    margin-top:8px;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+
+.hero {
+    padding:30px;
+}
+
+.hero-title {
+    font-size:42px;
+}
+
+.card-title {
+    font-size:24px;
+}
+
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+# ================= JS =================
+st.markdown("""
+<script>
+
+function startLoader(btn){
+
+    btn.classList.add("loading");
+
+}
+
+</script>
+""", unsafe_allow_html=True)
+
 # ================= BACKGROUND =================
 st.markdown("""
-<div class="bg">
-<div class="circle"></div>
-<div class="circle"></div>
-<div class="circle"></div>
+<div class="bg-animation">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
 </div>
-""", unsafe_allow_html=True)
-
-# ================= CLOCK =================
-now = datetime.now()
-
-st.markdown(f"""
-<div class="topbar">
-🕒 {now.strftime("%d %B %Y | %I:%M:%S %p")}
-</div>
-""", unsafe_allow_html=True)
-
-# ================= GREETING =================
-hour = now.hour
-
-greet = "🌙 Good Evening"
-if hour < 12:
-    greet = "🌅 Good Morning"
-elif hour < 18:
-    greet = "☀️ Good Afternoon"
-
-st.markdown(f"""
-<div class="greet">{greet}</div>
 """, unsafe_allow_html=True)
 
 # ================= HERO =================
 st.markdown("""
 <div class="hero">
-<div class="hero-title">NEXUS CONTROL CENTER</div>
-<div class="hero-sub">Futuristic Glass Dashboard • Neon UI • Smart System</div>
+
+<div class="hero-title">
+Neo Digital <br>Dashboard
+</div>
+
+<div class="hero-sub">
+Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
+</div>
+
+<div class="hero-btn">
+⚡ SYSTEM ONLINE
+</div>
+
 </div>
 """, unsafe_allow_html=True)
-
-# ================= SEARCH =================
-search = st.text_input("🔍 Search Service")
-
-if search:
-    st.success(f"Searching: {search}")
-
-# ================= QUOTE =================
-st.info("💡 " + random.choice(quotes))
 
 # ================= CARDS =================
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank"><div class="card"><div class="icon">📊</div><div class="title">PMY Verify</div><div class="desc">Verification System</div><div class="btn">Open</div></div></a>
-
-<a href="{link2}" target="_blank"><div class="card"><div class="icon">🏦</div><div class="title">BOP</div><div class="desc">Bank Portal</div><div class="btn">Open</div></div></a>
-
-<a href="{link3}" target="_blank"><div class="card"><div class="icon">📁</div><div class="title">ACAG</div><div class="desc">Batch Data</div><div class="btn">Open</div></div></a>
-
-<a href="{link4}" target="_blank"><div class="card"><div class="icon">📲</div><div class="title">PMY Apply</div><div class="desc">Online Apply</div><div class="btn">Open</div></div></a>
-
-<a href="{link5}" target="_blank"><div class="card"><div class="icon">📝</div><div class="title">ACAG Apply</div><div class="desc">Application</div><div class="btn">Open</div></div></a>
-
-<a href="{link6}" target="_blank"><div class="card"><div class="icon">🚀</div><div class="title">Recovery</div><div class="desc">Dashboard</div><div class="btn">Open</div></div></a>
-
+<a href="{link1}" target="_blank">
+<div class="card c1">
+<div class="card-icon">📊</div>
+<div class="card-title">PMY Verify</div>
+<div class="card-desc">
+Advanced PMY verification system with secure instant access.
 </div>
-""", unsafe_allow_html=True)
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
+</div>
+</a>
 
-# ================= ULTRA STATS =================
-st.markdown(f"""
-<div class="ultra">
+<a href="{link2}" target="_blank">
+<div class="card c2">
+<div class="card-icon">🏦</div>
+<div class="card-title">BOP Account</div>
+<div class="card-desc">
+Manage banking details and services with smart access.
+</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
+</div>
+</a>
 
-<div class="ucard"><div class="num">99%</div><p>System Health</p></div>
+<a href="{link3}" target="_blank">
+<div class="card c3">
+<div class="card-icon">📁</div>
+<div class="card-title">ACAG Batch</div>
+<div class="card-desc">
+Track and monitor latest ACAG batch processing data.
+</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
+</div>
+</a>
 
-<div class="ucard"><div class="num">06</div><p>Services</p></div>
+<a href="{link4}" target="_blank">
+<div class="card c4">
+<div class="card-icon">📲</div>
+<div class="card-title">PMY Apply</div>
+<div class="card-desc">
+Apply online and track PMY applications instantly.
+</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
+</div>
+</a>
 
-<div class="ucard"><div class="num">24/7</div><p>Active</p></div>
+<a href="{link5}" target="_blank">
+<div class="card c5">
+<div class="card-icon">📝</div>
+<div class="card-title">ACAG Apply</div>
+<div class="card-desc">
+Smart ACAG application workflow with modern interface.
+</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
+</div>
+</a>
 
-<div class="ucard"><div class="num">{st.session_state.visits}</div><p>Visits</p></div>
+<a href="{link6}" target="_blank">
+<div class="card c6">
+<div class="card-icon">🚀</div>
+<div class="card-title">QR Generator</div>
+<div class="card-desc">
+Generate stylish QR codes with advanced functionality.
+</div>
+<div class="card-btn" onclick="startLoader(this)">
+<span class="btn-text">Open Portal →</span>
+<div class="loader"></div>
+</div>
+</div>
+</a>
 
 </div>
 """, unsafe_allow_html=True)
 
 # ================= TICKER =================
 st.markdown("""
+<div class="ticker-wrap">
 <div class="ticker">
-<div class="scroll">
-⚡ System Online • ACAG Updated • PMY Active • Recovery Live • AI Dashboard Running 🚀
+⚡ ACAG Batch 32 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
 </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ================= FOOTER =================
+# ================= STATS =================
 st.markdown("""
-<div class="footer">
-⚡ NEXUS CONTROL CENTER • Built with Streamlit • 2026
+<div class="stats">
+
+<div class="stat">
+<h1>06</h1>
+<p>Quick Services</p>
+</div>
+
+<div class="stat">
+<h1>24/7</h1>
+<p>Availability</p>
+</div>
+
+<div class="stat">
+<h1>99%</h1>
+<p>Fast Performance</p>
+</div>
+
+<div class="stat">
+<h1>⚡</h1>
+<p>Premium UI</p>
+</div>
+
 </div>
 """, unsafe_allow_html=True)

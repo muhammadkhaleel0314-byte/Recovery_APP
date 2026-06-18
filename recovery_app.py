@@ -1,17 +1,4 @@
 import streamlit as st
-Account Title
-
-Account Number
-
-Operational Region-1
-
-5009-79181446-55
-
- 
-
- 
-
-
 
 # ================= CONFIG =================
 st.set_page_config(

@@ -1,5 +1,6 @@
 import streamlit as st
-
+st.error("🚫 User Blocked")
+st.stop()
 # ================= CONFIG =================
 st.set_page_config(
     page_title="Neo Dashboard",

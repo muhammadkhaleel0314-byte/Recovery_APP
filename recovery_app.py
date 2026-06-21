@@ -1,4 +1,5 @@
 import streamlit as st
+
 # ================= CONFIG =================
 st.set_page_config(
     page_title="Neo Dashboard",
@@ -14,17 +15,17 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
+# ================= NEW LINK =================
+link7 = "https://script.google.com/macros/s/AKfycbyqGx-Ejpwd5WXC1a4LPlNOc5wHr58PQUXCJyGtVzrf1XMIhR0tpVzoeHtv3G3eYSNh9Q/exec"
+
 # ================= CSS =================
 st.markdown("""
 <style>
-
-/* ===== MAIN BACKGROUND ===== */
 .stApp {
     background: #050816;
     overflow-x:hidden;
 }
 
-/* ===== REMOVE STREAMLIT ===== */
 #MainMenu {visibility:hidden;}
 footer {visibility:hidden;}
 header {visibility:hidden;}
@@ -34,7 +35,6 @@ header {visibility:hidden;}
     max-width: 1500px;
 }
 
-/* ===== ANIMATED BACKGROUND ===== */
 .bg-animation {
     position: fixed;
     width: 100%;
@@ -81,7 +81,6 @@ header {visibility:hidden;}
     100%{transform:translateY(0px) rotate(360deg);}
 }
 
-/* ===== HERO ===== */
 .hero {
     position: relative;
     padding: 55px;
@@ -92,19 +91,6 @@ header {visibility:hidden;}
     backdrop-filter: blur(18px);
     box-shadow: 0 0 50px rgba(0,255,255,0.08);
     margin-bottom: 40px;
-}
-
-.hero::before {
-    content: '';
-    position: absolute;
-    width: 450px;
-    height: 450px;
-    background: linear-gradient(45deg,#00f0ff,#8b5cf6);
-    border-radius: 50%;
-    filter: blur(120px);
-    top: -200px;
-    right: -120px;
-    opacity:0.4;
 }
 
 .hero-title {
@@ -130,17 +116,14 @@ header {visibility:hidden;}
     background: linear-gradient(90deg,#00e5ff,#8b5cf6);
     color:white;
     font-weight:700;
-    box-shadow:0 10px 30px rgba(0,229,255,0.35);
 }
 
-/* ===== GRID ===== */
 .grid {
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
     gap:28px;
 }
 
-/* ===== CARD ===== */
 .card {
     position:relative;
     overflow:hidden;
@@ -157,18 +140,6 @@ header {visibility:hidden;}
 .card:hover {
     transform:translateY(-15px) scale(1.03);
     border:1px solid rgba(0,229,255,0.45);
-    box-shadow:0 20px 60px rgba(0,229,255,0.18);
-}
-
-.card::before {
-    content:'';
-    position:absolute;
-    width:180px;
-    height:180px;
-    background:rgba(255,255,255,0.08);
-    border-radius:50%;
-    top:-60px;
-    right:-60px;
 }
 
 .card-icon {
@@ -180,20 +151,16 @@ header {visibility:hidden;}
     justify-content:center;
     font-size:42px;
     margin-bottom:25px;
-    background: linear-gradient(145deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));
-    border:1px solid rgba(255,255,255,0.12);
 }
 
 .card-title {
     font-size:28px;
     font-weight:800;
     color:white;
-    margin-bottom:10px;
 }
 
 .card-desc {
     color:#d1d5db;
-    line-height:1.7;
     font-size:15px;
     margin-bottom:24px;
 }
@@ -203,149 +170,15 @@ header {visibility:hidden;}
     align-items:center;
     justify-content:center;
     gap:10px;
-
     padding:12px 24px;
     border-radius:16px;
     background:rgba(255,255,255,0.10);
     color:white;
     font-weight:700;
-    transition:0.3s ease;
-    position:relative;
 }
 
-.card:hover .card-btn {
-    background:white;
-    color:black;
-}
-
-/* ===== BUTTON SPINNER ===== */
-
-.loader{
-    width:16px;
-    height:16px;
-
-    border:2px solid rgba(255,255,255,0.4);
-    border-top:2px solid white;
-
-    border-radius:50%;
-
-    display:none;
-
-    animation:spin 0.7s linear infinite;
-}
-
-.loading .loader{
-    display:block;
-}
-
-.loading .btn-text{
-    opacity:0.7;
-}
-
-@keyframes spin{
-    100%{
-        transform:rotate(360deg);
-    }
-}
-
-/* ===== COLORS ===== */
-.c1{border-top:4px solid #00e5ff;}
-.c2{border-top:4px solid #f59e0b;}
-.c3{border-top:4px solid #8b5cf6;}
-.c4{border-top:4px solid #10b981;}
-.c5{border-top:4px solid #ec4899;}
-.c6{border-top:4px solid #ef4444;}
-
-/* ===== LINKS ===== */
-a {
-    text-decoration:none !important;
-}
-
-/* ===== TICKER ===== */
-.ticker-wrap {
-    margin-top:40px;
-    overflow:hidden;
-    border-radius:24px;
-    padding:18px 0;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(10px);
-}
-
-.ticker {
-    display:inline-block;
-    white-space:nowrap;
-    padding-left:100%;
-    animation:scroll 18s linear infinite;
-    font-size:20px;
-    font-weight:700;
-    color:#00e5ff;
-}
-
-@keyframes scroll {
-    0% {transform:translateX(0);}
-    100% {transform:translateX(-100%);}
-}
-
-/* ===== STATS ===== */
-.stats {
-    margin-top:35px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:22px;
-}
-
-.stat {
-    padding:30px;
-    border-radius:25px;
-    text-align:center;
-    background:rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(12px);
-}
-
-.stat h1 {
-    font-size:48px;
-    color:white;
-    margin:0;
-}
-
-.stat p {
-    color:#cbd5e1;
-    margin-top:8px;
-}
-
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-
-.hero {
-    padding:30px;
-}
-
-.hero-title {
-    font-size:42px;
-}
-
-.card-title {
-    font-size:24px;
-}
-
-}
-
+a {text-decoration:none !important;}
 </style>
-""", unsafe_allow_html=True)
-
-# ================= JS =================
-st.markdown("""
-<script>
-
-function startLoader(btn){
-
-    btn.classList.add("loading");
-
-}
-
-</script>
 """, unsafe_allow_html=True)
 
 # ================= BACKGROUND =================
@@ -360,19 +193,9 @@ st.markdown("""
 # ================= HERO =================
 st.markdown("""
 <div class="hero">
-
-<div class="hero-title">
-Neo Digital <br>Dashboard
-</div>
-
-<div class="hero-sub">
-Futuristic Premium UI • Glassmorphism • Smooth Neon Experience
-</div>
-
-<div class="hero-btn">
-⚡ SYSTEM ONLINE
-</div>
-
+<div class="hero-title">Neo Digital <br>Dashboard</div>
+<div class="hero-sub">Futuristic Premium UI • Glassmorphism • Smooth Neon Experience</div>
+<div class="hero-btn">⚡ SYSTEM ONLINE</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -381,86 +204,66 @@ st.markdown(f"""
 <div class="grid">
 
 <a href="{link1}" target="_blank">
-<div class="card c1">
+<div class="card">
 <div class="card-icon">📊</div>
 <div class="card-title">PMY Verify</div>
-<div class="card-desc">
-Advanced PMY verification system with secure instant access.
-</div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
-</div>
+<div class="card-desc">Advanced PMY verification system with secure instant access.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link2}" target="_blank">
-<div class="card c2">
+<div class="card">
 <div class="card-icon">🏦</div>
 <div class="card-title">BOP Account</div>
-<div class="card-desc">
-Manage banking details and services with smart access.
-</div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
-</div>
+<div class="card-desc">Manage banking details and services with smart access.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link3}" target="_blank">
-<div class="card c3">
+<div class="card">
 <div class="card-icon">📁</div>
 <div class="card-title">ACAG Batch</div>
-<div class="card-desc">
-Track and monitor latest ACAG batch processing data.
-</div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
-</div>
+<div class="card-desc">Track and monitor latest ACAG batch processing data.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link4}" target="_blank">
-<div class="card c4">
+<div class="card">
 <div class="card-icon">📲</div>
 <div class="card-title">PMY Apply</div>
-<div class="card-desc">
-Apply online and track PMY applications instantly.
-</div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
-</div>
+<div class="card-desc">Apply online and track PMY applications instantly.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link5}" target="_blank">
-<div class="card c5">
+<div class="card">
 <div class="card-icon">📝</div>
 <div class="card-title">ACAG Apply</div>
-<div class="card-desc">
-Smart ACAG application workflow with modern interface.
-</div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
-</div>
+<div class="card-desc">Smart ACAG application workflow with modern interface.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
 <a href="{link6}" target="_blank">
-<div class="card c6">
+<div class="card">
 <div class="card-icon">🚀</div>
 <div class="card-title">QR Generator</div>
-<div class="card-desc">
-Generate stylish QR codes with advanced functionality.
+<div class="card-desc">Generate stylish QR codes with advanced functionality.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
-<div class="card-btn" onclick="startLoader(this)">
-<span class="btn-text">Open Portal →</span>
-<div class="loader"></div>
-</div>
+</a>
+
+<!-- ================= NEW CARD ================= -->
+<a href="{link7}" target="_blank">
+<div class="card">
+<div class="card-icon">🔗</div>
+<div class="card-title">New Service</div>
+<div class="card-desc">Latest added service portal for quick access.</div>
+<div class="card-btn">Open Portal →</div>
 </div>
 </a>
 
@@ -479,26 +282,9 @@ st.markdown("""
 # ================= STATS =================
 st.markdown("""
 <div class="stats">
-
-<div class="stat">
-<h1>06</h1>
-<p>Quick Services</p>
-</div>
-
-<div class="stat">
-<h1>24/7</h1>
-<p>Availability</p>
-</div>
-
-<div class="stat">
-<h1>99%</h1>
-<p>Fast Performance</p>
-</div>
-
-<div class="stat">
-<h1>⚡</h1>
-<p>Premium UI</p>
-</div>
-
+<div class="stat"><h1>06</h1><p>Quick Services</p></div>
+<div class="stat"><h1>24/7</h1><p>Availability</p></div>
+<div class="stat"><h1>99%</h1><p>Fast Performance</p></div>
+<div class="stat"><h1>⚡</h1><p>Premium UI</p></div>
 </div>
 """, unsafe_allow_html=True)

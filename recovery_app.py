@@ -262,7 +262,7 @@ st.markdown(f"""
 <div class="card">
 <div class="card-icon">🔗</div>
 <div class="card-title">New Service</div>
-<div class="card-desc">Latest added service portal for quick access.</div>
+<div class="card-desc">Pmy Adress List Just enter city name and take list pdf.</div>
 <div class="card-btn">Open Portal →</div>
 </div>
 </a>

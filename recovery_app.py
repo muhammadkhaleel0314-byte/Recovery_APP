@@ -1,7 +1,7 @@
 import streamlit as st
 import streamlit as st
 
-st.error("🚫 User Blocked Ab Aram AAAAA")
+st.error("🚫 User Blocked Aur Kru Update Ya Nhi")
 st.stop()
 # ================= CONFIG =================
 st.set_page_config(

@@ -1,8 +1,5 @@
 import streamlit as st
-import streamlit as st
 
-st.error("🚫 User Blocked Aur Kru Update Ya Nhi")
-st.stop()
 # ================= CONFIG =================
 st.set_page_config(
     page_title="Neo Dashboard",
@@ -291,3 +288,7 @@ st.markdown("""
 <div class="stat"><h1>⚡</h1><p>Premium UI</p></div>
 </div>
 """, unsafe_allow_html=True)
+import streamlit as st
+
+st.error("🚫 User Blocked Aur Kru Update Ya Nhi")
+st.stop()

@@ -16,7 +16,7 @@ link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
 # ================= NEW LINK =================
-link7 = "https://script.google.com/macros/s/AKfycbyqGx-Ejpwd5WXC1a4LPlNOc5wHr58PQUXCJyGtVzrf1XMIhR0tpVzoeHtv3G3eYSNh9Q/exec"
+link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
 
 # ================= CSS =================
 st.markdown("""

@@ -288,7 +288,6 @@ st.markdown("""
 <div class="stat"><h1>⚡</h1><p>Premium UI</p></div>
 </div>
 """, unsafe_allow_html=True)
-import streamlit as st
 
 st.error("🚫 User Blocked Aur Kru Update Ya Nhi")
 st.stop()

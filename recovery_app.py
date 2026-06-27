@@ -1,7 +1,5 @@
 import streamlit as st
 
-st.error("🚫The app is not working due to heavy memory requirements.")
-st.stop()
 
 # ================= CONFIG =================
 st.set_page_config(

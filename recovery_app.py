@@ -1,5 +1,8 @@
 import streamlit as st
 
+st.error("🚫The app is not working due to heavy memory requirements.")
+st.stop()
+
 # ================= CONFIG =================
 st.set_page_config(
     page_title="Neo Dashboard",
@@ -289,5 +292,3 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-st.error("🚫 User Blocked Aur Kru Update Ya Nhi")
-st.stop()

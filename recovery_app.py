@@ -1,14 +1,4 @@
 import streamlit as st
-# ---------- USERS ----------
-USERS = {
-    "Khaleel": "11234",
-    "user": "1111"
-}
-
-# ---------- SESSION ----------
-if "login" not in st.session_state:
-    st.session_state.login = False
-
 # ---------- LOGIN PAGE ----------
 if not st.session_state.login:
 

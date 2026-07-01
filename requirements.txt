@@ -10,4 +10,3 @@ matplotlib
 pandas
 xlsxwriter
 boto3
-pip install streamlit-cookies-controller

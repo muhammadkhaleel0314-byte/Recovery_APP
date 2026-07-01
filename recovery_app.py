@@ -182,15 +182,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ================= HERO =================
-st.markdown("""
-<div class="hero">
-<div class="hero-title">Neo Digital <br>Dashboard</div>
-<div class="hero-sub">Futuristic Premium UI • Glassmorphism • Smooth Neon Experience</div>
-<div class="hero-btn">⚡ SYSTEM ONLINE</div>
-</div>
-""", unsafe_allow_html=True)
-
 # ================= CARDS =================
 st.markdown(f"""
 <div class="grid">

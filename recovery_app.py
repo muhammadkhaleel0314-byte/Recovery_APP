@@ -91,7 +91,7 @@ if not st.session_state.login:
             if USERS.get(user) == pwd:
                 st.session_state.login = True
                 st.success("Welcome back! Login successful ✔")
-                st.rerun()
+                st.experimental_rerun()
             else:
                 st.error("❌ Invalid username or password")
 

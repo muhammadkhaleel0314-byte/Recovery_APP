@@ -1,101 +1,133 @@
 import streamlit as st
-# ---------- USERS ----------
-USERS = {
-    "Khaleel": "11234",
-    "user": "1111"
-}
+import streamlit as st
 
-# ---------- SESSION ----------
-if "login" not in st.session_state:
-    st.session_state.login = False
+# Page Configuration (Fancy layout ke liye)
+st.set_page_config(
+    page_title="Modern Dashboard",
+    page_icon="🔒",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# ---------- LOGIN PAGE ----------
-if not st.session_state.login:
-
-    # Clean & Modern Dark UI Customization
-    st.markdown("""
+# Custom CSS for Fancy Styling
+st.markdown("""
     <style>
-    /* Full App Background */
-    [data-testid="stAppViewContainer"] {
-        background: radial-gradient(circle at center, #1e293b, #0f172a);
+    /* Main background color */
+    .stApp {
+        background-color: #0f172a;
+        color: #f8fafc;
     }
-    
-    /* Header & Labels Styling */
-    h2 {
-        color: #ffffff !important;
-        text-align: center;
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 25px;
+    /* Login card container */
+    .login-box {
+        background-color: #1e293b;
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        max-width: 450px;
+        margin: 50px auto;
+        border: 1px solid #334155;
     }
-    
-    label {
-        color: #94a3b8 !important;
-        font-weight: 500;
-        margin-bottom: 5px;
-    }
-    
-    /* Input Fields Styling */
-    .stTextInput div div input {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-        border: 1px solid #334155 !important;
-        border-radius: 8px !important;
-        padding: 10px 14px !important;
-    }
-    
-    .stTextInput div div input:focus {
-        border-color: #38bdf8 !important;
-        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
-    }
-
-    /* Primary Login Button */
-    .stButton>button {
-        background: linear-gradient(135deg, #38bdf8, #0284c7);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 20px;
-        font-weight: 600;
-        font-size: 16px;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
-        margin-top: 15px;
-    }
-
-    .stButton>button:hover {
-        background: linear-gradient(135deg, #0284c7, #0369a1);
-        box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
-        transform: translateY(-1px);
-    }
-    
-    .stButton>button:active {
-        transform: translateY(1px);
+    /* Custom Metric Cards */
+    .metric-card {
+        background-color: #1e293b;
+        padding: 20px;
+        border-radius: 10px;
+        border-left: 5px solid #3b82f6;
+        margin-bottom: 15px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    # Centering the login box using columns
-    col1, col2, col3 = st.columns([1, 1.8, 1])
+# Session State Initialize (Login track karne ke liye)
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
 
-    with col2:
-        st.markdown("## 🔐 Account Login")
+# --- LOGIN SCREEN ---
+if not st.session_state.logged_in:
+    st.markdown('<div class="login-box">', unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #3b82f6;'>🚀 Welcome Back</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #94a3b8;'>Login to access your premium dashboard</p>", unsafe_allow_html=True)
+    
+    # Input Fields
+    username = st.text_input("Username", placeholder="Enter your username")
+    password = st.text_input("Password", type="password", placeholder="Enter your password")
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Login Button
+    if st.button("Sign In", use_container_width=True):
+        if username == "admin" and password == "admin123":  # Yahan apna username/password set karein
+            st.session_state.logged_in = True
+            st.success("Success! Redirecting...")
+            st.rerun()  # Screen refresh karke dashboard par le jayega
+        else:
+            st.error("Invalid Username or Password")
+            
+    st.markdown('</div>', unsafe_allow_html=True)
 
-        user = st.text_input("Username", placeholder="Enter username...")
-        pwd = st.text_input("Password", type="password", placeholder="Enter password...")
+# --- FANCY DASHBOARD SCREEN ---
+else:
+    # Sidebar for Navigation & Logout
+    with st.sidebar:
+        st.markdown("<h2 style='color: #3b82f6;'>⚙️ Control Panel</h2>", unsafe_allow_html=True)
+        st.write(f"Logged in as: **Admin**")
+        
+        # Navigation Options
+        menu = st.radio("Navigation", ["📈 Overview", "📊 Analytics", "👤 Profile Settings"])
+        
+        st.markdown("---")
+        if st.button("🚪 Log Out", use_container_width=True):
+            st.session_state.logged_in = False
+            st.rerun()
 
-        login_btn = st.button("Sign In", use_container_width=True)
+    # Main Content Area based on Menu selection
+    if menu == "📈 Overview":
+        st.title("🌟 Executive Dashboard")
+        st.subheader("Welcome to your main control center.")
+        
+        # Fancy Metric Cards Layout
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown("""
+                <div class="metric-card">
+                    <p style="color: #94a3b8; margin:0;">Total Users</p>
+                    <h2 style="margin:0; color: #3b82f6;">1,420</h2>
+                    <span style="color: #10b981; font-size: 14px;">▲ +12% this week</span>
+                </div>
+            """, unsafe_allow_html=True)
+            
+        with col2:
+            st.markdown("""
+                <div class="metric-card" style="border-left-color: #10b981;">
+                    <p style="color: #94a3b8; margin:0;">Revenue Generated</p>
+                    <h2 style="margin:0; color: #10b981;">$12,450</h2>
+                    <span style="color: #10b981; font-size: 14px;">▲ +8% this month</span>
+                </div>
+            """, unsafe_allow_html=True)
+            
+        with col3:
+            st.markdown("""
+                <div class="metric-card" style="border-left-color: #f59e0b;">
+                    <p style="color: #94a3b8; margin:0;">Active Sessions</p>
+                    <h2 style="margin:0; color: #f59e0b;">342</h2>
+                    <span style="color: #ef4444; font-size: 14px;">▼ -3% compared to yesterday</span>
+                </div>
+            """, unsafe_allow_html=True)
 
-        if login_btn:
-            if USERS.get(user) == pwd:
-                st.session_state.login = True
-                st.success("Welcome back! Login successful ✔")
-                st.experimental_rerun()
-            else:
-                st.error("❌ Invalid username or password")
+        # Dashboard Sample Charts
+        st.markdown("### Recent Activities & Performance")
+        chart_data = [10, 20, 15, 40, 35, 50, 60]
+        st.line_chart(chart_data)
 
-    st.stop()
+    elif menu == "📊 Analytics":
+        st.title("📊 Detailed Analytics")
+        st.write("Yahan aap apna mazeed data, dataframes, ya charts display kar sakte hain.")
+        st.bar_chart([12, 45, 67, 23, 89])
+
+    elif menu == "👤 Profile Settings":
+        st.title("👤 Account Settings")
+        st.info("Manage your password, API keys, and notification preferences here.")
 # ================= LINKS =================
 link1 = "https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"

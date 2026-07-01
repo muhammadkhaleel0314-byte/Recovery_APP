@@ -9,10 +9,10 @@ st.set_page_config(
 )
 
 # ================= LINKS =================
-link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
-link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
-link4 = "https://pmybals.pmyp.gov.pk/"
-link5 = "https://acag.punjab.gov.pk/"
+link1 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
+link2 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
+link3 = "https://pmybals.pmyp.gov.pk/"
+link4 = "https://acag.punjab.gov.pk/"
 
 # ================= CSS =================
 st.markdown("""

@@ -162,11 +162,11 @@ header {visibility:hidden;}
     align-items:center;
     justify-content:center;
     gap:10px;
-    padding:12px 24px;
-    border-radius:16px;
+    padding:5px 10px;
+    border-radius:20px;
     background:rgba(255,255,255,0.10);
     color:white;
-    font-weight:700;
+    font-weight:200;
 }
 
 a {text-decoration:none !important;}

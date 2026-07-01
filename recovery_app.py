@@ -1,46 +1,96 @@
 import streamlit as st
+# ---------- USERS ----------
+USERS = {
+    "Khaleel": "11234",
+    "user": "1111"
+}
+
+# ---------- SESSION ----------
+if "login" not in st.session_state:
+    st.session_state.login = False
+
 # ---------- LOGIN PAGE ----------
 if not st.session_state.login:
 
+    # Clean & Modern Dark UI Customization
     st.markdown("""
     <style>
+    /* Full App Background */
     [data-testid="stAppViewContainer"] {
-        background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+        background: radial-gradient(circle at center, #1e293b, #0f172a);
     }
-
-    h2, label {
-        color: white !important;
+    
+    /* Header & Labels Styling */
+    h2 {
+        color: #ffffff !important;
         text-align: center;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        margin-bottom: 25px;
+    }
+    
+    label {
+        color: #94a3b8 !important;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    /* Input Fields Styling */
+    .stTextInput div div input {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #334155 !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+    }
+    
+    .stTextInput div div input:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
     }
 
+    /* Primary Login Button */
     .stButton>button {
-        background: #00c6ff;
+        background: linear-gradient(135deg, #38bdf8, #0284c7);
         color: white;
-        border-radius: 10px;
-        height: 40px;
-        font-weight: bold;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+        margin-top: 15px;
     }
 
     .stButton>button:hover {
-        background: #0072ff;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
+        transform: translateY(-1px);
+    }
+    
+    .stButton>button:active {
+        transform: translateY(1px);
     }
     </style>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1,2,1])
+    # Centering the login box using columns
+    col1, col2, col3 = st.columns([1, 1.8, 1])
 
     with col2:
-        st.markdown("## 🔐 Login")
+        st.markdown("## 🔐 Account Login")
 
-        user = st.text_input("Username")
-        pwd = st.text_input("Password", type="password")
+        user = st.text_input("Username", placeholder="Enter username...")
+        pwd = st.text_input("Password", type="password", placeholder="Enter password...")
 
-        login_btn = st.button("Login", use_container_width=True)
+        login_btn = st.button("Sign In", use_container_width=True)
 
         if login_btn:
             if USERS.get(user) == pwd:
                 st.session_state.login = True
-                st.success("Login successful ✔")
+                st.success("Welcome back! Login successful ✔")
                 st.rerun()
             else:
                 st.error("❌ Invalid username or password")

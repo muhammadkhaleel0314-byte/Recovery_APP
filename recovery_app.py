@@ -252,22 +252,3 @@ st.markdown(f"""
 
 </div>
 """, unsafe_allow_html=True)
-
-# ================= TICKER =================
-st.markdown("""
-<div class="ticker-wrap">
-<div class="ticker">
-⚡ ACAG Batch 32 Updated • PMY Services Active • Secure Dashboard Online • All Systems Operational 🚀
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-# ================= STATS =================
-st.markdown("""
-<div class="stats">
-<div class="stat"><h1>06</h1><p>Quick Services</p></div>
-<div class="stat"><h1>24/7</h1><p>Availability</p></div>
-<div class="stat"><h1>99%</h1><p>Fast Performance</p></div>
-<div class="stat"><h1>⚡</h1><p>Premium UI</p></div>
-</div>
-""", unsafe_allow_html=True)

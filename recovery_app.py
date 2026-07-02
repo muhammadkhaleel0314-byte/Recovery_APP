@@ -7,12 +7,13 @@ USERS = {
     "user": "1111"
 }
 
-# ---------- SERVER-WIDE GLOBAL TRACKER ----------
-# Yeh tareeqah Python ke system level par aik dictionary bana deta hai jo har device ke liye 100% same rehti hai
-if "GLOBAL_TRACKER" not in st.__dict__:
-    st.__dict__["GLOBAL_TRACKER"] = {}
+# ---------- MULTI-SERVER SECURE TRACKER ----------
+# Yeh function server ke caches_lock ko use karta hai jo sabhi devices ke liye 100% shared hota hai
+@st.cache_resource(ttl=None)
+def get_global_session_tracker():
+    return {}  # Format: {"username": "unique_session_id"}
 
-global_sessions = st.__dict__["GLOBAL_TRACKER"]
+global_sessions = get_global_session_tracker()
 
 # ---------- SESSION STATE INITIALIZATION ----------
 if "login" not in st.session_state:
@@ -24,10 +25,9 @@ if "session_id" not in st.session_state:
 
 # ---------- LOGIN CHECK FOR MULTI-DEVICE ----------
 if st.session_state.login:
-    # Check karein ke is user ki active session ID kya chal rahi hai server par
     current_allowed_session = global_sessions.get(st.session_state.username)
     
-    # Agar server par ID badal gayi hai (matlab kisi aur device ne login kar liya)
+    # Agar server ke global resource mein ID badal gayi hai
     if current_allowed_session != st.session_state.session_id:
         st.session_state.login = False
         st.session_state.username = None
@@ -45,7 +45,7 @@ if not st.session_state.login:
         if username_input in USERS and USERS[username_input] == password_input:
             unique_id = str(uuid.uuid4())
             
-            # Server ke main state mein naye login ki ID daal dein (Purani device ka patta saaf)
+            # Global dictionary ko update karein
             global_sessions[username_input] = unique_id
             
             st.session_state.login = True

@@ -1,101 +1,79 @@
 import streamlit as st
+import uuid
+
 # ---------- USERS ----------
 USERS = {
     "Khaleel": "11234",
     "user": "1111"
 }
 
-# ---------- SESSION ----------
+# ---------- GLOBAL ACTIVE SESSIONS ----------
+# Yeh function poore app (sabhi devices) ke liye aik hi dictionary share karega
+@st.cache_resource
+def get_active_sessions():
+    return {}  # Format: {"username": "unique_session_id"}
+
+active_sessions = get_active_sessions()
+
+# ---------- SESSION STATE INITIALIZATION ----------
 if "login" not in st.session_state:
     st.session_state.login = False
+if "username" not in st.session_state:
+    st.session_state.username = None
+if "session_id" not in st.session_state:
+    st.session_state.session_id = None
+
+# ---------- LOGIN CHECK FOR MULTI-DEVICE ----------
+# Agar user logged in hai, toh check karein ke kya kisi aur ne is username se login toh nahi kar liya
+if st.session_state.login:
+    current_active_session = active_sessions.get(st.session_state.username)
+    if current_active_session != st.session_state.session_id:
+        # Kisi aur device par login hone ki wajah se is device ko logout kar diya gaya
+        st.session_state.login = False
+        st.session_state.username = None
+        st.session_state.session_id = None
+        st.error("Aapka account kisi doosri device par login ho gaya hai. Aapko yahan se logout kar diya gaya hai.")
+        st.rerun()
 
 # ---------- LOGIN PAGE ----------
 if not st.session_state.login:
-
-    # Clean & Modern Dark UI Customization
-    st.markdown("""
-    <style>
-    /* Full App Background */
-    [data-testid="stAppViewContainer"] {
-        background: radial-gradient(circle at center, #1e293b, #0f172a);
-    }
+    st.subheader("Login")
+    username_input = st.text_input("Username")
+    password_input = st.text_input("Password", type="password")
     
-    /* Header & Labels Styling */
-    h2 {
-        color: #ffffff !important;
-        text-align: center;
-        font-family: 'Inter', sans-serif;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 25px;
-    }
+    if st.button("Login"):
+        if username_input in USERS and USERS[username_input] == password_input:
+            # Aik unique Session ID generate karein is device ke liye
+            unique_id = str(uuid.uuid4())
+            
+            # Global tracker mein save karein (yeh purane session ko overwrite kar dega)
+            active_sessions[username_input] = unique_id
+            
+            # Local session state update karein
+            st.session_state.login = True
+            st.session_state.username = username_input
+            st.session_state.session_id = unique_id
+            
+            st.success(f"Welcome {username_input}!")
+            st.rerun()
+        else:
+            st.error("Ghalat Username ya Password")
+
+# ---------- MAIN APP CONTENT ----------
+else:
+    st.title("Main Application")
+    st.write(f"Logged in as: {st.session_state.username}")
     
-    label {
-        color: #94a3b8 !important;
-        font-weight: 500;
-        margin-bottom: 5px;
-    }
-    
-    /* Input Fields Styling */
-    .stTextInput div div input {
-        background-color: #1e293b !important;
-        color: #ffffff !important;
-        border: 1px solid #334155 !important;
-        border-radius: 8px !important;
-        padding: 10px 14px !important;
-    }
-    
-    .stTextInput div div input:focus {
-        border-color: #38bdf8 !important;
-        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2) !important;
-    }
-
-    /* Primary Login Button */
-    .stButton>button {
-        background: linear-gradient(135deg, #38bdf8, #0284c7);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 20px;
-        font-weight: 600;
-        font-size: 16px;
-        transition: all 0.2s ease;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
-        margin-top: 15px;
-    }
-
-    .stButton>button:hover {
-        background: linear-gradient(135deg, #0284c7, #0369a1);
-        box-shadow: 0 6px 16px rgba(2, 132, 199, 0.4);
-        transform: translateY(-1px);
-    }
-    
-    .stButton>button:active {
-        transform: translateY(1px);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Centering the login box using columns
-    col1, col2, col3 = st.columns([1, 1.8, 1])
-
-    with col2:
-        st.markdown("## 🔐 Account Login")
-
-        user = st.text_input("Username", placeholder="Enter username...")
-        pwd = st.text_input("Password", type="password", placeholder="Enter password...")
-
-        login_btn = st.button("Sign In", use_container_width=True)
-
-        if login_btn:
-            if USERS.get(user) == pwd:
-                st.session_state.login = True
-                st.success("Welcome back! Login successful ✔")
-                st.experimental_rerun()
-            else:
-                st.error("❌ Invalid username or password")
-
-    st.stop()
+    if st.button("Logout"):
+        # Global tracker se remove karein
+        if st.session_state.username in active_sessions:
+            if active_sessions[st.session_state.username] == st.session_state.session_id:
+                del active_sessions[st.session_state.username]
+                
+        st.session_state.login = False
+        st.session_state.username = None
+        st.session_state.session_id = None
+        st.rerun()
 # ================= LINKS =================
 link1 = "https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"

@@ -28,17 +28,16 @@ if "kick_out" not in st.session_state:
 if st.session_state.login:
     current_allowed_session = global_sessions.get(st.session_state.username)
     
-    # Agar server par ID badal gayi hai (Kisi aur ne login kar liya)
+    # Agar doosri device ne login kar liya aur ID badal gayi
     if current_allowed_session != st.session_state.session_id:
         st.session_state.login = False
         st.session_state.username = None
         st.session_state.session_id = None
-        st.session_state.kick_out = True  # Kick out flag true karein
-        st.rerun()  # Pehli device ko furan refresh karke login page pr bhejna lazmi hai
+        st.session_state.kick_out = True  # Flag to show error message
+        st.rerun()  # Yeh pehli device ko furan logout screen par phenk dega
 
 # ---------- LOGIN PAGE ----------
 if not st.session_state.login:
-    # Agar user ko laat maar ke nikala gaya hai toh error dikhao
     if st.session_state.kick_out:
         st.error("Aapka account kisi doosri device par login ho gaya hai. Aapko yahan se logout kar diya gaya hai.")
         
@@ -50,15 +49,16 @@ if not st.session_state.login:
         if username_input in USERS and USERS[username_input] == password_input:
             unique_id = str(uuid.uuid4())
             
-            # Global tracker aur local session set karein
+            # Nayi device ki ID global tracker mein save karein
             global_sessions[username_input] = unique_id
+            
             st.session_state.login = True
             st.session_state.username = username_input
             st.session_state.session_id = unique_id
-            st.session_state.kick_out = False  # Reset flag
+            st.session_state.kick_out = False  # Reset kickout state
             
-            st.success(f"Welcome {username_input}!")
-            st.rerun()  # Naye login ke baad app refresh karna zaroori hai taake cards load hon
+            # Yeh rerun crash nahi karega kyunki yeh button ke dabaane par safely redirect kar raha hai
+            st.rerun()
         else:
             st.error("Ghalat Username ya Password")
 

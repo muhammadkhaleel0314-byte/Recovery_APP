@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # ================= LINKS =================
-link1 = "https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec"
+link1 = "url?id=1"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
 link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
@@ -150,7 +150,6 @@ st.markdown('<div class="main-subtitle">Secure, fast, and unified access to all 
 # ================= MODERN CARDS GRID =================
 st.markdown(f"""
 <div class="grid">
-    <!-- Card 1 -->
     <a href="{link1}" target="_blank">
         <div class="card">
             <div>
@@ -162,7 +161,6 @@ st.markdown(f"""
         </div>
     </a>
 
-    <!-- Card 2 -->
     <a href="{link2}" target="_blank">
         <div class="card">
             <div>
@@ -174,7 +172,6 @@ st.markdown(f"""
         </div>
     </a>
 
-    <!-- Card 3 -->
     <a href="{link3}" target="_blank">
         <div class="card">
             <div>
@@ -186,7 +183,6 @@ st.markdown(f"""
         </div>
     </a>
 
-    <!-- Card 4 -->
     <a href="{link4}" target="_blank">
         <div class="card">
             <div>
@@ -198,7 +194,6 @@ st.markdown(f"""
         </div>
     </a>
 
-    <!-- Card 5 -->
     <a href="{link5}" target="_blank">
         <div class="card">
             <div>
@@ -210,7 +205,6 @@ st.markdown(f"""
         </div>
     </a>
 
-    <!-- Card 6 -->
     <a href="{link6}" target="_blank">
         <div class="card">
             <div>
@@ -222,7 +216,6 @@ st.markdown(f"""
         </div>
     </a>
 
-    <!-- Card 7 -->
     <a href="{link7}" target="_blank">
         <div class="card">
             <div>

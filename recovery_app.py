@@ -7,12 +7,12 @@ USERS = {
     "user": "1111"
 }
 
-# ---------- GLOBAL ACTIVE SESSIONS ----------
-@st.cache_resource
-def get_active_sessions():
-    return {}  # Format: {"username": "unique_session_id"}
+# ---------- SERVER-WIDE GLOBAL TRACKER ----------
+# Yeh tareeqah Python ke system level par aik dictionary bana deta hai jo har device ke liye 100% same rehti hai
+if "GLOBAL_TRACKER" not in st.__dict__:
+    st.__dict__["GLOBAL_TRACKER"] = {}
 
-active_sessions = get_active_sessions()
+global_sessions = st.__dict__["GLOBAL_TRACKER"]
 
 # ---------- SESSION STATE INITIALIZATION ----------
 if "login" not in st.session_state:
@@ -24,8 +24,11 @@ if "session_id" not in st.session_state:
 
 # ---------- LOGIN CHECK FOR MULTI-DEVICE ----------
 if st.session_state.login:
-    current_active_session = active_sessions.get(st.session_state.username)
-    if current_active_session != st.session_state.session_id:
+    # Check karein ke is user ki active session ID kya chal rahi hai server par
+    current_allowed_session = global_sessions.get(st.session_state.username)
+    
+    # Agar server par ID badal gayi hai (matlab kisi aur device ne login kar liya)
+    if current_allowed_session != st.session_state.session_id:
         st.session_state.login = False
         st.session_state.username = None
         st.session_state.session_id = None
@@ -41,7 +44,9 @@ if not st.session_state.login:
     if st.button("Login"):
         if username_input in USERS and USERS[username_input] == password_input:
             unique_id = str(uuid.uuid4())
-            active_sessions[username_input] = unique_id
+            
+            # Server ke main state mein naye login ki ID daal dein (Purani device ka patta saaf)
+            global_sessions[username_input] = unique_id
             
             st.session_state.login = True
             st.session_state.username = username_input
@@ -52,15 +57,15 @@ if not st.session_state.login:
         else:
             st.error("Ghalat Username ya Password")
 
-# ---------- MAIN APP CONTENT (Ab sab kuch is else ke andar hai) ----------
+# ---------- MAIN APP CONTENT ----------
 else:
     st.title("Main Application")
     st.write(f"Logged in as: {st.session_state.username}")
     
     if st.button("Logout"):
-        if st.session_state.username in active_sessions:
-            if active_sessions[st.session_state.username] == st.session_state.session_id:
-                del active_sessions[st.session_state.username]
+        if st.session_state.username in global_sessions:
+            if global_sessions[st.session_state.username] == st.session_state.session_id:
+                del global_sessions[st.session_state.username]
                 
         st.session_state.login = False
         st.session_state.username = None

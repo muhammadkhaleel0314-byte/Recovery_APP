@@ -9,7 +9,7 @@ st.set_page_config(
 )
 
 # ================= LINKS =================
-link1 = "url?id=1"
+link1 = "https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
 link3 = "https://script.google.com/macros/s/AKfycbxP-tH7L2kN5w0ApiQfC7ZPzh0nZZGsO1-u7XcfPdx2C-nSyTHLasA2cv6eozXAujzGFw/exec"
 link4 = "https://pmybals.pmyp.gov.pk/"
@@ -20,7 +20,6 @@ link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ
 # ================= PREMIUM UI CSS =================
 st.markdown("""
 <style>
-/* Main Background & Core Reset */
 .stApp {
     background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
     overflow-x: hidden;
@@ -29,7 +28,6 @@ st.markdown("""
 #MainMenu, footer, header {visibility: hidden;}
 .block-container {padding-top: 2rem; max-width: 1400px;}
 
-/* Header Section styling */
 .main-title {
     text-align: center;
     font-size: 42px;
@@ -47,7 +45,6 @@ st.markdown("""
     margin-bottom: 50px;
 }
 
-/* Animated Floating Background Background Spheres */
 .bg-animation {position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; overflow: hidden;}
 .blur-sphere {position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15;}
 .sphere-1 {width: 400px; height: 400px; left: -10%; top: 10%; background: #00f2fe; animation: float 12s infinite ease-in-out;}
@@ -59,7 +56,6 @@ st.markdown("""
     100% { transform: translateY(0px) scale(1); }
 }
 
-/* Luxury Grid & Card Styling */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -87,7 +83,6 @@ st.markdown("""
     background: rgba(15, 23, 42, 0.65);
 }
 
-/* Card Elements */
 .card-icon {
     width: 65px;
     height: 65px;
@@ -130,7 +125,6 @@ st.markdown("""
     gap: 14px;
 }
 
-/* Base Link Reset */
 a { text-decoration: none !important; }
 </style>
 """, unsafe_allow_html=True)

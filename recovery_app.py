@@ -34,8 +34,6 @@ if st.session_state.login:
         st.session_state.username = None
         st.session_state.session_id = None
         st.session_state.kick_out = True  # Kick out flag true karein
-        st.invalidate_pages()  # Streamlit ke internal cache ko clear karne ke liye
-        st.rerun()
 
 # ---------- LOGIN PAGE ----------
 if not st.session_state.login:
@@ -59,12 +57,14 @@ if not st.session_state.login:
             st.session_state.kick_out = False  # Reset flag
             
             st.success(f"Welcome {username_input}!")
-            st.rerun()
+            # st.rerun() hata diya gaya hai, agli line par state handle hogi
+            st.info("Kiriya button dubara dabayein ya page auto-refresh ka intezar karein agar automatic open na ho.")
         else:
             st.error("Ghalat Username ya Password")
 
 # ---------- MAIN APP CONTENT ----------
-else:
+# Humne 'else' ke bajaye seedha 'if st.session_state.login:' check lagaya hai takay state furan update ho sake
+if st.session_state.login:
     st.title("Main Application")
     st.write(f"Logged in as: {st.session_state.username}")
     
@@ -77,7 +77,7 @@ else:
         st.session_state.username = None
         st.session_state.session_id = None
         st.session_state.kick_out = False
-        st.rerun()
+        # Logout par simple state change kafi hai, browser khud refresh ho jata hai
 
     # ================= LINKS =================
     link1 = "https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec"

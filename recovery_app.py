@@ -1,6 +1,6 @@
 import streamlit as st
 
-# ================= CODE INITIAL CONFIGURATION =================
+# ================= CODE INITIAL CONFIGURATION (MUST BE FIRST) =================
 st.set_page_config(
     page_title="Premium Link Portal",
     page_icon="🚀",

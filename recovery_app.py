@@ -8,8 +8,7 @@ USERS = {
 }
 
 # ---------- MULTI-SERVER SECURE TRACKER ----------
-# Yeh function server ke caches_lock ko use karta hai jo sabhi devices ke liye 100% shared hota hai
-@st.cache_resource(ttl=None)
+@st.cache_resource
 def get_global_session_tracker():
     return {}  # Format: {"username": "unique_session_id"}
 
@@ -22,35 +21,42 @@ if "username" not in st.session_state:
     st.session_state.username = None
 if "session_id" not in st.session_state:
     st.session_state.session_id = None
+if "kick_out" not in st.session_state:
+    st.session_state.kick_out = False
 
 # ---------- LOGIN CHECK FOR MULTI-DEVICE ----------
 if st.session_state.login:
     current_allowed_session = global_sessions.get(st.session_state.username)
     
-    # Agar server ke global resource mein ID badal gayi hai
+    # Agar server par ID badal gayi hai (Kisi aur ne login kar liya)
     if current_allowed_session != st.session_state.session_id:
         st.session_state.login = False
         st.session_state.username = None
         st.session_state.session_id = None
-        st.error("Aapka account kisi doosri device par login ho gaya hai. Aapko yahan se logout kar diya gaya hai.")
+        st.session_state.kick_out = True  # Kick out flag true karein
+        st.invalidate_pages()  # Streamlit ke internal cache ko clear karne ke liye
         st.rerun()
 
 # ---------- LOGIN PAGE ----------
 if not st.session_state.login:
+    # Agar user ko laat maar ke nikala gaya hai toh error dikhao
+    if st.session_state.kick_out:
+        st.error("Aapka account kisi doosri device par login ho gaya hai. Aapko yahan se logout kar diya gaya hai.")
+        
     st.subheader("Login")
-    username_input = st.text_input("Username")
-    password_input = st.text_input("Password", type="password")
+    username_input = st.text_input("Username", key="user_input_key")
+    password_input = st.text_input("Password", type="password", key="pass_input_key")
     
     if st.button("Login"):
         if username_input in USERS and USERS[username_input] == password_input:
             unique_id = str(uuid.uuid4())
             
-            # Global dictionary ko update karein
+            # Global tracker aur local session set karein
             global_sessions[username_input] = unique_id
-            
             st.session_state.login = True
             st.session_state.username = username_input
             st.session_state.session_id = unique_id
+            st.session_state.kick_out = False  # Reset flag
             
             st.success(f"Welcome {username_input}!")
             st.rerun()
@@ -70,6 +76,7 @@ else:
         st.session_state.login = False
         st.session_state.username = None
         st.session_state.session_id = None
+        st.session_state.kick_out = False
         st.rerun()
 
     # ================= LINKS =================

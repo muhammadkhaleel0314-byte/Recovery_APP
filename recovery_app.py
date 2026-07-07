@@ -1,7 +1,5 @@
 import streamlit as st
-import streamlit as st
 
-st.error("🚫Temparory Blocked")
 # ================= LINKS =================
 link1 = "https://script.google.com/macros/s/AKfycbytHXuAQ1_ps2by_3uatCoGkc_tcy5_YMQfSBMeMxw0ZrhSZlYjC8Wk_z8RgdwPTWqy/exec"
 link2 = "https://script.google.com/macros/s/AKfycbwvtLEuEivUZGCYylcrwnF9jjbwFT7gqlQEdsAASRCiJiNolICfIIrz5BzqaqTgtSqV/exec"
@@ -10,8 +8,9 @@ link4 = "https://pmybals.pmyp.gov.pk/"
 link5 = "https://acag.punjab.gov.pk/"
 link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
-# ================= NEW LINK =================
+# ================= NEW LINKS =================
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
+link8 = "https://script.google.com/macros/s/AKfycby7C-IRxq3gifYQi1nr5mYS2cd9R1PxM3baT1JY1J1HegA9BhZl_4cX93oIPmRHuKA/exec"
 
 # ================= CSS =================
 st.markdown("""
@@ -243,12 +242,21 @@ st.markdown(f"""
 </div>
 </a>
 
-<!-- ================= NEW CARD ================= -->
 <a href="{link7}" target="_blank">
 <div class="card">
 <div class="card-icon">🔗</div>
 <div class="card-title">New Service</div>
 <div class="card-desc">Pmy Adress List Just enter city name and take list pdf.</div>
+<div class="card-btn">Open Portal →</div>
+</div>
+</a>
+
+<!-- ================= LINK 8 CARD ================= -->
+<a href="{link8}" target="_blank">
+<div class="card">
+<div class="card-icon">🌐</div>
+<div class="card-title">New Portal</div>
+<div class="card-desc">Access additional services and features securely.</div>
 <div class="card-btn">Open Portal →</div>
 </div>
 </a>

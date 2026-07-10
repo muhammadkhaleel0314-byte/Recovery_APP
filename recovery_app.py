@@ -10,7 +10,7 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
 # ================= NEW LINKS =================
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
-link8 = "https://script.google.com/macros/s/AKfycbzp4CJK6Fh2lJDJM1Z_kXvcRcXBtW3T-Wk8gpeOgN9UJ-C3oscxUgzENZd0iKljYoXFiQ/exec"
+link8 = ""
 
 # ================= CSS =================
 st.markdown("""
@@ -255,7 +255,7 @@ st.markdown(f"""
 <a href="{link8}" target="_blank">
 <div class="card">
 <div class="card-icon">🌐</div>
-<div class="card-title">BOP ACAG ALL List</div>
+<div class="card-title"></div>
 <div class="card-desc">Access additional services and features securely.</div>
 <div class="card-btn">Open Portal →</div>
 </div>

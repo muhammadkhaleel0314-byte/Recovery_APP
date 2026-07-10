@@ -10,7 +10,7 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
 # ================= NEW LINKS =================
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
-link8 = "https://script.google.com/macros/s/AKfycby7C-IRxq3gifYQi1nr5mYS2cd9R1PxM3baT1JY1J1HegA9BhZl_4cX93oIPmRHuKA/exec"
+link8 = "https://script.google.com/macros/s/AKfycbzp4CJK6Fh2lJDJM1Z_kXvcRcXBtW3T-Wk8gpeOgN9UJ-C3oscxUgzENZd0iKljYoXFiQ/exec"
 
 # ================= CSS =================
 st.markdown("""

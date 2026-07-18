@@ -12,6 +12,22 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
 link8 = "#"
 
+# ================= AUDIO & JAVASCRIPT CONTROLLER =================
+# Yeh script har card click par bina kisi delay ke sound play karegi
+st.markdown("""
+<audio id="click-sound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" type="audio/wav">
+</audio>
+
+<script>
+function playSound() {
+    var sound = document.getElementById("click-sound");
+    sound.currentTime = 0;
+    sound.play();
+}
+</script>
+""", unsafe_allow_html=True)
+
 # ================= CSS (MINIMAL & FLAT THEME) =================
 st.markdown("""
 <style>
@@ -51,6 +67,7 @@ header {visibility:hidden;}
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    cursor: pointer;
 }
 
 /* Subtle Hover Effect */
@@ -97,11 +114,11 @@ a {text-decoration: none !important;}
 </style>
 """, unsafe_allow_html=True)
 
-# ================= CARDS =================
+# ================= CARDS WITH AUDIO TRIGGER =================
 st.markdown(f"""
 <div class="grid">
 
-<a href="{link1}" target="_blank">
+<a href="{link1}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">📊</div>
@@ -112,7 +129,7 @@ st.markdown(f"""
 </div>
 </a>
 
-<a href="{link2}" target="_blank">
+<a href="{link2}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">🏦</div>
@@ -123,7 +140,7 @@ st.markdown(f"""
 </div>
 </a>
 
-<a href="{link3}" target="_blank">
+<a href="{link3}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">📁</div>
@@ -134,7 +151,7 @@ st.markdown(f"""
 </div>
 </a>
 
-<a href="{link4}" target="_blank">
+<a href="{link4}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">📲</div>
@@ -145,7 +162,7 @@ st.markdown(f"""
 </div>
 </a>
 
-<a href="{link5}" target="_blank">
+<a href="{link5}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">📝</div>
@@ -156,7 +173,7 @@ st.markdown(f"""
 </div>
 </a>
 
-<a href="{link6}" target="_blank">
+<a href="{link6}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">🚀</div>
@@ -167,7 +184,7 @@ st.markdown(f"""
 </div>
 </a>
 
-<a href="{link7}" target="_blank">
+<a href="{link7}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">🔗</div>
@@ -179,7 +196,7 @@ st.markdown(f"""
 </a>
 
 <!-- ================= LINK 8 CARD ================= -->
-<a href="{link8}" target="_blank">
+<a href="{link8}" target="_blank" onclick="playSound()">
 <div class="card">
     <div>
         <div class="card-icon">🌐</div>

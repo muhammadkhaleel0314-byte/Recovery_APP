@@ -10,13 +10,14 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
 # ================= NEW LINKS =================
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
-link8 = "#"  # Link khali hone par reload rokne ke liye '#' lagaya hai
+link8 = "#"
 
-# ================= CSS =================
+# ================= CSS (NEW THEME) =================
 st.markdown("""
 <style>
 .stApp {
-    background: radial-gradient(circle at center, #0a1128 0%, #050816 100%);
+    /* Naya Luxury Indigo-Grey Dark Theme Background */
+    background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
     overflow-x: hidden;
     font-family: 'Inter', sans-serif;
 }
@@ -30,7 +31,7 @@ header {visibility:hidden;}
     max-width: 1400px;
 }
 
-/* Background Glowing Circles */
+/* New Glowing Abstract Shapes */
 .bg-animation {
     position: fixed;
     width: 100%;
@@ -44,105 +45,84 @@ header {visibility:hidden;}
 .circle {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px); /* Soft blur filter for beautiful glow */
-    animation: float 14s infinite ease-in-out;
+    filter: blur(120px); /* Soft deep glow */
+    animation: pulse 10s infinite ease-in-out;
 }
 
 .circle:nth-child(1){
-    width: 400px;
-    height: 400px;
-    left: -5%;
-    top: 10%;
-    background: rgba(0, 229, 255, 0.06);
+    width: 500px;
+    height: 500px;
+    left: -10%;
+    top: -10%;
+    background: rgba(99, 102, 241, 0.08); /* Indigo Glow */
 }
 
 .circle:nth-child(2){
-    width: 350px;
-    height: 350px;
-    right: -5%;
-    top: 30%;
-    background: rgba(139, 92, 246, 0.08);
+    width: 450px;
+    height: 450px;
+    right: -10%;
+    bottom: -10%;
+    background: rgba(236, 72, 153, 0.05); /* Pinkish Glow */
 }
 
-.circle:nth-child(3){
-    width: 300px;
-    height: 300px;
-    left: 40%;
-    bottom: 5%;
-    background: rgba(59, 130, 246, 0.06);
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
 }
 
-@keyframes float {
-    0% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-30px) scale(1.05); }
-    100% { transform: translateY(0px) scale(1); }
-}
-
-/* Cards Grid Layout */
+/* Grid Layout */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
+    gap: 25px;
     padding: 20px 0;
 }
 
-/* Premium Card Design */
+/* Minimalist Modern Sleek Cards */
 .card {
     position: relative;
     overflow: hidden;
-    padding: 30px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.03);
+    padding: 32px;
+    border-radius: 20px;
+    background: rgba(30, 41, 59, 0.4); /* Solid yet translucent dark grey */
     border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    min-height: 250px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.3s ease-in-out;
+    min-height: 260px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .card:hover {
-    transform: translateY(-10px);
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    box-shadow: 0 30px 60px rgba(0, 229, 255, 0.1);
+    transform: translateY(-5px);
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(99, 102, 241, 0.4); /* Indigo border on hover */
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.15);
 }
 
-/* Smooth color shift on hover for elements inside the card */
-.card:hover .card-title {
-    background: linear-gradient(to right, #ffffff, #00e5ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.card:hover .card-btn {
-    background: linear-gradient(90deg, #00e5ff, #8b5cf6);
-    color: white;
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
-}
-
+/* Icon Box Upgrade */
 .card-icon {
-    width: 65px;
-    height: 65px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.05);
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 28px;
+    margin-bottom: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .card-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
-    color: white;
-    margin-bottom: 8px;
-    transition: all 0.3s ease;
+    color: #f8fafc;
+    margin-bottom: 10px;
 }
 
 .card-desc {
@@ -152,19 +132,28 @@ header {visibility:hidden;}
     margin-bottom: 20px;
 }
 
+/* Sleek Pill Button */
 .card-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 20px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #cbd5e1;
-    font-size: 14px;
+    padding: 10px 22px;
+    border-radius: 50px; /* Full Rounded Pill Shape */
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+    font-size: 13px;
     font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
     align-self: flex-start;
+}
+
+.card:hover .card-btn {
+    background: #6366f1; /* Indigo filled button on hover */
+    color: white;
+    border-color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 a {text-decoration: none !important;}
@@ -174,7 +163,6 @@ a {text-decoration: none !important;}
 # ================= BACKGROUND =================
 st.markdown("""
 <div class="bg-animation">
-    <div class="circle"></div>
     <div class="circle"></div>
     <div class="circle"></div>
 </div>

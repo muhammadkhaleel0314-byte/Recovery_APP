@@ -12,13 +12,13 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
 link8 = "#"
 
-# ================= CSS (LUXURY AURORA THEME) =================
+# ================= CSS (CYBER-GRID MINI THEME) =================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600&display=swap');
 
 .stApp {
-    background: #020205;
+    background: #080710;
     overflow-x: hidden;
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
@@ -32,55 +32,26 @@ header {visibility:hidden;}
     max-width: 1400px;
 }
 
-/* Luxury Aurora Animated Background */
+/* Abstract Tech Background */
 .bg-animation {
     position: fixed;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     top: 0;
     left: 0;
     z-index: -1;
     overflow: hidden;
-    background: #040209;
+    background: radial-gradient(circle at 80% 20%, #151032 0%, #080710 100%);
 }
 
-.aurora {
+.mesh-glow {
     position: absolute;
-    width: 800px;
-    height: 800px;
-    border-radius: 50%;
-    filter: blur(160px);
-    opacity: 0.35;
-    mix-blend-mode: screen;
-    animation: aurora-move 25s infinite alternate ease-in-out;
-}
-
-.aurora-1 {
-    top: -20%;
-    left: -10%;
-    background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
-}
-
-.aurora-2 {
-    bottom: -20%;
-    right: -10%;
-    background: radial-gradient(circle, #059669 0%, transparent 70%);
-    animation-delay: -5s;
-}
-
-.aurora-3 {
-    top: 40%;
-    left: 50%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, #db2777 0%, transparent 70%);
-    animation-delay: -10s;
-}
-
-@keyframes aurora-move {
-    0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
-    50% { transform: translate(80px, 50px) scale(1.15) rotate(180deg); }
-    100% { transform: translate(-40px, 90px) scale(0.9) rotate(360deg); }
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    top: 20%;
+    left: 20%;
+    filter: blur(120px);
 }
 
 /* Grid Layout */
@@ -91,98 +62,82 @@ header {visibility:hidden;}
     padding: 20px 0;
 }
 
-/* Premium Matte Glass Cards */
+/* Cyber-Minimalist Card */
 .card {
     position: relative;
     padding: 35px 30px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    min-height: 265px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 260px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
-/* Card Hover Unique Interaction */
+/* Sleek Hover Effect */
 .card:hover {
-    transform: translateY(-8px) scale(1.01);
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 
-                0 0 40px rgba(124, 58, 237, 0.15);
+    transform: scale(1.02);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25);
 }
 
-.card:hover .card-title {
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-}
-
-/* Minimalist Icon Base */
 .card-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: rgba(99, 102, 241, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 24px;
     margin-bottom: 25px;
-    transition: all 0.4s ease;
+    color: #8b5cf6;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    transition: transform 0.3s ease;
 }
 
 .card:hover .card-icon {
-    background: #ffffff;
-    transform: scale(1.05);
-    box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
+    transform: rotate(-5deg) scale(1.1);
+    background: #6366f1;
+    color: white;
 }
 
-/* Titles & Text styling */
 .card-title {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 23px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
     font-weight: 700;
-    color: #e2e8f0;
+    color: #ffffff;
     margin-bottom: 10px;
-    letter-spacing: -0.3px;
-    transition: all 0.3s ease;
+    letter-spacing: -0.5px;
 }
 
 .card-desc {
-    color: #94a3b8;
+    color: #9ca3af;
     font-size: 14px;
     line-height: 1.6;
     margin-bottom: 25px;
 }
 
-/* Border Glow Style Button */
+/* Minimal Text Button */
 .card-btn {
+    font-family: 'Space Grotesk', sans-serif;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    padding: 11px 22px;
-    border-radius: 14px;
-    background: transparent;
-    color: #ffffff;
-    font-size: 13px;
+    color: #a5b4fc;
+    font-size: 14px;
     font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-    align-self: flex-start;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .card:hover .card-btn {
-    background: #ffffff;
-    color: #020205;
-    border-color: #ffffff;
-    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    transform: translateX(5px);
 }
 
 a {text-decoration: none !important;}
@@ -192,9 +147,7 @@ a {text-decoration: none !important;}
 # ================= BACKGROUND =================
 st.markdown("""
 <div class="bg-animation">
-    <div class="aurora aurora-1"></div>
-    <div class="aurora aurora-2"></div>
-    <div class="aurora aurora-3"></div>
+    <div class="mesh-glow"></div>
 </div>
 """, unsafe_allow_html=True)
 

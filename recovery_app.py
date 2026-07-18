@@ -12,15 +12,15 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
 link8 = "#"
 
-# ================= CSS (CYBER-GRID MINI THEME) =================
+# ================= CSS (MINIMAL & FLAT THEME) =================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Plus+Jakarta+Sans:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .stApp {
-    background: #080710;
+    background: linear-gradient(180deg, #0b0f19 0%, #06080c 100%);
     overflow-x: hidden;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 #MainMenu {visibility:hidden;}
@@ -28,127 +28,73 @@ footer {visibility:hidden;}
 header {visibility:hidden;}
 
 .block-container {
-    padding-top: 4rem;
+    padding-top: 3rem;
     max-width: 1400px;
 }
 
-/* Abstract Tech Background */
-.bg-animation {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    overflow: hidden;
-    background: radial-gradient(circle at 80% 20%, #151032 0%, #080710 100%);
-}
-
-.mesh-glow {
-    position: absolute;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
-    top: 20%;
-    left: 20%;
-    filter: blur(120px);
-}
-
-/* Grid Layout */
+/* Responsive Clean Grid */
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-    gap: 30px;
+    gap: 24px;
     padding: 20px 0;
 }
 
-/* Cyber-Minimalist Card */
+/* Minimal Flat Card */
 .card {
-    position: relative;
-    padding: 35px 30px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.03);
+    padding: 30px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 260px;
+    transition: all 0.25s ease-in-out;
+    min-height: 240px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-/* Sleek Hover Effect */
+/* Subtle Hover Effect */
 .card:hover {
-    transform: scale(1.02);
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(99, 102, 241, 0.5);
-    box-shadow: 0 25px 50px -12px rgba(99, 102, 241, 0.25);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
 }
 
 .card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    background: rgba(99, 102, 241, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin-bottom: 25px;
-    color: #8b5cf6;
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    transition: transform 0.3s ease;
-}
-
-.card:hover .card-icon {
-    transform: rotate(-5deg) scale(1.1);
-    background: #6366f1;
-    color: white;
+    font-size: 28px;
+    margin-bottom: 16px;
 }
 
 .card-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 600;
     color: #ffffff;
-    margin-bottom: 10px;
-    letter-spacing: -0.5px;
+    margin-bottom: 8px;
 }
 
 .card-desc {
-    color: #9ca3af;
+    color: #94a3b8;
     font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 25px;
+    line-height: 1.5;
+    margin-bottom: 20px;
 }
 
-/* Minimal Text Button */
+/* Simple Clean Link Button */
 .card-btn {
-    font-family: 'Space Grotesk', sans-serif;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: #a5b4fc;
+    color: #38bdf8;
     font-size: 14px;
-    font-weight: 600;
-    transition: color 0.3s ease, transform 0.3s ease;
+    font-weight: 500;
+    transition: color 0.2s ease;
 }
 
 .card:hover .card-btn {
     color: #ffffff;
-    transform: translateX(5px);
 }
 
 a {text-decoration: none !important;}
 </style>
-""", unsafe_allow_html=True)
-
-# ================= BACKGROUND =================
-st.markdown("""
-<div class="bg-animation">
-    <div class="mesh-glow"></div>
-</div>
 """, unsafe_allow_html=True)
 
 # ================= CARDS =================

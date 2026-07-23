@@ -10,7 +10,7 @@ link6 = "https://recoveryapp-5vokdvlcfqwfefeey26nac.streamlit.app/"
 
 # ================= NEW LINKS =================
 link7 = "https://script.google.com/macros/s/AKfycbxV3wH_XQL4tjXY20kVgJs80zW3P4zQ1bVsZDbSiS74YM6afkPZk2FoWAM9QVPQOfsUCQ/exec"
-link8 = "#"
+link8 = "https://script.google.com/macros/s/AKfycby0KPJpLMZRefof7j36uPISPxNeuUzG6SvsPg1UoS0Y5yGSmUcXJScwqj0M4YH0xg6q/exec"
 
 # ================= AUDIO & JAVASCRIPT CONTROLLER =================
 # Yeh script har card click par bina kisi delay ke sound play karegi
@@ -200,10 +200,10 @@ st.markdown(f"""
 <div class="card">
     <div>
         <div class="card-icon">🌐</div>
-        <div class="card-title">More Features</div>
-        <div class="card-desc">Access additional upcoming services and features securely.</div>
+        <div class="card-title">Bop Verify List</div>
+        <div class="card-desc">Access additional and features securely.</div>
     </div>
-    <div class="card-btn">Coming Soon →</div>
+    <div class="card-btn">→</div>
 </div>
 </a>
 

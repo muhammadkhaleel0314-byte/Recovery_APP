@@ -203,7 +203,7 @@ st.markdown(f"""
         <div class="card-title">Bop Verify List</div>
         <div class="card-desc">Access additional and features securely.</div>
     </div>
-    <div class="card-btn">→</div>
+    <div class="card-btn">Open Portal→</div>
 </div>
 </a>
 
